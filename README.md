@@ -1,2 +1,2 @@
-# proyecto-hackerhouse
-Empezamos a crear el proyecto para la hacker house
+# pkg-recover
+Un sitio donde los paquetes perdidos ya lo dejan de ser
