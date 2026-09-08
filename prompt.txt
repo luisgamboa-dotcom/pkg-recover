@@ -1,0 +1,1069 @@
+Necesito que desarrolles una plataforma web completa para un proyecto denominado:
+
+"Plataforma de recuperación de paquetes"
+
+IMPORTANTE:
+Existe un proyecto de diseño realizado previamente en Google Stitch llamado exactamente:
+
+"Plataforma de recuperacion de paquetes"
+
+Debes utilizar ese proyecto de Google Stitch como referencia principal para determinar la estructura visual, páginas, componentes, información mostrada, campos utilizados, flujos de navegación y datos que requiere la interfaz.
+
+También existe un archivo de texto que contiene las funcionalidades y requerimientos funcionales de la plataforma.
+
+NO vuelvas a enumerar ni inventar las funcionalidades descritas en ese archivo. Considera esas funcionalidades simplemente como:
+
+"las funcionalidades definidas previamente en este archivo"
+
+Debes implementar esas funcionalidades y asegurarte de que la base de datos pueda soportarlas.
+
+==================================================
+1. OBJETIVO GENERAL
+==================================================
+
+Construir una plataforma web para la recuperación del valor económico de paquetes extraviados o no reclamados.
+
+La plataforma permitirá administrar los paquetes recibidos, clasificar sus productos, publicarlos para su comercialización, gestionar compradores, revendedores, empresas proveedoras, inventario, ventas, pagos, despachos y demás procesos necesarios.
+
+La plataforma debe estar conectada a Supabase y utilizar una base de datos PostgreSQL correctamente estructurada.
+
+==================================================
+2. FUENTES QUE DEBES UTILIZAR
+==================================================
+
+Debes combinar obligatoriamente estas tres fuentes:
+
+1. El proyecto de Google Stitch:
+   "Plataforma de recuperacion de paquetes"
+
+2. El archivo actual que contiene:
+   "las funcionalidades definidas previamente en este archivo"
+
+3. El modelo preliminar de base de datos proporcionado como referencia.
+
+NO debes asumir que el modelo preliminar está correctamente diseñado.
+
+El modelo preliminar debe ser revisado, corregido y ampliado según las necesidades reales de la plataforma.
+
+Si existe una diferencia entre el modelo preliminar y los datos que necesita la interfaz de Google Stitch, debes modificar la base de datos para que pueda almacenar correctamente todos los datos requeridos por la interfaz.
+
+La interfaz de Google Stitch debe considerarse una fuente importante para determinar qué información necesita almacenar el sistema.
+
+==================================================
+3. MODELO PRELIMINAR DE BASE DE DATOS
+==================================================
+
+El modelo inicial contiene aproximadamente las siguientes entidades:
+
+- client_types
+- users
+- categories
+- packages
+- locations
+- stores
+- payment_methods
+- seals
+- seal_details
+
+El modelo preliminar contiene relaciones entre usuarios, paquetes, categorías, tiendas, ubicaciones y ventas.
+
+Este modelo es solamente una versión temprana y NO debe copiarse directamente.
+
+Debes analizarlo y rediseñarlo aplicando normalización y buenas prácticas de diseño de bases de datos.
+
+==================================================
+4. NORMALIZACIÓN
+==================================================
+
+La base de datos debe cumplir correctamente con:
+
+- Primera Forma Normal (1NF)
+- Segunda Forma Normal (2NF)
+- Tercera Forma Normal (3NF)
+
+Debes revisar cada tabla para garantizar que:
+
+1NF:
+- Cada atributo almacene un único valor.
+- No existan grupos repetitivos.
+- No existan columnas que almacenen múltiples valores.
+
+2NF:
+- Todos los atributos no clave dependan completamente de la clave primaria.
+- Las tablas con claves compuestas no deben contener atributos que dependan solamente de una parte de la clave.
+
+3NF:
+- Los atributos no clave deben depender únicamente de la clave primaria.
+- No deben existir dependencias transitivas innecesarias.
+
+Evita almacenar información duplicada cuando pueda representarse mediante relaciones entre tablas.
+
+==================================================
+5. RELACIONES N:M
+==================================================
+
+Debes identificar todas las relaciones muchos-a-muchos existentes o necesarias.
+
+En particular, debe resolverse correctamente la relación:
+
+CATEGORÍAS <-> PAQUETES/PRODUCTOS
+
+NO debes almacenar múltiples categorías dentro de una sola columna de la tabla de productos o paquetes.
+
+Debes crear una tabla intermedia para representar esta relación.
+
+La tabla intermedia debe:
+
+- Tener una clave primaria adecuada.
+- Contener las claves foráneas correspondientes.
+- Impedir asociaciones duplicadas.
+- Tener restricciones de integridad referencial.
+
+También debes revisar el resto del modelo para detectar otras relaciones N:M que deban resolverse mediante tablas intermedias.
+
+==================================================
+6. NOMENCLATURA
+==================================================
+
+Debes reemplazar los nombres ambiguos, poco descriptivos o incorrectos del modelo preliminar.
+
+Utiliza nombres claros, consistentes y descriptivos.
+
+Preferentemente:
+
+- snake_case
+- nombres en inglés para tablas y columnas
+- nombres completos en lugar de abreviaciones ambiguas
+- nombres que indiquen claramente el propósito del dato
+
+Ejemplos conceptuales:
+
+"users" puede mantenerse si representa correctamente a los usuarios del sistema.
+
+"seals" NO debe utilizarse si realmente representa ventas. Debe utilizarse un nombre descriptivo como "sales".
+
+"seal_details" debe reemplazarse por un nombre que describa correctamente el detalle de una venta.
+
+"content_name" debe reemplazarse por un nombre que indique exactamente qué representa.
+
+"date_given" debe reemplazarse por un nombre que indique claramente qué fecha representa.
+
+"available" debe evitarse si su significado puede confundirse con el stock.
+
+No cambies nombres arbitrariamente: determina primero qué representa realmente cada atributo.
+
+==================================================
+7. DIFERENCIAR PAQUETE, PRODUCTO, LOTE Y VENTA
+==================================================
+
+Debes analizar cuidadosamente esta parte del modelo preliminar.
+
+Actualmente existe una entidad llamada "packages" que contiene información como:
+
+- nombre del contenido
+- descripción
+- número de serie
+- precio
+- stock
+- estado
+- disponibilidad
+
+Debes determinar si conceptualmente esa entidad representa:
+
+- un paquete físico recibido,
+- un producto extraído de un paquete,
+- un lote,
+- o una publicación comercial.
+
+No mezcles diferentes conceptos en una misma tabla si eso viola la normalización o dificulta el funcionamiento del sistema.
+
+La base de datos debe permitir distinguir adecuadamente:
+
+- paquete recibido;
+- producto contenido;
+- producto publicado;
+- inventario;
+- lote cuando corresponda;
+- venta;
+- detalle de venta.
+
+La solución debe basarse en el funcionamiento real de la plataforma y en los datos que necesita Google Stitch.
+
+==================================================
+8. USUARIOS Y ROLES
+==================================================
+
+La plataforma contempla distintos tipos de usuarios.
+
+Como mínimo deben poder distinguirse:
+
+- Cliente particular
+- Revendedor
+- Empresa proveedora
+- Administrador
+
+La estructura debe permitir controlar qué información y operaciones corresponden a cada tipo de usuario.
+
+IMPORTANTE:
+
+Si utilizas Supabase Auth, NO almacenes contraseñas directamente en una tabla propia de usuarios.
+
+Utiliza correctamente:
+
+- auth.users de Supabase para autenticación;
+- una tabla de perfiles propia para la información adicional del usuario.
+
+La relación entre el usuario autenticado y su perfil debe estar correctamente establecida.
+
+==================================================
+9. EMPRESAS PROVEEDORAS
+==================================================
+
+La plataforma contempla empresas que pueden proporcionar paquetes extraviados o no reclamados.
+
+La base de datos debe permitir almacenar la información necesaria de dichas empresas.
+
+Debes determinar, a partir del diseño de Google Stitch y las funcionalidades previamente definidas, qué información necesita almacenar una empresa.
+
+Evita almacenar información empresarial directamente dentro de la tabla de usuarios si corresponde a una entidad independiente.
+
+Si una empresa puede tener múltiples usuarios asociados, representa correctamente esa relación.
+
+==================================================
+10. DIRECCIONES Y UBICACIONES
+==================================================
+
+El modelo preliminar contiene una tabla "locations".
+
+Debes analizar si esta tabla representa:
+
+- una dirección de usuario;
+- una dirección de despacho;
+- una ubicación de tienda;
+- una ubicación empresarial;
+- u otro concepto.
+
+No mezcles diferentes tipos de ubicación si requieren relaciones diferentes.
+
+La base de datos debe permitir almacenar correctamente las direcciones requeridas por la plataforma y asociarlas con las entidades correspondientes.
+
+==================================================
+11. INVENTARIO
+==================================================
+
+La base de datos debe permitir administrar correctamente el inventario.
+
+Debe poder determinarse:
+
+- qué producto existe;
+- cuántas unidades existen;
+- dónde se encuentra;
+- cuándo ingresó;
+- cuándo fue vendido;
+- cuándo dejó de estar disponible;
+- de qué paquete/lote proviene cuando corresponda.
+
+Evita almacenar información derivada innecesariamente si puede calcularse mediante relaciones o consultas.
+
+==================================================
+12. CATEGORÍAS
+==================================================
+
+Las categorías deben ser entidades independientes.
+
+Cada categoría debe poder almacenar la información que realmente requiere la interfaz de Google Stitch.
+
+Debe existir una relación correctamente normalizada entre categorías y productos.
+
+Si un producto puede pertenecer a múltiples categorías, debe existir una tabla intermedia.
+
+==================================================
+13. VENTAS
+==================================================
+
+La estructura de ventas debe diferenciar claramente:
+
+- información general de la venta;
+- cliente;
+- fecha;
+- estado;
+- método de pago;
+- dirección de despacho;
+- total;
+- productos vendidos;
+- cantidades;
+- precio de cada producto al momento de la venta.
+
+No almacenes todos los productos de una venta dentro de una única columna.
+
+Utiliza una estructura de:
+
+venta
++
+detalle de venta
+
+El precio almacenado en el detalle debe permitir conservar el precio histórico utilizado en el momento de la compra.
+
+==================================================
+14. MÉTODOS DE PAGO
+==================================================
+
+Los métodos de pago deben ser entidades independientes cuando corresponda.
+
+La base de datos debe permitir relacionar una venta con su método de pago.
+
+Determina los atributos necesarios a partir del diseño de Google Stitch y de las funcionalidades existentes.
+
+NO almacenes información sensible de tarjetas bancarias.
+
+==================================================
+15. DESPACHOS
+==================================================
+
+La plataforma contempla la gestión y seguimiento de pedidos.
+
+La base de datos debe poder almacenar la información necesaria para:
+
+- despacho;
+- dirección;
+- empresa de transporte;
+- número de seguimiento;
+- estado;
+- fechas relevantes;
+- relación con el pedido.
+
+Si el diseño de Google Stitch muestra información específica relacionada con el seguimiento, debe existir una estructura adecuada para almacenarla.
+
+==================================================
+16. FAVORITOS, NOTIFICACIONES, RESEÑAS Y SOPORTE
+==================================================
+
+Revisa el proyecto de Google Stitch y las funcionalidades previamente definidas en este archivo.
+
+Si la interfaz necesita almacenar:
+
+- favoritos;
+- notificaciones;
+- reseñas;
+- calificaciones;
+- solicitudes de soporte;
+- mensajes;
+- historial de interacciones;
+
+deben existir las entidades y relaciones necesarias.
+
+Las relaciones entre usuarios y productos deben estar correctamente normalizadas.
+
+Por ejemplo, un usuario puede tener múltiples favoritos y un producto puede estar marcado como favorito por múltiples usuarios.
+
+==================================================
+17. IMÁGENES Y ARCHIVOS
+==================================================
+
+Revisa el proyecto de Google Stitch para determinar qué imágenes y archivos requiere la plataforma.
+
+La base de datos no debe almacenar archivos binarios directamente salvo que exista una razón específica.
+
+Si se utiliza Supabase Storage, almacena en la base de datos las referencias necesarias para localizar los archivos.
+
+Las imágenes de productos deben poder relacionarse con el producto correspondiente.
+
+==================================================
+18. PROMOCIONES Y OFERTAS
+==================================================
+
+Si el diseño de Google Stitch requiere mostrar:
+
+- descuentos;
+- precios anteriores;
+- promociones;
+- ofertas;
+- productos destacados;
+
+la estructura de datos debe poder soportarlo correctamente.
+
+Evita almacenar información de promociones como texto no estructurado dentro de productos.
+
+==================================================
+19. PANEL ADMINISTRATIVO
+==================================================
+
+La base de datos debe proporcionar las estructuras necesarias para que el administrador pueda gestionar la información utilizada por la plataforma.
+
+Esto incluye la información necesaria para las funcionalidades previamente definidas en este archivo.
+
+No agregues funcionalidades nuevas únicamente porque podrían resultar interesantes.
+
+La base de datos debe responder a las necesidades reales del proyecto, del archivo de funcionalidades y del diseño de Google Stitch.
+
+==================================================
+20. INTEGRIDAD DE DATOS
+==================================================
+
+Implementa correctamente:
+
+- PRIMARY KEY
+- FOREIGN KEY
+- UNIQUE
+- NOT NULL cuando corresponda
+- CHECK constraints cuando sean necesarias
+- DEFAULT values cuando sean apropiados
+- ON DELETE y ON UPDATE adecuados
+
+Evita permitir:
+
+- registros huérfanos;
+- duplicados innecesarios;
+- cantidades negativas;
+- precios inválidos;
+- estados inválidos;
+- relaciones inexistentes.
+
+==================================================
+21. FECHAS Y AUDITORÍA
+==================================================
+
+Las entidades importantes deben contemplar campos de auditoría cuando sean necesarios, como:
+
+- created_at
+- updated_at
+
+Utiliza timestamps apropiados para Supabase/PostgreSQL.
+
+No agregues campos de auditoría indiscriminadamente si no aportan valor.
+
+==================================================
+22. ÍNDICES
+==================================================
+
+Debes crear índices para las columnas que realmente serán utilizadas frecuentemente en:
+
+- búsquedas;
+- filtros;
+- relaciones;
+- consultas de inventario;
+- pedidos;
+- usuarios;
+- productos;
+- categorías.
+
+No generes índices innecesarios.
+
+==================================================
+23. SUPABASE
+==================================================
+
+La base de datos debe implementarse específicamente para PostgreSQL/Supabase.
+
+Debes considerar:
+
+- Supabase Auth;
+- Supabase Database;
+- Supabase Storage cuando sea necesario;
+- Row Level Security (RLS);
+- políticas de acceso;
+- relaciones mediante foreign keys;
+- funciones o triggers únicamente cuando sean necesarios.
+
+La información privada de los usuarios no debe quedar expuesta a usuarios que no tengan permisos.
+
+==================================================
+24. ROW LEVEL SECURITY
+==================================================
+
+Configura RLS correctamente.
+
+Como mínimo, considera las restricciones necesarias para:
+
+- clientes;
+- revendedores;
+- empresas;
+- administradores.
+
+Un cliente no debe poder consultar o modificar información privada perteneciente a otro cliente.
+
+Un usuario normal no debe poder modificar productos, inventario o información administrativa sin los permisos correspondientes.
+
+Las empresas solo deben poder acceder a la información que les corresponda.
+
+Los administradores deben tener los permisos necesarios para administrar el sistema.
+
+==================================================
+25. COMPATIBILIDAD CON GOOGLE STITCH
+==================================================
+
+Esta parte es OBLIGATORIA.
+
+Debes revisar el proyecto de Google Stitch:
+
+"Plataforma de recuperacion de paquetes"
+
+y determinar qué datos utiliza cada pantalla.
+
+Por cada pantalla relevante, identifica:
+
+- datos mostrados;
+- datos introducidos;
+- datos modificados;
+- datos consultados;
+- relaciones necesarias.
+
+Después verifica que todos esos datos puedan ser obtenidos desde la base de datos.
+
+NO diseñes una base de datos aislada del frontend.
+
+La base de datos debe ser capaz de proporcionar exactamente la información que necesita la interfaz.
+
+Si Google Stitch utiliza un campo que no existe en el modelo preliminar, debes incorporarlo de manera normalizada.
+
+Si el modelo preliminar contiene un campo que no tiene utilidad en el sistema, evalúa eliminarlo.
+
+==================================================
+26. COHERENCIA ENTRE FRONTEND Y BASE DE DATOS
+==================================================
+
+Antes de implementar la interfaz definitiva, verifica:
+
+- Cada formulario tiene dónde almacenar sus datos.
+- Cada información mostrada tiene una fuente en la base de datos.
+- Cada relación de la interfaz existe en el modelo.
+- Cada usuario tiene los permisos correspondientes.
+- Cada producto puede ser asociado a sus categorías.
+- Cada venta puede contener múltiples productos.
+- Cada producto puede aparecer en múltiples ventas.
+- El inventario puede actualizarse correctamente.
+- Los pedidos pueden cambiar de estado.
+- Las empresas pueden relacionarse con sus paquetes.
+- Los paquetes pueden relacionarse con sus productos cuando corresponda.
+
+==================================================
+27. RESULTADO ESPERADO DE LA BASE DE DATOS
+==================================================
+
+Quiero una base de datos profesional, normalizada y coherente con el proyecto.
+
+NO quiero simplemente una copia corregida del diagrama inicial.
+
+Quiero que:
+
+1. Analices el modelo preliminar.
+2. Detectes errores conceptuales.
+3. Apliques 1NF, 2NF y 3NF.
+4. Resuelvas todas las relaciones N:M.
+5. Separes entidades que estén mezcladas incorrectamente.
+6. Cambies nombres ambiguos por nombres descriptivos.
+7. Agregues los campos que requiere Google Stitch.
+8. Agregues los datos necesarios para las funcionalidades definidas previamente en este archivo.
+9. Elimines estructuras redundantes.
+10. Implementes la estructura final en Supabase.
+11. Configures relaciones e integridad referencial.
+12. Configures RLS.
+13. Prepare datos iniciales únicamente cuando sean necesarios.
+
+==================================================
+28. IMPLEMENTACIÓN DEL SITIO WEB
+==================================================
+
+Después de definir la estructura de datos, desarrolla la plataforma web utilizando como referencia visual y estructural el proyecto de Google Stitch:
+
+"Plataforma de recuperacion de paquetes"
+
+La interfaz debe mantener coherencia con el diseño existente en Stitch.
+
+No reemplaces arbitrariamente el diseño de Stitch por otro concepto visual.
+
+Implementa las funcionalidades definidas previamente en este archivo utilizando la base de datos de Supabase.
+
+La aplicación debe utilizar datos reales de Supabase y no depender de datos ficticios estáticos para las funcionalidades principales.
+
+==================================================
+29. NO AGREGAR FUNCIONALIDADES NO SOLICITADAS
+==================================================
+
+NO agregues funcionalidades nuevas que no estén justificadas por:
+
+- el proyecto de Google Stitch;
+- las funcionalidades definidas previamente en este archivo;
+- los requerimientos necesarios para que esas funcionalidades funcionen correctamente.
+
+Si consideras que una funcionalidad adicional es técnicamente necesaria para soportar una funcionalidad existente, puedes implementarla, pero debe ser estrictamente necesaria y no una característica adicional del producto.
+
+==================================================
+30. VERIFICACIÓN FINAL
+==================================================
+
+Antes de considerar terminado el trabajo, realiza una revisión completa.
+
+Verifica:
+
+BASE DE DATOS:
+- 1NF aplicada.
+- 2NF aplicada.
+- 3NF aplicada.
+- Relaciones N:M resueltas.
+- Claves primarias correctas.
+- Claves foráneas correctas.
+- Restricciones correctas.
+- Nombres descriptivos.
+- Sin redundancias innecesarias.
+- Sin contraseñas almacenadas directamente si se utiliza Supabase Auth.
+- RLS configurado.
+- Índices apropiados.
+
+FRONTEND:
+- Las pantallas corresponden al proyecto de Google Stitch.
+- Los datos mostrados provienen de Supabase.
+- Los formularios guardan correctamente la información.
+- Los usuarios tienen los permisos correspondientes.
+- Las funcionalidades definidas previamente en este archivo pueden operar sobre la base de datos.
+
+INTEGRACIÓN:
+- Frontend conectado a Supabase.
+- Autenticación funcionando.
+- Consultas funcionando.
+- Inserciones funcionando.
+- Actualizaciones funcionando.
+- Eliminaciones funcionando cuando corresponda.
+- Relaciones funcionando correctamente.
+- Manejo apropiado de errores.
+- No utilizar datos ficticios donde deberían utilizarse datos reales.
+
+==================================================
+31. ENTREGABLE FINAL
+==================================================
+
+Al finalizar, entrega:
+
+1. La estructura final de la base de datos.
+2. El SQL necesario para crearla en Supabase.
+3. Las relaciones entre tablas.
+4. Las políticas RLS.
+5. Las funciones/triggers utilizados, justificando brevemente cada uno.
+6. La estructura final del proyecto web.
+7. La integración entre frontend y Supabase.
+8. Una comprobación de que los campos requeridos por Google Stitch tienen representación en la base de datos.
+9. Una comprobación de que las funcionalidades definidas previamente en este archivo pueden utilizar la estructura creada.
+10. Una explicación breve de los principales cambios realizados respecto al modelo preliminar.
+
+IMPORTANTE:
+No te limites a describir lo que debería hacerse.
+
+Realiza la implementación directamente cuando el entorno lo permita.
+
+La prioridad es obtener una plataforma funcional, conectada a Supabase, con una base de datos normalizada y coherente con el proyecto existente de Google Stitch.
+
+FUNCIONALIDADES DE LA PLATAFORMA WEB
+
+OBJETIVO GENERAL
+
+Desarrollar una plataforma web para gestionar y comercializar productos provenientes de paquetes extraviados o no reclamados, permitiendo administrar el inventario, publicar productos, gestionar ventas y pedidos, y facilitar la interacción entre compradores y empresas proveedoras.
+
+
+1. PÁGINA DE INICIO
+
+- Mostrar información general sobre el servicio.
+- Mostrar la propuesta de valor.
+- Mostrar productos destacados.
+- Mostrar productos en oferta.
+- Mostrar categorías de productos.
+- Mostrar información sobre el funcionamiento de la plataforma.
+- Mostrar acceso al catálogo.
+- Mostrar acceso al registro e inicio de sesión.
+- Mostrar preguntas frecuentes.
+- Mostrar información de contacto.
+
+
+2. REGISTRO E INICIO DE SESIÓN
+
+- Registrar nuevos usuarios.
+- Iniciar sesión.
+- Cerrar sesión.
+- Recuperar contraseña.
+- Validar los datos ingresados.
+- Gestionar sesiones de usuario.
+- Diferenciar tipos de usuario mediante roles.
+- Permitir la gestión de datos personales.
+
+
+3. CATÁLOGO DE PRODUCTOS
+
+- Mostrar todos los productos disponibles.
+- Mostrar productos organizados por categorías.
+- Mostrar disponibilidad de productos.
+- Mostrar precio de venta.
+- Mostrar precio original cuando corresponda.
+- Mostrar porcentaje de descuento cuando corresponda.
+- Permitir acceder a la información detallada de cada producto.
+
+
+4. BÚSQUEDA Y FILTRADO
+
+- Buscar productos mediante texto.
+- Filtrar por categoría.
+- Filtrar por rango de precio.
+- Filtrar por marca.
+- Filtrar por estado del producto.
+- Filtrar por disponibilidad.
+- Filtrar por porcentaje de descuento.
+- Ordenar productos por precio.
+- Ordenar productos por fecha de publicación.
+- Ordenar productos por relevancia.
+
+
+5. DETALLE DEL PRODUCTO
+
+- Mostrar nombre del producto.
+- Mostrar imágenes.
+- Mostrar descripción.
+- Mostrar características.
+- Mostrar categoría.
+- Mostrar estado del producto.
+- Mostrar precio.
+- Mostrar precio anterior cuando corresponda.
+- Mostrar descuento cuando corresponda.
+- Mostrar disponibilidad.
+- Permitir agregar productos al carrito.
+- Permitir agregar productos a favoritos.
+- Mostrar productos relacionados.
+
+
+6. CARRITO DE COMPRAS
+
+- Agregar productos al carrito.
+- Eliminar productos del carrito.
+- Modificar cantidades.
+- Mostrar productos seleccionados.
+- Calcular subtotal.
+- Calcular costos de despacho.
+- Calcular total de compra.
+- Mantener los productos del carrito durante la sesión.
+- Permitir continuar hacia el proceso de pago.
+
+
+7. PROCESO DE COMPRA
+
+- Solicitar información del comprador.
+- Seleccionar o registrar dirección de despacho.
+- Seleccionar método de envío.
+- Seleccionar método de pago.
+- Validar información de compra.
+- Mostrar resumen de la compra.
+- Confirmar la compra.
+- Generar un número o identificador de pedido.
+- Registrar la transacción.
+
+
+8. GESTIÓN DE PEDIDOS DEL CLIENTE
+
+- Mostrar historial de pedidos.
+- Mostrar información de cada pedido.
+- Mostrar productos incluidos en el pedido.
+- Mostrar estado del pedido.
+- Mostrar fecha de compra.
+- Mostrar información de despacho.
+- Mostrar número de seguimiento cuando corresponda.
+- Permitir consultar pedidos anteriores.
+
+
+9. SEGUIMIENTO DE DESPACHOS
+
+- Registrar información de envío.
+- Mostrar estado del despacho.
+- Mostrar empresa encargada del transporte.
+- Mostrar número de seguimiento.
+- Actualizar el estado del pedido.
+- Informar al cliente sobre cambios en el estado del envío.
+
+
+10. FAVORITOS
+
+- Agregar productos a favoritos.
+- Eliminar productos de favoritos.
+- Mostrar lista de productos favoritos.
+- Notificar cambios relevantes sobre productos favoritos cuando corresponda.
+
+
+11. NOTIFICACIONES
+
+- Informar sobre nuevas ofertas.
+- Informar sobre nuevos productos.
+- Informar sobre cambios en pedidos.
+- Informar sobre cambios en despachos.
+- Informar sobre disponibilidad de productos.
+- Gestionar preferencias de notificaciones.
+
+
+12. PERFIL DEL CLIENTE
+
+- Mostrar información personal.
+- Editar información personal.
+- Gestionar direcciones de despacho.
+- Consultar pedidos.
+- Consultar favoritos.
+- Consultar notificaciones.
+- Gestionar configuración de cuenta.
+- Cambiar contraseña.
+
+
+13. RESEÑAS Y CALIFICACIONES
+
+- Permitir calificar productos adquiridos.
+- Permitir escribir reseñas.
+- Mostrar calificaciones de productos.
+- Mostrar reseñas de otros compradores.
+- Asociar reseñas con compras verificadas.
+
+
+14. ATENCIÓN AL CLIENTE
+
+- Proporcionar formulario de contacto.
+- Permitir enviar consultas.
+- Mostrar información de contacto.
+- Permitir solicitar asistencia relacionada con pedidos.
+- Gestionar solicitudes de soporte.
+- Mostrar preguntas frecuentes.
+
+
+15. GESTIÓN DE PRODUCTOS
+
+FUNCIONALIDADES PARA ADMINISTRADORES:
+
+- Crear productos.
+- Editar productos.
+- Eliminar productos.
+- Publicar productos.
+- Despublicar productos.
+- Modificar precios.
+- Modificar disponibilidad.
+- Subir imágenes.
+- Modificar descripciones.
+- Asignar categorías.
+- Registrar estado del producto.
+- Gestionar descuentos.
+
+
+16. GESTIÓN DE INVENTARIO
+
+- Registrar productos recibidos.
+- Registrar cantidad disponible.
+- Actualizar cantidades.
+- Registrar productos vendidos.
+- Registrar productos retirados.
+- Controlar disponibilidad.
+- Asociar productos con lotes de paquetes.
+- Consultar historial de movimientos del inventario.
+
+
+17. GESTIÓN DE PAQUETES
+
+- Registrar paquetes recibidos.
+- Registrar origen de los paquetes.
+- Registrar fecha de recepción.
+- Registrar cantidad de paquetes.
+- Clasificar paquetes.
+- Evaluar productos contenidos.
+- Registrar estado de los productos.
+- Asociar productos con su paquete o lote de origen.
+- Convertir productos procesados en publicaciones del catálogo.
+
+
+18. GESTIÓN DE PEDIDOS ADMINISTRATIVOS
+
+- Consultar todos los pedidos.
+- Consultar información del comprador.
+- Consultar productos vendidos.
+- Actualizar estado de pedidos.
+- Gestionar información de despacho.
+- Gestionar cancelaciones.
+- Gestionar devoluciones cuando corresponda.
+
+
+19. GESTIÓN DE EMPRESAS PROVEEDORAS
+
+- Registrar empresas proveedoras.
+- Gestionar información de empresas.
+- Registrar paquetes entregados por cada empresa.
+- Asociar lotes con empresas proveedoras.
+- Consultar paquetes entregados.
+- Consultar productos derivados de los paquetes.
+- Consultar productos vendidos.
+- Registrar información de convenios.
+
+
+20. PANEL PARA EMPRESAS
+
+- Inicio de sesión para empresas.
+- Visualización de paquetes entregados.
+- Visualización de productos asociados.
+- Visualización de productos vendidos.
+- Visualización de ingresos generados.
+- Visualización del valor económico recuperado.
+- Consulta de estadísticas.
+- Consulta de historial.
+- Descarga de reportes.
+
+
+21. FUNCIONALIDADES PARA REVENDEDORES
+
+- Registrar usuarios como revendedores.
+- Identificar cuentas de revendedor.
+- Mostrar productos disponibles para compra por volumen.
+- Permitir compras en cantidades mayores.
+- Aplicar precios o descuentos por volumen.
+- Mostrar historial de compras.
+- Gestionar información de la cuenta de revendedor.
+
+
+22. ADMINISTRACIÓN DE USUARIOS
+
+- Crear usuarios.
+- Consultar usuarios.
+- Editar usuarios.
+- Desactivar usuarios.
+- Gestionar roles.
+- Gestionar permisos.
+- Diferenciar clientes, revendedores, empresas y administradores.
+
+
+23. ESTADÍSTICAS Y REPORTES
+
+- Registrar ventas.
+- Registrar ingresos.
+- Registrar productos vendidos.
+- Registrar productos disponibles.
+- Registrar paquetes recibidos.
+- Registrar paquetes procesados.
+- Registrar paquetes vendidos.
+- Calcular valor económico recuperado.
+- Mostrar productos más vendidos.
+- Mostrar estadísticas de inventario.
+- Generar reportes.
+
+
+24. SISTEMA DE ROLES Y PERMISOS
+
+La plataforma debe contemplar, como mínimo, los siguientes roles:
+
+- Cliente particular.
+- Revendedor.
+- Empresa proveedora.
+- Administrador.
+
+Cada rol debe tener acceso únicamente a las funcionalidades correspondientes a sus permisos.
+
+
+25. SEGURIDAD
+
+- Autenticación de usuarios.
+- Almacenamiento seguro de contraseñas.
+- Control de acceso mediante roles.
+- Validación de formularios.
+- Protección de información personal.
+- Gestión segura de sesiones.
+- Protección de operaciones administrativas.
+- Validación de permisos para operaciones sensibles.
+
+
+26. FUNCIONALIDADES INFORMATIVAS
+
+- Página "Cómo funciona".
+- Página "Sobre nosotros".
+- Preguntas frecuentes.
+- Información sobre productos.
+- Información sobre condiciones de compra.
+- Información sobre despachos.
+- Información sobre devoluciones.
+- Información sobre garantías cuando corresponda.
+- Información de contacto.
+
+
+27. FUNCIONALIDADES DE MARKETING
+
+- Publicación de ofertas.
+- Productos destacados.
+- Productos recomendados.
+- Sistema de promociones.
+- Notificaciones de ofertas.
+- Integración con redes sociales.
+- Integración con herramientas de publicidad.
+
+
+ESTRUCTURA DE USUARIOS
+
+La plataforma debe contemplar cuatro tipos principales de usuarios:
+
+1. CLIENTE PARTICULAR
+   - Explorar productos.
+   - Buscar y filtrar.
+   - Comprar.
+   - Gestionar pedidos.
+   - Realizar seguimiento.
+   - Guardar favoritos.
+   - Recibir notificaciones.
+   - Realizar reseñas.
+
+2. REVENDEDOR
+   - Explorar productos.
+   - Comprar por volumen.
+   - Acceder a precios especiales.
+   - Gestionar pedidos.
+   - Consultar historial de compras.
+
+3. EMPRESA PROVEEDORA
+   - Gestionar paquetes entregados.
+   - Consultar productos derivados.
+   - Consultar productos vendidos.
+   - Consultar valor recuperado.
+   - Consultar estadísticas.
+   - Gestionar información comercial.
+
+4. ADMINISTRADOR
+   - Gestionar usuarios.
+   - Gestionar productos.
+   - Gestionar inventario.
+   - Gestionar paquetes.
+   - Gestionar pedidos.
+   - Gestionar empresas.
+   - Gestionar categorías.
+   - Gestionar promociones.
+   - Consultar estadísticas.
+   - Generar reportes.
+   - Gestionar permisos.
+
+
+FUNCIONALIDADES PRIORITARIAS PARA EL MVP
+
+La primera versión funcional debería concentrarse en:
+
+- Página de inicio.
+- Registro e inicio de sesión.
+- Catálogo de productos.
+- Categorías.
+- Búsqueda.
+- Filtros.
+- Detalle de producto.
+- Carrito de compras.
+- Proceso de compra.
+- Gestión de pedidos.
+- Perfil del cliente.
+- Gestión administrativa de productos.
+- Gestión de inventario.
+- Registro y clasificación de paquetes.
+- Gestión básica de empresas proveedoras.
+- Sistema de roles.
+- Atención al cliente.
+- Preguntas frecuentes.
+
+
+FUNCIONALIDADES PARA VERSIONES POSTERIORES
+
+- Panel avanzado para empresas.
+- Sistema avanzado para revendedores.
+- Recomendaciones personalizadas.
+- Programa de fidelización.
+- Automatización de notificaciones.
+- Integración con empresas de transporte.
+- Integración con sistemas externos.
+- Aplicación móvil.
+- Analítica avanzada.
+- Automatización de procesos de inventario.

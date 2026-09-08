@@ -1,0 +1,14 @@
+# Dependencias
+node_modules/
+
+# Build
+web/dist/
+dist/
+
+# Entorno: nunca commitear claves (usar web/.env.example como base)
+.env
+*.local
+
+# Logs y sistema
+*.log
+.DS_Store

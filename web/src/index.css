@@ -1,0 +1,74 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+
+  /* RecuperaPack Design System */
+  --color-brand-950: #002045;
+  --color-brand-900: #1a365d;
+  --color-brand-700: #2d476f;
+  --color-brand-100: #d6e3ff;
+  --color-brand-50: #f8f9ff;
+  --color-accent-600: #c2570b;
+  --color-accent-500: #ed8936;
+  --color-accent-100: #ffdcc5;
+  --color-success-700: #276749;
+  --color-success-600: #2f855a;
+  --color-success-100: #9ff5c1;
+}
+
+html {
+  font-family: var(--font-sans);
+}
+
+body {
+  margin: 0;
+  background: var(--color-brand-50);
+  color: #0d1c2e;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Etiquetas estilo "label-caps" del design system */
+.field-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-brand-900);
+  margin-bottom: 6px;
+}
+
+.field-input {
+  width: 100%;
+  background: #fff;
+  border: 1px solid #c4c6cf;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 16px;
+  color: #0d1c2e;
+  outline: none;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
+}
+
+.field-input::placeholder {
+  color: #9aa3b2;
+}
+
+.field-input:focus {
+  border-color: var(--color-brand-900);
+  box-shadow: 0 0 0 2px rgba(26, 54, 93, 0.25);
+}
+
+.field-input[aria-invalid='true'] {
+  border-color: #ba1a1a;
+}
+
+.field-error {
+  margin-top: 4px;
+  font-size: 13px;
+  color: #ba1a1a;
+}
