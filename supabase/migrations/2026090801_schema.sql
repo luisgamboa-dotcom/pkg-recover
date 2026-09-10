@@ -669,3 +669,108 @@ select l.id, l.sku, l.title, l.base_price,
     and o.status not in ('cancelled','returned')
  group by l.id, l.sku, l.title, l.base_price
  order by revenue desc;
+
+-- ============================================================================
+-- Límites de longitud anti-abuso (defensa en profundidad junto a la
+-- validación del frontend en web/src/lib/validation.ts). Espejan LIMITS.
+-- ============================================================================
+alter table public.roles add constraint roles_name_length
+  check (char_length(name) <= 100);
+
+alter table public.profiles add constraint profiles_text_length
+  check (char_length(coalesce(first_name, '')) <= 100
+     and char_length(coalesce(last_name, '')) <= 100
+     and char_length(coalesce(phone, '')) <= 30);
+
+alter table public.companies add constraint companies_text_length
+  check (char_length(name) <= 200
+     and char_length(coalesce(tax_id, '')) <= 50
+     and char_length(coalesce(verification_code, '')) <= 50
+     and char_length(coalesce(contact_email, '')) <= 254
+     and char_length(coalesce(contact_phone, '')) <= 30
+     and char_length(city) <= 100
+     and char_length(country) <= 100);
+
+alter table public.warehouses add constraint warehouses_text_length
+  check (char_length(code) <= 20
+     and char_length(name) <= 150
+     and char_length(city) <= 100);
+
+alter table public.categories add constraint categories_text_length
+  check (char_length(name) <= 100 and char_length(slug) <= 100);
+
+alter table public.brands add constraint brands_text_length
+  check (char_length(name) <= 100 and char_length(slug) <= 100);
+
+alter table public.packages add constraint packages_text_length
+  check (char_length(coalesce(origin, '')) <= 200
+     and char_length(coalesce(notes, '')) <= 2000);
+
+alter table public.lots add constraint lots_text_length
+  check (char_length(sku) <= 20
+     and char_length(title) <= 200
+     and char_length(coalesce(description, '')) <= 5000
+     and char_length(coalesce(warehouse_zone, '')) <= 100);
+
+alter table public.lot_images add constraint lot_images_path_length
+  check (char_length(storage_path) <= 500);
+
+alter table public.inventory_movements add constraint inventory_movements_text_length
+  check (char_length(coalesce(reference, '')) <= 100
+     and char_length(coalesce(notes, '')) <= 1000);
+
+alter table public.payment_methods add constraint payment_methods_text_length
+  check (char_length(name) <= 100
+     and char_length(coalesce(description, '')) <= 1000);
+
+alter table public.addresses add constraint addresses_text_length
+  check (char_length(coalesce(label, '')) <= 60
+     and char_length(recipient_name) <= 150
+     and char_length(phone) <= 30
+     and char_length(city) <= 100
+     and char_length(address_line) <= 300
+     and char_length(coalesce(delivery_notes, '')) <= 500);
+
+alter table public.orders add constraint orders_text_length
+  check (char_length(ship_recipient_name) <= 150
+     and char_length(ship_phone) <= 30
+     and char_length(ship_city) <= 100
+     and char_length(ship_address_line) <= 300
+     and char_length(coalesce(ship_notes, '')) <= 500
+     and char_length(coalesce(carrier, '')) <= 100);
+
+alter table public.shipments add constraint shipments_text_length
+  check (char_length(carrier) <= 100
+     and char_length(coalesce(tracking_number, '')) <= 100
+     and char_length(coalesce(notes, '')) <= 1000);
+
+alter table public.shipment_events add constraint shipment_events_text_length
+  check (char_length(status) <= 60
+     and char_length(coalesce(location_text, '')) <= 200
+     and char_length(coalesce(notes, '')) <= 1000);
+
+alter table public.reviews add constraint reviews_text_length
+  check (char_length(coalesce(title, '')) <= 200
+     and char_length(coalesce(comment, '')) <= 2000);
+
+alter table public.notifications add constraint notifications_text_length
+  check (char_length(title) <= 200
+     and char_length(coalesce(body, '')) <= 2000);
+
+alter table public.support_tickets add constraint support_tickets_subject_length
+  check (char_length(subject) <= 200);
+
+alter table public.ticket_messages add constraint ticket_messages_body_length
+  check (char_length(body) <= 5000);
+
+alter table public.messages add constraint messages_body_length
+  check (char_length(body) <= 2000);
+
+alter table public.promotions add constraint promotions_text_length
+  check (char_length(title) <= 200
+     and char_length(coalesce(description, '')) <= 2000);
+
+alter table public.faqs add constraint faqs_text_length
+  check (char_length(category) <= 60
+     and char_length(question) <= 500
+     and char_length(answer) <= 5000);

@@ -2,6 +2,8 @@ import { useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import AuthLayout from '../components/AuthLayout';
+import { DEMO_EMAIL, DEMO_PASS } from '../demo/demo';
+import { LIMITS, checkEmail, normalizeEmail } from '../lib/validation';
 
 function friendlyError(message: string): string {
   if (/invalid login credentials/i.test(message))
@@ -32,13 +34,15 @@ export default function Login() {
     e.preventDefault();
     setError(null);
     setInfo(null);
-    if (!email.trim() || !password) {
-      setError('Ingresa tu correo y tu contraseña.');
+    const cleanEmail = normalizeEmail(email);
+    const emailErr = checkEmail(cleanEmail);
+    if (emailErr || !password) {
+      setError(emailErr ?? 'Ingresa tu contraseña.');
       return;
     }
     setBusy(true);
     try {
-      await signIn(email.trim(), password);
+      await signIn(cleanEmail, password.slice(0, LIMITS.password));
       navigate('/', { replace: true });
     } catch (err) {
       setError(friendlyError(err instanceof Error ? err.message : String(err)));
@@ -50,13 +54,15 @@ export default function Login() {
   async function onForgot() {
     setError(null);
     setInfo(null);
-    if (!email.trim()) {
-      setError('Escribe tu correo arriba para enviarte el enlace.');
+    const cleanEmail = normalizeEmail(email);
+    const emailErr = checkEmail(cleanEmail);
+    if (emailErr) {
+      setError('Escribe un correo válido arriba para enviarte el enlace.');
       return;
     }
     setResetting(true);
     try {
-      await sendPasswordReset(email.trim());
+      await sendPasswordReset(cleanEmail);
       setInfo('Te enviamos un enlace para restablecer tu contraseña.');
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
@@ -76,6 +82,23 @@ export default function Login() {
           <code>web/.env</code> con la anon key del proyecto.
         </p>
       )}
+      <div className="mb-4 rounded-xl border border-brand-100 bg-brand-50 p-3 text-sm">
+        <p className="font-bold text-brand-950">Cuenta de prueba</p>
+        <p className="text-slate-600">
+          <code>{DEMO_EMAIL}</code> · <code>{DEMO_PASS}</code> — entra sin
+          backend, con datos de ejemplo y cambio de rol.
+        </p>
+        <button
+          type="button"
+          onClick={() => {
+            setEmail(DEMO_EMAIL);
+            setPassword(DEMO_PASS);
+          }}
+          className="mt-1.5 text-brand-900 font-semibold underline"
+        >
+          Rellenar datos de prueba
+        </button>
+      </div>
       <form onSubmit={onSubmit} noValidate className="space-y-4">
         <div>
           <label className="field-label" htmlFor="email">
@@ -86,6 +109,7 @@ export default function Login() {
             type="email"
             autoComplete="email"
             className="field-input"
+            maxLength={LIMITS.email}
             placeholder="tucorreo@ejemplo.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -100,6 +124,7 @@ export default function Login() {
             type="password"
             autoComplete="current-password"
             className="field-input"
+            maxLength={LIMITS.password}
             placeholder="••••••••"
             value={password}
             onChange={(e) => setPassword(e.target.value)}

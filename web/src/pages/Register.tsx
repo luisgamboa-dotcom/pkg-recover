@@ -2,6 +2,15 @@ import { useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth, type AccountType } from '../auth/AuthContext';
 import AuthLayout from '../components/AuthLayout';
+import {
+  LIMITS,
+  checkEmail,
+  checkName,
+  checkPassword,
+  checkPhone,
+  normalizeEmail,
+  sanitizeText,
+} from '../lib/validation';
 
 const accountOptions: { value: AccountType; title: string; text: string }[] = [
   {
@@ -63,17 +72,30 @@ export default function Register() {
     return null;
   }
 
-  function validate(): FieldErrors {
+  /** Limpia todo antes de validar: lo sanitizado es lo que se envía. */
+  function cleaned() {
+    return {
+      firstName: sanitizeText(firstName, LIMITS.name),
+      lastName: sanitizeText(lastName, LIMITS.name),
+      email: normalizeEmail(email),
+      phone: sanitizeText(phone, LIMITS.phone),
+      password: password.slice(0, LIMITS.password),
+    };
+  }
+
+  function validate(c: ReturnType<typeof cleaned>): FieldErrors {
     const e: FieldErrors = {};
-    if (firstName.trim().length < 2) e.firstName = 'Ingresa tu nombre.';
-    if (lastName.trim().length < 2) e.lastName = 'Ingresa tu apellido.';
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim()))
-      e.email = 'Correo electrónico inválido.';
-    if (!/^[+\d][\d\s-]{6,}$/.test(phone.trim()))
-      e.phone = 'Teléfono inválido (mínimo 7 dígitos).';
-    if (password.length < 6)
-      e.password = 'Mínimo 6 caracteres.';
-    if (confirm !== password) e.confirm = 'No coincide con la contraseña.';
+    const fn = checkName(c.firstName, 'Nombre');
+    if (fn) e.firstName = fn;
+    const ln = checkName(c.lastName, 'Apellido');
+    if (ln) e.lastName = ln;
+    const em = checkEmail(c.email);
+    if (em) e.email = em;
+    const ph = checkPhone(c.phone);
+    if (ph) e.phone = ph;
+    const pw = checkPassword(c.password);
+    if (pw) e.password = pw;
+    if (confirm !== c.password) e.confirm = 'No coincide con la contraseña.';
     if (!terms) e.terms = 'Debes aceptar los términos.';
     return e;
   }
@@ -81,21 +103,22 @@ export default function Register() {
   async function onSubmit(ev: FormEvent) {
     ev.preventDefault();
     setSubmitError(null);
-    const v = validate();
+    const c = cleaned();
+    const v = validate(c);
     setErrors(v);
     if (Object.keys(v).length > 0) return;
     setBusy(true);
     try {
       const { needsConfirmation } = await signUp({
-        email: email.trim(),
-        password,
-        firstName: firstName.trim(),
-        lastName: lastName.trim(),
-        phone: phone.trim(),
+        email: c.email,
+        password: c.password,
+        firstName: c.firstName,
+        lastName: c.lastName,
+        phone: c.phone,
         accountType,
       });
       if (needsConfirmation) {
-        setPendingEmail(email.trim());
+        setPendingEmail(c.email);
       } else {
         navigate('/', { replace: true });
       }
@@ -187,6 +210,7 @@ export default function Register() {
               id="firstName"
               className="field-input"
               autoComplete="given-name"
+              maxLength={LIMITS.name}
               placeholder="Ana"
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
@@ -202,6 +226,7 @@ export default function Register() {
               id="lastName"
               className="field-input"
               autoComplete="family-name"
+              maxLength={LIMITS.name}
               placeholder="García"
               value={lastName}
               onChange={(e) => setLastName(e.target.value)}
@@ -220,6 +245,7 @@ export default function Register() {
             type="email"
             className="field-input"
             autoComplete="email"
+            maxLength={LIMITS.email}
             placeholder="tucorreo@ejemplo.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -237,6 +263,7 @@ export default function Register() {
             type="tel"
             className="field-input"
             autoComplete="tel"
+            maxLength={LIMITS.phone}
             placeholder="+57 300 123 4567"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
@@ -255,6 +282,7 @@ export default function Register() {
               type="password"
               className="field-input"
               autoComplete="new-password"
+              maxLength={LIMITS.password}
               placeholder="Mínimo 6 caracteres"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -271,6 +299,7 @@ export default function Register() {
               type="password"
               className="field-input"
               autoComplete="new-password"
+              maxLength={LIMITS.password}
               placeholder="Repite tu clave"
               value={confirm}
               onChange={(e) => setConfirm(e.target.value)}

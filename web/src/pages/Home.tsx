@@ -30,6 +30,26 @@ const features: { title: string; text: string; status: Status }[] = [
     status: 'done',
   },
   {
+    title: 'Tienda completa',
+    text: 'Catálogo con filtros, ficha de lote, carrito, checkout con IVA 19%, pedidos con seguimiento, favoritos y reseñas.',
+    status: 'done',
+  },
+  {
+    title: 'Panel admin',
+    text: 'Tablero, lotes (CRUD, fotos, tramos), inventario, paquetes, pedidos con despacho, empresas, usuarios, catálogos y reportes CSV.',
+    status: 'done',
+  },
+  {
+    title: 'Panel empresa y mayoristas',
+    text: 'Entregas, lotes derivados, ventas y valor recuperado. Revendedores con precios por volumen y mensajería por lote.',
+    status: 'done',
+  },
+  {
+    title: 'Validación anti-ataques',
+    text: 'Sanitización en todos los formularios, límites de longitud en BD y tarjeta que nunca sale del navegador.',
+    status: 'done',
+  },
+  {
     title: 'Aplicar migraciones en Supabase',
     text: 'Los 3 archivos SQL están validados. Falta reiniciar opencode para reconectar el MCP y ejecutarlos.',
     status: 'waiting',
@@ -38,20 +58,16 @@ const features: { title: string; text: string; status: Status }[] = [
 
 const roadmap: { title: string; text: string }[] = [
   {
-    title: 'Catálogo y detalle de lote',
-    text: 'Búsqueda, filtros por categoría/precio/marca/estado y ficha del lote.',
+    title: 'Conectar datos reales',
+    text: 'anon key en web/.env + migraciones aplicadas: catálogo, pedidos y paneles con datos vivos.',
   },
   {
-    title: 'Carrito y compra',
-    text: 'Carrito, checkout con dirección y pago, IVA 19% y número de pedido.',
+    title: 'Pasarela de pago real',
+    text: 'Integrar Wompi/MercadoPago para tarjeta y PSE (hoy el pedido queda pendiente de pago).',
   },
   {
-    title: 'Mis pedidos y seguimiento',
-    text: 'Historial, estados y tracking del despacho con transportadora.',
-  },
-  {
-    title: 'Paneles admin y empresa',
-    text: 'Gestión de lotes, inventario, paquetes, pedidos, empresas y reportes.',
+    title: 'Automatización',
+    text: 'Notificaciones automáticas por evento, integración con transportadora y app móvil (post-MVP).',
   },
 ];
 
@@ -123,7 +139,7 @@ export default function Home() {
       <section className="bg-brand-900 text-white">
         <div className="max-w-6xl mx-auto px-6 py-14">
           <span className="inline-block text-xs font-bold uppercase tracking-widest bg-white/10 rounded-full px-3 py-1">
-            MVP en construcción · Sección 1 y 2 parcial
+            MVP funcional · pendiente conectar datos reales
           </span>
           <h1 className="mt-4 text-4xl font-extrabold tracking-tight">
             Los paquetes perdidos
@@ -135,6 +151,12 @@ export default function Home() {
             paneles para clientes, revendedores, empresas y administradores.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
+            <Link
+              to="/catalogo"
+              className="rounded-lg bg-accent-500 px-5 py-3 font-semibold hover:bg-accent-600"
+            >
+              Explorar catálogo
+            </Link>
             {user ? (
               <span className="rounded-lg bg-success-600 px-5 py-3 font-semibold">
                 Sesión activa como {profile?.roleName ?? 'usuario'}
@@ -143,7 +165,7 @@ export default function Home() {
               <>
                 <Link
                   to="/registro"
-                  className="rounded-lg bg-accent-500 px-5 py-3 font-semibold hover:bg-accent-600"
+                  className="rounded-lg border border-white/30 px-5 py-3 font-semibold hover:bg-white/10"
                 >
                   Crear cuenta
                 </Link>
@@ -159,7 +181,7 @@ export default function Home() {
           <dl className="mt-8 grid grid-cols-3 max-w-md gap-4">
             {[
               ['29', 'tablas BD'],
-              ['3', 'migraciones SQL'],
+              ['26', 'vistas web'],
               ['4', 'roles y RLS'],
             ].map(([n, label]) => (
               <div key={label}>

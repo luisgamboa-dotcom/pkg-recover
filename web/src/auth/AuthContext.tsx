@@ -9,6 +9,30 @@ import {
   type ReactNode,
 } from 'react';
 import { isSupabaseConfigured, requireSupabase } from '../lib/supabase';
+import {
+  DEMO_EMAIL,
+  DEMO_USER_ID,
+  ROLE_NAMES,
+  demoLogin,
+  demoLogout,
+  getDb,
+  getDemoRole,
+  isDemo,
+} from '../demo/demo';
+
+const DEMO_USER = { id: DEMO_USER_ID, email: DEMO_EMAIL } as unknown as User;
+
+function demoProfile(): Profile {
+  const role = getDemoRole();
+  const p = getDb().profile;
+  return {
+    id: DEMO_USER_ID,
+    roleCode: role,
+    roleName: ROLE_NAMES[role],
+    firstName: p.first_name,
+    lastName: p.last_name,
+  };
+}
 
 export type AccountType = 'customer' | 'reseller' | 'company';
 
@@ -66,6 +90,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [demoActive, setDemoActive] = useState(false);
 
   const loadProfile = useCallback(async (userId: string | undefined) => {
     if (!userId) {
@@ -82,6 +107,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
+    if (isDemo()) {
+      setDemoActive(true);
+      setProfile(demoProfile());
+      setLoading(false);
+      return;
+    }
     if (!isSupabaseConfigured) {
       setLoading(false);
       return;
@@ -137,36 +168,54 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const signIn = useCallback(async (email: string, password: string) => {
+    // Cuenta de prueba: entra sin backend (modo demo con datos de ejemplo).
+    if (demoLogin(email, password)) {
+      setDemoActive(true);
+      setProfile(demoProfile());
+      return;
+    }
     const sb = requireSupabase();
     const { error } = await sb.auth.signInWithPassword({ email, password });
     if (error) throw error;
   }, []);
 
   const signOut = useCallback(async () => {
+    if (demoActive || isDemo()) {
+      demoLogout();
+      setDemoActive(false);
+      setSession(null);
+      setProfile(null);
+      return;
+    }
     const sb = requireSupabase();
     const { error } = await sb.auth.signOut();
     if (error) throw error;
     setProfile(null);
-  }, []);
+  }, [demoActive]);
 
   const sendPasswordReset = useCallback(async (email: string) => {
+    if (demoActive || isDemo()) return; // en demo no se envía correo
     const sb = requireSupabase();
     const { error } = await sb.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/login`,
     });
     if (error) throw error;
-  }, []);
+  }, [demoActive]);
 
   const refreshProfile = useCallback(async () => {
+    if (demoActive || isDemo()) {
+      setProfile(demoProfile());
+      return;
+    }
     await loadProfile(session?.user.id);
-  }, [loadProfile, session]);
+  }, [loadProfile, session, demoActive]);
 
   const value = useMemo<AuthState>(
     () => ({
-      configured: isSupabaseConfigured,
+      configured: isSupabaseConfigured || demoActive,
       loading,
       session,
-      user: session?.user ?? null,
+      user: demoActive ? DEMO_USER : (session?.user ?? null),
       profile,
       signUp,
       signIn,
@@ -183,6 +232,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signOut,
       sendPasswordReset,
       refreshProfile,
+      demoActive,
     ],
   );
 
