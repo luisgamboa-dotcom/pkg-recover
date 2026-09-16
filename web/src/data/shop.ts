@@ -8,7 +8,7 @@ import {
   parsePrice,
   sanitizeText,
 } from '../lib/validation';
-import { getDb, isDemo, saveDb } from '../demo/demo';
+import { getDb, hasData, isExplore, saveDb } from '../demo/demo';
 
 export interface Category {
   id: string;
@@ -203,7 +203,7 @@ export function useCatalog(filters: Filters) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (isDemo()) {
+    if (isExplore()) {
       const all = getDb().lots
         .filter((l: any) => l.status === 'published' && l.stock_quantity > 0)
         .map((r: any) => toLot(r as Record<string, unknown>));
@@ -235,7 +235,7 @@ export function useCatalog(filters: Filters) {
     total: lots.length,
     loading,
     error,
-    configured: isSupabaseConfigured,
+    configured: hasData(),
   };
 }
 
@@ -251,7 +251,7 @@ export function useLot(id: string | undefined) {
       setLoading(false);
       return;
     }
-    if (isDemo()) {
+    if (isExplore()) {
       const found = getDb().lots.find((l: any) => l.id === id);
       if (found) setLot(toLot(found as Record<string, unknown>));
       else setError('Lote no encontrado.');
@@ -274,7 +274,7 @@ export function useLot(id: string | undefined) {
       });
   }, [id]);
 
-  return { lot, loading, error, configured: isSupabaseConfigured };
+  return { lot, loading, error, configured: hasData() };
 }
 
 export function useLotsByIds(ids: string[]) {
@@ -289,7 +289,7 @@ export function useLotsByIds(ids: string[]) {
       setLoading(false);
       return;
     }
-    if (isDemo()) {
+    if (isExplore()) {
       const m: Record<string, Lot> = {};
       for (const row of getDb().lots as unknown as Record<string, unknown>[]) {
         const lot = toLot(row);
@@ -319,13 +319,13 @@ export function useLotsByIds(ids: string[]) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key]);
 
-  return { map, loading, configured: isSupabaseConfigured };
+  return { map, loading, configured: hasData() };
 }
 
 export function useCategories() {
   const [items, setItems] = useState<Category[]>([]);
   useEffect(() => {
-    if (isDemo()) {
+    if (isExplore()) {
       setItems(getDb().categories);
       return;
     }
@@ -343,7 +343,7 @@ export function useCategories() {
 export function useBrands() {
   const [items, setItems] = useState<Brand[]>([]);
   useEffect(() => {
-    if (isDemo()) {
+    if (isExplore()) {
       setItems(getDb().brands);
       return;
     }
@@ -367,7 +367,7 @@ export function usePriceTiers(lotId: string | undefined) {
   const [tiers, setTiers] = useState<PriceTier[]>([]);
   useEffect(() => {
     if (!lotId) return;
-    if (isDemo()) {
+    if (isExplore()) {
       setTiers(
         getDb().tiers
           .filter((t: any) => t.lot_id === lotId)
@@ -395,7 +395,7 @@ export function usePriceTiers(lotId: string | undefined) {
 
 export async function fetchTiers(lotIds: string[]): Promise<Record<string, PriceTier[]>> {
   if (lotIds.length === 0) return {};
-  if (isDemo()) {
+  if (isExplore()) {
     const map: Record<string, PriceTier[]> = {};
     for (const t of getDb().tiers as any[]) {
       if (lotIds.includes(t.lot_id)) {
@@ -435,7 +435,7 @@ export function useSimilarLots(lot: Lot | null) {
     if (!lot) return;
     const catIds = lot.categories.map((c) => c.id);
     if (catIds.length === 0) return;
-    if (isDemo()) {
+    if (isExplore()) {
       const all = (getDb().lots as unknown as Record<string, unknown>[]).map(toLot);
       setItems(
         all
@@ -477,7 +477,7 @@ export function useFavorites(userId: string | undefined) {
       setLoading(false);
       return;
     }
-    if (isDemo()) {
+    if (isExplore()) {
       setIds(new Set(getDb().favorites));
       setLoading(false);
       return;
@@ -501,7 +501,7 @@ export function useFavorites(userId: string | undefined) {
   const toggle = useCallback(
     async (lotId: string) => {
       if (!userId) return;
-      if (isDemo()) {
+      if (isExplore()) {
         const db = getDb();
         db.favorites = ids.has(lotId)
           ? db.favorites.filter((x) => x !== lotId)
@@ -544,7 +544,7 @@ export function useReviews(lotId: string | undefined) {
       setLoading(false);
       return;
     }
-    if (isDemo()) {
+    if (isExplore()) {
       setItems(
         getDb()
           .reviews.filter((r: any) => r.lot_id === lotId)
@@ -599,7 +599,7 @@ export async function addReview(input: {
   comment: string;
   verified: boolean;
 }) {
-  if (isDemo()) {
+  if (isExplore()) {
     const db = getDb();
     db.reviews.unshift({
       id: `demo-rev-${Date.now()}`,

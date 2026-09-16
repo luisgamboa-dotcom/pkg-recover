@@ -201,7 +201,7 @@ export default function Register() {
           </p>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label className="field-label" htmlFor="firstName">
               Nombre
@@ -272,7 +272,7 @@ export default function Register() {
           {errors.phone && <p className="field-error">{errors.phone}</p>}
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label className="field-label" htmlFor="regPass">
               Contraseña

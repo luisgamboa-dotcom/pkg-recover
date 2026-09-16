@@ -62,7 +62,7 @@ function List() {
                 <td className="p-3">{u.phone ?? '—'}</td>
                 <td className="p-3">
                   <select
-                    className="field-input !w-auto !py-1"
+                    className="field-input w-auto! py-1!"
                     value={u.roles?.code ?? ''}
                     onChange={(e) => {
                       const r = roles.find((x) => x.code === e.target.value);

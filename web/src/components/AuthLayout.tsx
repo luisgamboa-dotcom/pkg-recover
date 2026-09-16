@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import type { ReactNode } from 'react';
+import Footer from './Footer';
 
 const bullets = [
   {
@@ -26,7 +27,8 @@ export default function AuthLayout({
   children: ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-brand-50 flex flex-col lg:flex-row">
+    <div className="min-h-screen bg-brand-50 flex flex-col">
+      <div className="flex-1 flex flex-col lg:flex-row">
       {/* Panel de marca */}
       <aside className="lg:w-[44%] bg-brand-900 text-white flex flex-col justify-between p-8 lg:p-12">
         <Link to="/" className="flex items-center gap-3">
@@ -71,7 +73,7 @@ export default function AuthLayout({
       </aside>
 
       {/* Formulario */}
-      <main className="flex-1 flex items-center justify-center p-6 lg:p-12">
+      <main className="flex-1 flex items-center justify-center p-6 lg:p-12 pb-20">
         <div className="w-full max-w-md bg-white rounded-2xl border border-slate-200 shadow-[0_10px_30px_rgba(26,54,93,0.08)] p-8">
           <h2 className="text-2xl font-bold tracking-tight text-brand-950">
             {title}
@@ -80,6 +82,8 @@ export default function AuthLayout({
           <div className="mt-6">{children}</div>
         </div>
       </main>
+      </div>
+      <Footer />
     </div>
   );
 }

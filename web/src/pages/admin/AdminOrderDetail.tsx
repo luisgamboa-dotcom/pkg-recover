@@ -116,7 +116,7 @@ function Detail() {
 
         <section className="bg-white rounded-2xl border p-5">
           <h2 className="font-bold text-brand-950">Despacho</h2>
-          <form onSubmit={onShipment} className="mt-2 grid grid-cols-2 gap-2">
+          <form onSubmit={onShipment} className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2">
             <input className="field-input" maxLength={100} placeholder="Transportadora" value={carrier} onChange={(e) => setCarrier(e.target.value)} aria-label="Transportadora" />
             <input className="field-input" maxLength={100} placeholder="N° seguimiento" value={tracking} onChange={(e) => setTracking(e.target.value)} aria-label="Seguimiento" />
             <select className="field-input col-span-2" value={shipStatus} onChange={(e) => setShipStatus(e.target.value)} aria-label="Estado del despacho">

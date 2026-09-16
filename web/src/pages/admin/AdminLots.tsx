@@ -65,7 +65,7 @@ function List() {
       </div>
       <div className="mb-4 flex gap-2 items-center">
         <label className="text-sm text-slate-600" htmlFor="f-status">Estado</label>
-        <select id="f-status" className="field-input !w-auto" value={status} onChange={(e) => setStatus(e.target.value)}>
+        <select id="f-status" className="field-input w-auto!" value={status} onChange={(e) => setStatus(e.target.value)}>
           <option value="">Todos</option>
           {STATUSES.filter(Boolean).map((s) => (
             <option key={s} value={s}>{s}</option>

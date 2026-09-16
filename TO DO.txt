@@ -1,0 +1,44 @@
+TO DO — Plataforma de recuperación de paquetes (pkg-recover)
+============================================================
+Secciones y pendientes registrados sin implementar. No editar el código
+asociado hasta nuevo aviso; solo revisar esta lista.
+
+SECCIONES DEL PIE DE PÁGINA
+---------------------------
+1. [VACÍA] Página "Nosotros" (Quiénes somos, misión, equipo).
+   - El footer muestra la casilla "Nosotros" vacía ("Próximamente").
+   - No existe la ruta /nosotros ni contenido al respecto.
+2. [PROVISORIA] Redes sociales del footer (Instagram, Facebook, X).
+   - Enlaces actuales apuntan a URLs provisorias /recuperapack.
+   - Reemplazar por las cuentas oficiales cuando se creen.
+3. [OK, ENLAZADA] "Ayuda" y "FAQ" apuntan a /ayuda (Centro de ayuda + FAQs).
+   - Opcional a futuro: página dedicada /faq separada del centro de ayuda.
+
+CONEXIÓN BACKEND (bloquea datos reales)
+---------------------------------------
+4. Crear web/.env desde web/.env.example con la anon key del proyecto
+   Supabase "pkg-recover" (Dashboard → Project Settings → API).
+5. Reiniciar opencode para que el MCP tome el proyecto nuevo
+   (rnxhmfrkoljayokycwiy) y aplicar supabase/migrations (3 archivos).
+6. Verificar RLS, seed (roles, categorías, pagos, bodegas, FAQs) y Storage
+   (buckets lot-images, avatares).
+
+PAGOS Y LOGÍSTICA
+-----------------
+7. Pasarela de pago real (Wompi/MercadoPago) para tarjeta y PSE.
+   Hoy el pedido queda en "pendiente de pago".
+8. Integración con empresa de transporte (tracking automático, webhook).
+9. Flete dinámico por peso/ciudad (hoy tarifa plana de referencia).
+
+FUNCIONALIDADES POST-MVP (según prompt.txt)
+-------------------------------------------
+10. Panel avanzado para empresas (reportes descargables, convenios).
+11. Sistema avanzado para revendedores (crédito, listas de precios).
+12. Recomendaciones personalizadas y programa de fidelización.
+13. Automatización de notificaciones por evento (trigger → notifications).
+14. Analítica avanzada, aplicación móvil, integraciones externas.
+
+DISEÑO / UX
+-----------
+15. Página "Nosotros" (cuando se defina contenido con el cliente).
+16. Revisar contraste y responsive en móviles pequeños (390px).

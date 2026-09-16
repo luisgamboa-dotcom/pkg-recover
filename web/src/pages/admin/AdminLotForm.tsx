@@ -203,7 +203,7 @@ function Form() {
               ))}
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="field-label" htmlFor="lt-company">Empresa origen</label>
               <select id="lt-company" className={input} value={f.company_id} onChange={(e) => set('company_id', e.target.value)}>
@@ -227,7 +227,7 @@ function Form() {
 
         <section className="bg-white rounded-2xl border p-5 space-y-3">
           <h2 className="font-bold text-brand-950">Estado y logística</h2>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="field-label" htmlFor="lt-pack">Empaque</label>
               <select id="lt-pack" className={input} value={f.packaging_state} onChange={(e) => set('packaging_state', e.target.value)}>
@@ -241,7 +241,7 @@ function Form() {
               </select>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="field-label" htmlFor="lt-units">Unidades</label>
               <input id="lt-units" type="number" min={1} className={input} value={f.unit_count} onChange={(e) => set('unit_count', e.target.value)} />
@@ -251,7 +251,7 @@ function Form() {
               <input id="lt-weight" type="number" min={0} step="0.01" className={input} value={f.total_weight_kg} onChange={(e) => set('total_weight_kg', e.target.value)} />
             </div>
           </div>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {(['length_cm', 'width_cm', 'height_cm'] as const).map((k, i) => (
               <div key={k}>
                 <label className="field-label" htmlFor={`lt-${k}`}>{['Largo', 'Ancho', 'Alto'][i]} (cm)</label>
@@ -259,7 +259,7 @@ function Form() {
               </div>
             ))}
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="field-label" htmlFor="lt-wh">Bodega</label>
               <select id="lt-wh" className={input} value={f.warehouse_id} onChange={(e) => set('warehouse_id', e.target.value)}>
@@ -283,7 +283,7 @@ function Form() {
 
         <section className="bg-white rounded-2xl border p-5 space-y-3">
           <h2 className="font-bold text-brand-950">Comercial</h2>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
               <label className="field-label" htmlFor="lt-price">Precio base</label>
               <input id="lt-price" type="number" min={0} step="0.01" className={input} value={f.base_price} onChange={(e) => set('base_price', e.target.value)} />
@@ -300,7 +300,7 @@ function Form() {
               </select>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="field-label" htmlFor="lt-stock">Stock (lotes)</label>
               <input id="lt-stock" type="number" min={0} className={input} value={f.stock_quantity} onChange={(e) => set('stock_quantity', e.target.value)} />
@@ -312,7 +312,7 @@ function Form() {
               </select>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="field-label" htmlFor="lt-circ">Circularidad %</label>
               <input id="lt-circ" type="number" min={0} max={100} className={input} value={f.circularity_percent} onChange={(e) => set('circularity_percent', e.target.value)} />

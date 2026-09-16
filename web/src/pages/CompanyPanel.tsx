@@ -96,7 +96,7 @@ function Panel() {
         <EmptyState title="Sin empresa asociada" text="Un administrador debe vincular tu cuenta a una empresa proveedora." />
       )}
       {companies.length > 1 && (
-        <select className="field-input !w-auto mb-4" value={activeId} onChange={(e) => setActiveId(e.target.value)} aria-label="Empresa">
+        <select className="field-input w-auto! mb-4" value={activeId} onChange={(e) => setActiveId(e.target.value)} aria-label="Empresa">
           {companies.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
         </select>
       )}
@@ -115,15 +115,17 @@ function Panel() {
               </div>
             ))}
           </div>
-          <p className="mt-2 text-xs text-slate-400">
-            {active.name} · {active.verification_code ?? 'sin código'} ·{' '}
-            {active.is_verified ? '✅ verificada' : '⏳ pendiente de verificación'}
+          <p className="mt-2 text-xs text-slate-500 flex items-center gap-2">
+            <span>{active.name} · {active.verification_code ?? 'sin código'}</span>
+            <span className={`font-bold uppercase tracking-wider rounded-full px-2.5 py-0.5 ${active.is_verified ? 'text-emerald-800 bg-emerald-100' : 'text-amber-800 bg-amber-100'}`}>
+              {active.is_verified ? 'Verificada' : 'Pendiente de verificación'}
+            </span>
           </p>
 
           <div className="mt-6 grid gap-4 lg:grid-cols-2">
             <section className="bg-white rounded-2xl border p-5">
               <h2 className="font-bold text-brand-950">Registrar entrega de paquetes</h2>
-              <form onSubmit={onPackage} className="mt-3 grid grid-cols-3 gap-2">
+              <form onSubmit={onPackage} className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-2">
                 <input className="field-input col-span-3" maxLength={200} placeholder="Origen (transportadora, ciudad…)" value={origin} onChange={(e) => setOrigin(e.target.value)} aria-label="Origen" />
                 <input className="field-input" type="number" min={0} placeholder="Unidades" value={units} onChange={(e) => setUnits(e.target.value)} aria-label="Unidades" />
                 <input className="field-input" type="number" min={0} step="0.01" placeholder="Peso kg" value={weight} onChange={(e) => setWeight(e.target.value)} aria-label="Peso" />

@@ -245,11 +245,11 @@ export default function AdminCatalogs() {
         <section className="mt-4 bg-white rounded-2xl border p-4">
           <h2 className="font-bold text-brand-950">Vincular lote a promoción (por SKU)</h2>
           <form onSubmit={onLink} className="mt-2 flex flex-wrap gap-2">
-            <select className="field-input !w-auto" value={promoId} onChange={(e) => setPromoId(e.target.value)} aria-label="Promoción">
+            <select className="field-input w-auto!" value={promoId} onChange={(e) => setPromoId(e.target.value)} aria-label="Promoción">
               <option value="">Promoción…</option>
               {promos.map((p) => <option key={p.id} value={p.id}>{p.title}</option>)}
             </select>
-            <input className="field-input !w-40" maxLength={20} placeholder="RP-00001" value={lotSku} onChange={(e) => setLotSku(e.target.value)} aria-label="SKU" />
+            <input className="field-input w-40!" maxLength={20} placeholder="RP-00001" value={lotSku} onChange={(e) => setLotSku(e.target.value)} aria-label="SKU" />
             <button className="rounded-lg bg-brand-900 text-white px-4 font-semibold">Vincular</button>
           </form>
           {promoMsg && <p className="mt-2 text-sm text-slate-600">{promoMsg}</p>}

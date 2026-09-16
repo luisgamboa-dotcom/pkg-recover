@@ -108,7 +108,7 @@ function View() {
                 <td className="p-3">{p.total_units}</td>
                 <td className="p-3">{Number(p.total_weight_kg)}</td>
                 <td className="p-3">
-                  <select className="field-input !w-auto !py-1" value={p.status} onChange={(e) => void setStatus(p.id, e.target.value)} aria-label="Estado del paquete">
+                  <select className="field-input w-auto! py-1!" value={p.status} onChange={(e) => void setStatus(p.id, e.target.value)} aria-label="Estado del paquete">
                     {STATUS.map((s) => <option key={s} value={s}>{s}</option>)}
                   </select>
                 </td>

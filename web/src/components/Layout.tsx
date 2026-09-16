@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { useCart } from '../lib/cart';
 import { useNotifications } from '../data/account';
+import Footer from './Footer';
 
 function navClass({ isActive }: { isActive: boolean }) {
   return `text-sm font-medium ${isActive ? 'text-accent-500' : 'text-white/85 hover:text-white'}`;
@@ -19,7 +20,7 @@ export default function Layout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-brand-50 flex flex-col">
       <header className="bg-brand-900 text-white sticky top-0 z-10">
-        <div className="max-w-6xl mx-auto px-6 py-3 flex items-center gap-6">
+        <div className="max-w-6xl mx-auto px-6 py-3 flex items-center gap-x-6 gap-y-2 flex-wrap">
           <Link to="/" className="flex items-center gap-2.5 shrink-0">
             <span className="grid place-items-center w-9 h-9 rounded-lg bg-accent-500 font-extrabold text-lg">
               R
@@ -28,7 +29,7 @@ export default function Layout({ children }: { children: ReactNode }) {
               RecuperaPack
             </span>
           </Link>
-          <nav className="flex items-center gap-4">
+          <nav className="flex items-center gap-x-4 gap-y-1 flex-wrap">
             <NavLink to="/catalogo" className={navClass}>
               Catálogo
             </NavLink>
@@ -96,14 +97,9 @@ export default function Layout({ children }: { children: ReactNode }) {
         </div>
       </header>
 
-      <main className="flex-1 w-full max-w-6xl mx-auto px-6 py-8">{children}</main>
+      <main className="flex-1 w-full max-w-6xl mx-auto px-6 py-8 pb-20">{children}</main>
 
-      <footer className="border-t border-slate-200 bg-white">
-        <div className="max-w-6xl mx-auto px-6 py-6 text-xs text-slate-500 flex flex-wrap gap-2 justify-between">
-          <span>© 2026 RecuperaPack · Términos · Privacidad · Contacto</span>
-          <span>Garantía Recupera en lotes verificados</span>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

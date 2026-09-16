@@ -101,7 +101,11 @@ function View() {
                   <td className="p-3 font-semibold">{c.name}</td>
                   <td className="p-3">{c.tax_id ?? '—'}</td>
                   <td className="p-3 font-mono">{c.verification_code ?? '—'}</td>
-                  <td className="p-3">{c.is_verified ? '✅ Verificada' : '⏳ Pendiente'}</td>
+                  <td className="p-3">
+                    <span className={`text-xs font-bold uppercase tracking-wider rounded-full px-2.5 py-1 ${c.is_verified ? 'text-emerald-800 bg-emerald-100' : 'text-amber-800 bg-amber-100'}`}>
+                      {c.is_verified ? 'Verificada' : 'Pendiente'}
+                    </span>
+                  </td>
                   <td className="p-3"><button onClick={() => startEdit(c)} className="text-brand-900 underline">Editar</button></td>
                 </tr>
               ))}
@@ -112,11 +116,11 @@ function View() {
         <form onSubmit={onSubmit} className="bg-white rounded-2xl border p-4 space-y-2.5 h-fit">
           <h2 className="font-bold text-brand-950">{editing ? 'Editar empresa' : 'Nueva empresa'}</h2>
           <input className="field-input" maxLength={200} placeholder="Nombre *" value={name} onChange={(e) => setName(e.target.value)} aria-label="Nombre" />
-          <div className="grid grid-cols-2 gap-2.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             <input className="field-input" maxLength={50} placeholder="NIT" value={taxId} onChange={(e) => setTaxId(e.target.value)} aria-label="NIT" />
             <input className="field-input" maxLength={50} placeholder="Código (LOG-####-RP)" value={code} onChange={(e) => setCode(e.target.value)} aria-label="Código" />
           </div>
-          <div className="grid grid-cols-2 gap-2.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             <input className="field-input" maxLength={254} placeholder="Email contacto" value={email} onChange={(e) => setEmail(e.target.value)} aria-label="Email" />
             <input className="field-input" maxLength={30} placeholder="Teléfono" value={phone} onChange={(e) => setPhone(e.target.value)} aria-label="Teléfono" />
           </div>

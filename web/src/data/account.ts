@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { isSupabaseConfigured, requireSupabase } from '../lib/supabase';
 import { isUuid } from '../lib/validation';
-import { createDemoOrder, getDb, isDemo, saveDb } from '../demo/demo';
+import { createExploreOrder, getDb, hasData, isExplore, saveDb } from '../demo/demo';
 
 export interface OrderItem {
   id: string;
@@ -103,7 +103,7 @@ export function useMyOrders(userId: string | undefined) {
       setLoading(false);
       return;
     }
-    if (isDemo()) {
+    if (isExplore()) {
       setOrders(
         (getDb().orders as any[])
           .filter((o) => o.buyer_id === userId)
@@ -127,7 +127,7 @@ export function useMyOrders(userId: string | undefined) {
       });
   }, [userId]);
 
-  return { orders, loading, configured: isSupabaseConfigured };
+  return { orders, loading, configured: hasData() };
 }
 
 export function useOrder(orderId: string | undefined, userId: string | undefined) {
@@ -145,7 +145,7 @@ export function useOrder(orderId: string | undefined, userId: string | undefined
       setLoading(false);
       return;
     }
-    if (isDemo()) {
+    if (isExplore()) {
       const db = getDb();
       const found = (db.orders as any[]).find((o) => o.id === orderId);
       if (found) {
@@ -208,7 +208,7 @@ export function useOrder(orderId: string | undefined, userId: string | undefined
       });
   }, [orderId, userId]);
 
-  return { order, shipment, loading, configured: isSupabaseConfigured };
+  return { order, shipment, loading, configured: hasData() };
 }
 
 export interface NewOrderInput {
@@ -229,11 +229,11 @@ export interface NewOrderInput {
 
 /** Crea pedido + detalle. Los triggers calculan totales y descuentan stock. */
 export async function createOrder(input: NewOrderInput): Promise<string> {
-  if (isDemo()) {
+  if (isExplore()) {
     const db = getDb();
     const method =
       db.payments.find((m: any) => m.id === input.paymentMethodId)?.name ?? 'Demo';
-    return createDemoOrder({
+    return createExploreOrder({
       items: input.items,
       shippingCost: input.shippingCost,
       taxAmount: input.taxAmount,
@@ -287,7 +287,7 @@ export function useAddresses(userId: string | undefined) {
       setLoading(false);
       return;
     }
-    if (isDemo()) {
+    if (isExplore()) {
       setItems([...(getDb().addresses as Address[])]);
       setLoading(false);
       return;
@@ -316,7 +316,7 @@ export async function saveAddress(
   userId: string,
   input: Omit<Address, 'id'> & { id?: string },
 ) {
-  if (isDemo()) {
+  if (isExplore()) {
     const db = getDb();
     if (input.is_default) {
       for (const a of db.addresses as any[]) a.is_default = false;
@@ -375,7 +375,7 @@ export async function saveAddress(
 }
 
 export async function deleteAddress(id: string) {
-  if (isDemo()) {
+  if (isExplore()) {
     const db = getDb();
     db.addresses = (db.addresses as any[]).filter((a) => a.id !== id);
     saveDb(db);
@@ -388,7 +388,7 @@ export async function deleteAddress(id: string) {
 export function usePaymentMethods() {
   const [items, setItems] = useState<PaymentMethod[]>([]);
   useEffect(() => {
-    if (isDemo()) {
+    if (isExplore()) {
       setItems(getDb().payments as PaymentMethod[]);
       return;
     }
@@ -407,7 +407,7 @@ export async function updateProfile(
   userId: string,
   input: { firstName: string; lastName: string; phone: string },
 ) {
-  if (isDemo()) {
+  if (isExplore()) {
     const db = getDb();
     db.profile = { first_name: input.firstName, last_name: input.lastName, phone: input.phone };
     saveDb(db);
@@ -434,7 +434,7 @@ export interface Faq {
 export function useFaqs() {
   const [items, setItems] = useState<Faq[]>([]);
   useEffect(() => {
-    if (isDemo()) {
+    if (isExplore()) {
       setItems(getDb().faqs as Faq[]);
       return;
     }
@@ -456,7 +456,7 @@ export async function createTicket(input: {
   category: string;
   message: string;
 }) {
-  if (isDemo()) {
+  if (isExplore()) {
     const db = getDb();
     const id = `demo-ticket-${Date.now()}`;
     db.tickets.unshift({
@@ -528,7 +528,7 @@ export function useNotifications(userId: string | undefined) {
       setLoading(false);
       return;
     }
-    if (isDemo()) {
+    if (isExplore()) {
       setItems(
         [...(getDb().notifications as Notification[])].sort((a, b) =>
           String(b.created_at).localeCompare(String(a.created_at)),
@@ -557,7 +557,7 @@ export function useNotifications(userId: string | undefined) {
 
   const markRead = useCallback(
     async (id: string) => {
-      if (isDemo()) {
+      if (isExplore()) {
         const db = getDb();
         for (const n of db.notifications as any[]) {
           if (n.id === id) n.is_read = true;
@@ -573,7 +573,7 @@ export function useNotifications(userId: string | undefined) {
 
   const markAllRead = useCallback(async () => {
     if (!userId) return;
-    if (isDemo()) {
+    if (isExplore()) {
       const db = getDb();
       for (const n of db.notifications as any[]) n.is_read = true;
       saveDb(db);
@@ -602,7 +602,7 @@ export interface Thread {
 }
 
 export async function fetchThreads(userId: string): Promise<Thread[]> {
-  if (isDemo()) {
+  if (isExplore()) {
     const db = getDb();
     const mine = (db.messages as any[]).filter(
       (m) => m.sender_id === userId || m.receiver_id === userId,
@@ -666,7 +666,7 @@ export async function fetchThreads(userId: string): Promise<Thread[]> {
 }
 
 export async function fetchThreadMessages(userId: string, lotId: string) {
-  if (isDemo()) {
+  if (isExplore()) {
     const db = getDb();
     const msgs = (db.messages as any[]).filter(
       (m) =>
@@ -695,7 +695,7 @@ export async function fetchThreadMessages(userId: string, lotId: string) {
 }
 
 export async function sendMessage(lotId: string, senderId: string, receiverId: string, body: string) {
-  if (isDemo()) {
+  if (isExplore()) {
     const db = getDb();
     (db.messages as any[]).push({
       id: `demo-msg-${Date.now()}`,
@@ -717,7 +717,7 @@ export async function sendMessage(lotId: string, senderId: string, receiverId: s
 
 /** Receptor de consulta por un lote: dueño de la empresa o admin. */
 export async function findSellerForLot(lotId: string, excludeId: string): Promise<string> {
-  if (isDemo()) {
+  if (isExplore()) {
     const db = getDb();
     const lot = (db.lots as any[]).find((l) => l.id === lotId);
     const members = (db.company_members as any[]).filter(
@@ -753,7 +753,7 @@ export function usePrefs(userId: string | undefined) {
   const [prefs, setPrefs] = useState<Prefs | null>(null);
   useEffect(() => {
     if (!userId) return;
-    if (isDemo()) {
+    if (isExplore()) {
       setPrefs({ ...getDb().prefs });
       return;
     }
@@ -771,7 +771,7 @@ export function usePrefs(userId: string | undefined) {
   const save = useCallback(
     async (next: Prefs) => {
       if (!userId) return;
-      if (isDemo()) {
+      if (isExplore()) {
         const db = getDb();
         db.prefs = { ...next };
         saveDb(db);

@@ -122,7 +122,7 @@ export default function Help() {
                 <label className="field-label" htmlFor="tk-subject">Asunto</label>
                 <input id="tk-subject" className="field-input" maxLength={LIMITS.subject} value={subject} onChange={(e) => setSubject(e.target.value)} />
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="field-label" htmlFor="tk-cat">Categoría</label>
                   <select id="tk-cat" className="field-input" value={category} onChange={(e) => setCategory(e.target.value)}>

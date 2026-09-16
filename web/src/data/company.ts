@@ -1,9 +1,9 @@
 import { requireSupabase } from '../lib/supabase';
-import { getDb, isDemo, saveDb } from '../demo/demo';
+import { getDb, isExplore, saveDb } from '../demo/demo';
 
 /** Empresas donde el usuario es miembro + su resumen de recuperación. */
 export async function fetchMyCompanies(userId: string) {
-  if (isDemo()) {
+  if (isExplore()) {
     const db = getDb();
     const mine = (db.company_members as any[]).filter((m) => m.profile_id === userId);
     return mine
@@ -54,7 +54,7 @@ export async function fetchMyCompanies(userId: string) {
 }
 
 export async function fetchCompanyPackages(companyId: string) {
-  if (isDemo()) {
+  if (isExplore()) {
     return (getDb().packages as any[])
       .filter((p) => p.company_id === companyId)
       .sort((a, b) => String(b.received_at).localeCompare(String(a.received_at)));
@@ -69,7 +69,7 @@ export async function fetchCompanyPackages(companyId: string) {
 }
 
 export async function fetchCompanyLots(companyId: string) {
-  if (isDemo()) {
+  if (isExplore()) {
     return (getDb().lots as any[])
       .filter((l) => l.company_id === companyId)
       .map((l) => ({
@@ -92,7 +92,7 @@ export async function fetchCompanyLots(companyId: string) {
 }
 
 export async function fetchCompanySales(companyId: string) {
-  if (isDemo()) {
+  if (isExplore()) {
     const db = getDb();
     const lotIds = new Set(
       (db.lots as any[]).filter((l) => l.company_id === companyId).map((l) => l.id),
@@ -122,7 +122,7 @@ export async function fetchCompanySales(companyId: string) {
 }
 
 export async function registerCompanyPackage(userId: string, companyId: string, input: any) {
-  if (isDemo()) {
+  if (isExplore()) {
     const db = getDb();
     const member = (db.company_members as any[]).find(
       (m) => m.company_id === companyId && m.profile_id === userId,

@@ -10,23 +10,22 @@ import {
 } from 'react';
 import { isSupabaseConfigured, requireSupabase } from '../lib/supabase';
 import {
-  DEMO_EMAIL,
-  DEMO_USER_ID,
+  EXPLORE_USER_ID,
   ROLE_NAMES,
-  demoLogin,
-  demoLogout,
+  enterExploreMode,
+  exitExplore,
   getDb,
-  getDemoRole,
-  isDemo,
+  getExploreRole,
+  isExplore,
 } from '../demo/demo';
 
-const DEMO_USER = { id: DEMO_USER_ID, email: DEMO_EMAIL } as unknown as User;
+const EXPLORE_USER = { id: EXPLORE_USER_ID, email: 'revisor@local' } as unknown as User;
 
-function demoProfile(): Profile {
-  const role = getDemoRole();
+function exploreProfile(): Profile {
+  const role = getExploreRole();
   const p = getDb().profile;
   return {
-    id: DEMO_USER_ID,
+    id: EXPLORE_USER_ID,
     roleCode: role,
     roleName: ROLE_NAMES[role],
     firstName: p.first_name,
@@ -52,6 +51,8 @@ interface AuthState {
   profile: Profile | null;
   signUp: (input: SignUpInput) => Promise<{ needsConfirmation: boolean }>;
   signIn: (email: string, password: string) => Promise<void>;
+  /** Entrada directa temporal (revisión sin backend). */
+  explore: () => void;
   signOut: () => Promise<void>;
   sendPasswordReset: (email: string) => Promise<void>;
   refreshProfile: () => Promise<void>;
@@ -90,7 +91,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [demoActive, setDemoActive] = useState(false);
+  const [exploreActive, setExploreActive] = useState(false);
 
   const loadProfile = useCallback(async (userId: string | undefined) => {
     if (!userId) {
@@ -107,9 +108,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (isDemo()) {
-      setDemoActive(true);
-      setProfile(demoProfile());
+    if (isExplore()) {
+      setExploreActive(true);
+      setProfile(exploreProfile());
       setLoading(false);
       return;
     }
@@ -168,21 +169,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const signIn = useCallback(async (email: string, password: string) => {
-    // Cuenta de prueba: entra sin backend (modo demo con datos de ejemplo).
-    if (demoLogin(email, password)) {
-      setDemoActive(true);
-      setProfile(demoProfile());
-      return;
-    }
     const sb = requireSupabase();
     const { error } = await sb.auth.signInWithPassword({ email, password });
     if (error) throw error;
   }, []);
 
+  const explore = useCallback(() => {
+    enterExploreMode();
+    setExploreActive(true);
+    setProfile(exploreProfile());
+  }, []);
+
   const signOut = useCallback(async () => {
-    if (demoActive || isDemo()) {
-      demoLogout();
-      setDemoActive(false);
+    if (exploreActive || isExplore()) {
+      exitExplore();
+      setExploreActive(false);
       setSession(null);
       setProfile(null);
       return;
@@ -191,34 +192,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { error } = await sb.auth.signOut();
     if (error) throw error;
     setProfile(null);
-  }, [demoActive]);
+  }, [exploreActive]);
 
   const sendPasswordReset = useCallback(async (email: string) => {
-    if (demoActive || isDemo()) return; // en demo no se envía correo
+    if (exploreActive || isExplore()) return; // en exploración no se envía correo
     const sb = requireSupabase();
     const { error } = await sb.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/login`,
     });
     if (error) throw error;
-  }, [demoActive]);
+  }, [exploreActive]);
 
   const refreshProfile = useCallback(async () => {
-    if (demoActive || isDemo()) {
-      setProfile(demoProfile());
+    if (exploreActive || isExplore()) {
+      setProfile(exploreProfile());
       return;
     }
     await loadProfile(session?.user.id);
-  }, [loadProfile, session, demoActive]);
+  }, [loadProfile, session, exploreActive]);
 
   const value = useMemo<AuthState>(
     () => ({
-      configured: isSupabaseConfigured || demoActive,
+      configured: isSupabaseConfigured || exploreActive,
       loading,
       session,
-      user: demoActive ? DEMO_USER : (session?.user ?? null),
+      user: exploreActive ? EXPLORE_USER : (session?.user ?? null),
       profile,
       signUp,
       signIn,
+      explore,
       signOut,
       sendPasswordReset,
       refreshProfile,
@@ -229,10 +231,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       profile,
       signUp,
       signIn,
+      explore,
       signOut,
       sendPasswordReset,
       refreshProfile,
-      demoActive,
+      exploreActive,
     ],
   );
 

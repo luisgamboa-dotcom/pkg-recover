@@ -2,7 +2,6 @@ import { useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import AuthLayout from '../components/AuthLayout';
-import { DEMO_EMAIL, DEMO_PASS } from '../demo/demo';
 import { LIMITS, checkEmail, normalizeEmail } from '../lib/validation';
 
 function friendlyError(message: string): string {
@@ -16,7 +15,7 @@ function friendlyError(message: string): string {
 }
 
 export default function Login() {
-  const { configured, signIn, sendPasswordReset, user } = useAuth();
+  const { configured, signIn, sendPasswordReset, user, explore } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -82,21 +81,21 @@ export default function Login() {
           <code>web/.env</code> con la anon key del proyecto.
         </p>
       )}
-      <div className="mb-4 rounded-xl border border-brand-100 bg-brand-50 p-3 text-sm">
-        <p className="font-bold text-brand-950">Cuenta de prueba</p>
-        <p className="text-slate-600">
-          <code>{DEMO_EMAIL}</code> · <code>{DEMO_PASS}</code> — entra sin
-          backend, con datos de ejemplo y cambio de rol.
+      <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm">
+        <p className="font-bold text-amber-900">Acceso temporal de revisión</p>
+        <p className="text-amber-800">
+          Entra directamente a explorar todas las vistas con datos de ejemplo
+          (sin backend).
         </p>
         <button
           type="button"
           onClick={() => {
-            setEmail(DEMO_EMAIL);
-            setPassword(DEMO_PASS);
+            explore();
+            navigate('/', { replace: true });
           }}
-          className="mt-1.5 text-brand-900 font-semibold underline"
+          className="mt-2 w-full rounded-lg bg-amber-500 text-white font-semibold py-2.5 hover:bg-amber-600"
         >
-          Rellenar datos de prueba
+          Explorar directamente
         </button>
       </div>
       <form onSubmit={onSubmit} noValidate className="space-y-4">

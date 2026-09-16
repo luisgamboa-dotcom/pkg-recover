@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { AuthProvider } from './auth/AuthContext';
 import { CartProvider } from './lib/cart';
@@ -26,8 +27,9 @@ import AdminLots from './pages/admin/AdminLots';
 import AdminOrderDetail from './pages/admin/AdminOrderDetail';
 import AdminOrders from './pages/admin/AdminOrders';
 import AdminPackages from './pages/admin/AdminPackages';
-import AdminReports from './pages/admin/AdminReports';
 import AdminUsers from './pages/admin/AdminUsers';
+
+const AdminReports = lazy(() => import('./pages/admin/AdminReports'));
 
 export default function App() {
   return (
@@ -35,6 +37,7 @@ export default function App() {
       <CartProvider>
         <DemoBanner />
         <BrowserRouter>
+        <Suspense fallback={<p className="p-6 text-sm text-slate-500">Cargando…</p>}>
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
@@ -65,6 +68,7 @@ export default function App() {
             <Route path="/admin/reportes" element={<AdminReports />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
+        </Suspense>
         </BrowserRouter>
       </CartProvider>
     </AuthProvider>

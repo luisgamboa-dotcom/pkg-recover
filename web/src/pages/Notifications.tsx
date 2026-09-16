@@ -44,11 +44,11 @@ function List() {
       {!loading && items.length === 0 && (
         <EmptyState title="Sin avisos" text="Aquí verás ofertas, nuevos lotes y cambios en tus pedidos." />
       )}
-      <div className="space-y-2">
+      <div className="space-y-4">
         {items.map((n) => {
           const to = target(n);
           const body = (
-            <div className={`bg-white rounded-2xl border p-4 ${n.is_read ? '' : 'border-brand-900 shadow'}`}>
+            <div className={`bg-white rounded-2xl border p-5 ${n.is_read ? '' : 'border-brand-900 shadow'}`}>
               <div className="flex items-center gap-2">
                 <span className="text-[11px] font-bold uppercase tracking-wider text-white bg-brand-900 rounded-full px-2.5 py-0.5">
                   {TYPE_LABEL[n.type] ?? n.type}

@@ -1,29 +1,28 @@
 /**
- * Modo demo (testeo sin Supabase): sesión local + base de mentiras realista
- * persistida en localStorage. Las filas imitan la forma de PostgREST para
- * reutilizar los mapeadores (toLot/toOrder) sin cambios.
+ * Modo exploración temporal (revisión sin Supabase): sesión local + base de
+ * ejemplo realista persistida en localStorage. Las filas imitan la forma de
+ * PostgREST para reutilizar los mapeadores (toLot/toOrder) sin cambios.
  */
+import { isSupabaseConfigured } from '../lib/supabase';
 
-export const DEMO_EMAIL = 'demo@recuperapack.com';
-export const DEMO_PASS = 'demo1234';
-export const DEMO_USER_ID = '00000000-0000-0000-0000-000000000001';
+export const EXPLORE_USER_ID = '00000000-0000-0000-0000-000000000001';
 const ADMIN_ID = '00000000-0000-0000-0000-000000000002';
 const OWNER_ID = '00000000-0000-0000-0000-000000000003';
 
-const SESSION_KEY = 'rp-demo-session';
-const ROLE_KEY = 'rp-demo-role';
-const DB_KEY = 'rp-demo-db-v1';
+const SESSION_KEY = 'rp-explore-session';
+const ROLE_KEY = 'rp-explore-role';
+const DB_KEY = 'rp-explore-db-v1';
 
-export type DemoRole = 'customer' | 'reseller' | 'company' | 'admin';
+export type ExploreRole = 'customer' | 'reseller' | 'company' | 'admin';
 
-export const ROLE_NAMES: Record<DemoRole, string> = {
+export const ROLE_NAMES: Record<ExploreRole, string> = {
   customer: 'Cliente particular',
   reseller: 'Revendedor',
   company: 'Empresa proveedora',
   admin: 'Administrador',
 };
 
-export function isDemo(): boolean {
+export function isExplore(): boolean {
   try {
     return localStorage.getItem(SESSION_KEY) === '1';
   } catch {
@@ -31,24 +30,18 @@ export function isDemo(): boolean {
   }
 }
 
-export function demoLogin(email: string, password: string): boolean {
-  if (
-    email.trim().toLowerCase() !== DEMO_EMAIL ||
-    password !== DEMO_PASS
-  ) {
-    return false;
-  }
+/** Entrada directa temporal: activa la sesión local y siembra los datos. */
+export function enterExploreMode(): void {
   try {
     localStorage.setItem(SESSION_KEY, '1');
     if (!localStorage.getItem(ROLE_KEY)) localStorage.setItem(ROLE_KEY, 'admin');
     getDb(); // siembra si es primera vez
   } catch {
-    return false;
+    /* noop */
   }
-  return true;
 }
 
-export function demoLogout() {
+export function exitExplore() {
   try {
     localStorage.removeItem(SESSION_KEY);
   } catch {
@@ -56,7 +49,7 @@ export function demoLogout() {
   }
 }
 
-export function getDemoRole(): DemoRole {
+export function getExploreRole(): ExploreRole {
   try {
     const r = localStorage.getItem(ROLE_KEY);
     if (r === 'customer' || r === 'reseller' || r === 'company' || r === 'admin') return r;
@@ -66,7 +59,7 @@ export function getDemoRole(): DemoRole {
   return 'admin';
 }
 
-export function setDemoRole(role: DemoRole) {
+export function setExploreRole(role: ExploreRole) {
   try {
     localStorage.setItem(ROLE_KEY, role);
   } catch {
@@ -74,7 +67,7 @@ export function setDemoRole(role: DemoRole) {
   }
 }
 
-export function resetDemo() {
+export function resetExplore() {
   try {
     localStorage.removeItem(DB_KEY);
   } catch {
@@ -82,12 +75,17 @@ export function resetDemo() {
   }
 }
 
+/** Hay fuente de datos si Supabase está configurado o si se explora local. */
+export function hasData(): boolean {
+  return isSupabaseConfigured || isExplore();
+}
+
 /** UUID determinista para el seed (los hooks exigen UUID válido). */
 function duid(n: number): string {
   return `11111111-2222-3333-4444-${String(n).padStart(12, '0')}`;
 }
 
-export interface DemoDb {
+export interface ExploreDb {
   profile: { first_name: string; last_name: string; phone: string };
   prefs: {
     offers: boolean;
@@ -122,7 +120,7 @@ export interface DemoDb {
   seq: { order: number; ticket: number };
 }
 
-function seedDb(): DemoDb {
+function seedDb(): ExploreDb {
   const cat = (n: number, name: string, slug: string) => ({
     id: duid(n),
     name,
@@ -260,7 +258,7 @@ function seedDb(): DemoDb {
     {
       id: duid(201),
       order_number: 'RP-2026-000123',
-      buyer_id: DEMO_USER_ID,
+      buyer_id: EXPLORE_USER_ID,
       status: 'delivered',
       subtotal: 2940000,
       shipping_cost: 45000,
@@ -270,7 +268,7 @@ function seedDb(): DemoDb {
       payment_method_id: duid(401),
       carrier: 'RecuperaLogistics',
       created_at: '2026-08-20T15:30:00.000Z',
-      ship_recipient_name: 'Demo Usuario',
+      ship_recipient_name: 'Invitado',
       ship_phone: '+57 300 123 4567',
       ship_city: 'Bogotá D.C.',
       ship_address_line: 'Calle 100 #15-20, Apto 501',
@@ -285,8 +283,8 @@ function seedDb(): DemoDb {
     {
       id: duid(202),
       order_number: 'RP-2026-000131',
-      buyer_id: DEMO_USER_ID,
-      status: 'in_transit',
+      buyer_id: EXPLORE_USER_ID,
+      status: 'shipped',
       subtotal: 1850000,
       shipping_cost: 45000,
       tax_amount: 360100,
@@ -295,7 +293,7 @@ function seedDb(): DemoDb {
       payment_method_id: duid(402),
       carrier: 'RecuperaLogistics',
       created_at: '2026-09-05T09:12:00.000Z',
-      ship_recipient_name: 'Demo Usuario',
+      ship_recipient_name: 'Invitado',
       ship_phone: '+57 300 123 4567',
       ship_city: 'Medellín',
       ship_address_line: 'Carrera 43A #10-25',
@@ -310,7 +308,7 @@ function seedDb(): DemoDb {
   ];
 
   return {
-    profile: { first_name: 'Demo', last_name: 'Usuario', phone: '+57 300 123 4567' },
+    profile: { first_name: 'Invitado', last_name: '', phone: '+57 300 123 4567' },
     prefs: { offers: true, new_lots: true, order_updates: true, shipping_updates: true, availability: false },
     categories,
     brands: [
@@ -319,7 +317,7 @@ function seedDb(): DemoDb {
     ],
     companies,
     company_members: [
-      { company_id: companies[0].id, profile_id: DEMO_USER_ID, company_role: 'owner' },
+      { company_id: companies[0].id, profile_id: EXPLORE_USER_ID, company_role: 'owner' },
       { company_id: companies[0].id, profile_id: OWNER_ID, company_role: 'member' },
     ],
     warehouses,
@@ -360,7 +358,7 @@ function seedDb(): DemoDb {
     ],
     addresses: [
       {
-        id: duid(71), label: 'Casa', recipient_name: 'Demo Usuario',
+        id: duid(71), label: 'Casa', recipient_name: 'Invitado',
         phone: '+57 300 123 4567', city: 'Bogotá D.C.',
         address_line: 'Calle 100 #15-20, Apto 501', delivery_notes: 'Portería 24h',
         is_default: true,
@@ -411,12 +409,12 @@ function seedDb(): DemoDb {
     ],
     messages: [
       {
-        id: duid(95), lot_id: lots[0].id, sender_id: DEMO_USER_ID, receiver_id: OWNER_ID,
+        id: duid(95), lot_id: lots[0].id, sender_id: EXPLORE_USER_ID, receiver_id: OWNER_ID,
         body: 'Hola, ¿el precio incluye el envío a Medellín?', is_read: true,
         created_at: '2026-09-02T10:45:00.000Z',
       },
       {
-        id: duid(96), lot_id: lots[0].id, sender_id: OWNER_ID, receiver_id: DEMO_USER_ID,
+        id: duid(96), lot_id: lots[0].id, sender_id: OWNER_ID, receiver_id: EXPLORE_USER_ID,
         body: 'Buen día. El precio es EXW en bodega, pero cotizamos el flete.',
         is_read: false, created_at: '2026-09-02T10:48:00.000Z',
       },
@@ -425,7 +423,7 @@ function seedDb(): DemoDb {
     ticketMessages: [],
     users: [
       {
-        id: DEMO_USER_ID, first_name: 'Demo', last_name: 'Usuario',
+        id: EXPLORE_USER_ID, first_name: 'Invitado', last_name: 'Temporal',
         phone: '+57 300 123 4567', is_active: true,
         created_at: '2026-09-01T09:00:00.000Z', roles: { code: 'admin', name: 'Administrador' },
       },
@@ -473,10 +471,10 @@ function seedDb(): DemoDb {
   };
 }
 
-export function getDb(): DemoDb {
+export function getDb(): ExploreDb {
   try {
     const raw = localStorage.getItem(DB_KEY);
-    if (raw) return JSON.parse(raw) as DemoDb;
+    if (raw) return JSON.parse(raw) as ExploreDb;
   } catch {
     /* siembra de nuevo */
   }
@@ -489,7 +487,7 @@ export function getDb(): DemoDb {
   return db;
 }
 
-export function saveDb(db: DemoDb) {
+export function saveDb(db: ExploreDb) {
   try {
     localStorage.setItem(DB_KEY, JSON.stringify(db));
   } catch {
@@ -497,8 +495,8 @@ export function saveDb(db: DemoDb) {
   }
 }
 
-/** Crea un pedido demo (checkout) con número secuencial DEMO-####. */
-export function createDemoOrder(input: {
+/** Crea un pedido de exploración (checkout) con número secuencial REV-####. */
+export function createExploreOrder(input: {
   items: { lotId: string; qty: number; unitPrice: number }[];
   shippingCost: number;
   taxAmount: number;
@@ -508,7 +506,7 @@ export function createDemoOrder(input: {
   const db = getDb();
   db.seq.order += 1;
   const id = duid(200 + db.seq.order);
-  const orderNumber = `DEMO-${String(db.seq.order).padStart(4, '0')}`;
+  const orderNumber = `REV-${String(db.seq.order).padStart(4, '0')}`;
   const subtotal = input.items.reduce((a, i) => a + i.qty * i.unitPrice, 0);
   const items = input.items.map((i, idx) => {
     const lot = db.lots.find((l) => l.id === i.lotId);
@@ -524,7 +522,7 @@ export function createDemoOrder(input: {
   db.orders.unshift({
     id,
     order_number: orderNumber,
-    buyer_id: DEMO_USER_ID,
+    buyer_id: EXPLORE_USER_ID,
     status: 'pending_payment',
     subtotal,
     shipping_cost: input.shippingCost,

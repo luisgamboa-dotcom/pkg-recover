@@ -66,7 +66,7 @@ export default function Cart() {
                             parseQty(e.target.value, Math.max(lot!.stock_quantity, 1)),
                           )
                         }
-                        className="field-input !w-20 inline-block"
+                        className="field-input w-20! inline-block"
                       />
                     </label>
                     <button

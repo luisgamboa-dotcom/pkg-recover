@@ -1,5 +1,6 @@
 import { Link, NavLink } from 'react-router-dom';
 import type { ReactNode } from 'react';
+import Footer from './Footer';
 
 const links = [
   ['/admin', 'Tablero', true],
@@ -43,7 +44,10 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           ← Volver a la tienda
         </Link>
       </aside>
-      <main className="flex-1 p-4 lg:p-8 max-w-6xl">{children}</main>
+      <div className="flex-1 flex flex-col min-w-0">
+        <main className="flex-1 p-4 lg:p-8 pb-20 max-w-6xl w-full">{children}</main>
+        <Footer />
+      </div>
     </div>
   );
 }

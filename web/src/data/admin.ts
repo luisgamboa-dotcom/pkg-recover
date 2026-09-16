@@ -1,9 +1,9 @@
 import { requireSupabase } from '../lib/supabase';
-import { getDb, isDemo, saveDb, type DemoDb } from '../demo/demo';
+import { getDb, isExplore, saveDb, type ExploreDb } from '../demo/demo';
 
 const rid = () => crypto.randomUUID();
 
-function demoLots(db: DemoDb) {
+function demoLots(db: ExploreDb) {
   return (db.lots as any[]).map((l) => ({
     id: l.id,
     sku: l.sku,
@@ -15,7 +15,7 @@ function demoLots(db: DemoDb) {
   }));
 }
 
-function demoOrderItems(db: DemoDb) {
+function demoOrderItems(db: ExploreDb) {
   const items: any[] = [];
   for (const o of db.orders as any[]) {
     if (['cancelled', 'returned'].includes(o.status)) continue;
@@ -28,7 +28,7 @@ function demoOrderItems(db: DemoDb) {
 
 /* Lecturas agregadas (vistas con security_invoker: respetan RLS del rol). */
 export async function fetchInventorySummary() {
-  if (isDemo()) {
+  if (isExplore()) {
     const db = getDb();
     return (db.lots as any[]).map((l) => ({
       id: l.id,
@@ -56,7 +56,7 @@ export async function fetchInventorySummary() {
 }
 
 export async function fetchCompanyRecovery() {
-  if (isDemo()) {
+  if (isExplore()) {
     const db = getDb();
     return (db.companies as any[]).map((c) => {
       const lots = (db.lots as any[]).filter((l) => l.company_id === c.id);
@@ -82,7 +82,7 @@ export async function fetchCompanyRecovery() {
 }
 
 export async function fetchBestSellers() {
-  if (isDemo()) {
+  if (isExplore()) {
     const db = getDb();
     const byLot = new Map<string, any>();
     for (const i of demoOrderItems(db)) {
@@ -118,7 +118,7 @@ export async function fetchBestSellers() {
 }
 
 export async function fetchCounts() {
-  if (isDemo()) {
+  if (isExplore()) {
     const db = getDb();
     const tally = (rows: any[], key: string) => {
       const m: Record<string, number> = {};
@@ -154,7 +154,7 @@ export async function fetchCounts() {
 
 /* Lotes (admin ve todos los estados). */
 export async function fetchAllLots() {
-  if (isDemo()) return demoLots(getDb());
+  if (isExplore()) return demoLots(getDb());
   const { data, error } = await requireSupabase()
     .from('lots')
     .select('id, sku, title, status, stock_quantity, base_price, is_featured, companies (name)')
@@ -192,7 +192,7 @@ export interface LotInput {
 }
 
 export async function saveLot(id: string | null, input: LotInput): Promise<string> {
-  if (isDemo()) {
+  if (isExplore()) {
     const db = getDb();
     const { category_ids, ...row } = input as any;
     const cats = (db.categories as any[]).filter((c) => category_ids.includes(c.id));
@@ -249,7 +249,7 @@ export async function saveLot(id: string | null, input: LotInput): Promise<strin
 }
 
 export async function deleteLot(id: string) {
-  if (isDemo()) {
+  if (isExplore()) {
     const db = getDb();
     const used = (db.orders as any[]).some((o) =>
       (o.order_items ?? []).some((i: any) => i.lots?.id === id),
@@ -268,7 +268,7 @@ export async function uploadLotImage(lotId: string, file: File, makePrimary: boo
   const okTypes = ['image/jpeg', 'image/png', 'image/webp'];
   if (!okTypes.includes(file.type)) throw new Error('Solo JPG, PNG o WebP.');
   if (file.size > 5 * 1024 * 1024) throw new Error('Máximo 5 MB por foto.');
-  if (isDemo()) {
+  if (isExplore()) {
     // En demo no hay Storage: se registra marcador (muestra placeholder).
     const db = getDb();
     const lot = (db.lots as any[]).find((l) => l.id === lotId);
@@ -295,7 +295,7 @@ export async function uploadLotImage(lotId: string, file: File, makePrimary: boo
 }
 
 export async function deleteLotImage(id: string, path: string) {
-  if (isDemo()) {
+  if (isExplore()) {
     const db = getDb();
     for (const lot of db.lots as any[]) {
       lot.lot_images = (lot.lot_images ?? []).filter((im: any) => im.id !== id);
@@ -310,7 +310,7 @@ export async function deleteLotImage(id: string, path: string) {
 }
 
 export async function fetchLotAdmin(id: string) {
-  if (isDemo()) {
+  if (isExplore()) {
     const db = getDb();
     const lot = (db.lots as any[]).find((l) => l.id === id);
     if (!lot) throw new Error('Lote no encontrado');
@@ -332,7 +332,7 @@ export async function fetchLotAdmin(id: string) {
 }
 
 export async function saveTier(lotId: string, minQty: number, price: number) {
-  if (isDemo()) {
+  if (isExplore()) {
     const db = getDb();
     const existing = (db.tiers as any[]).find(
       (t) => t.lot_id === lotId && t.min_quantity === minQty,
@@ -349,7 +349,7 @@ export async function saveTier(lotId: string, minQty: number, price: number) {
 }
 
 export async function deleteTier(id: string) {
-  if (isDemo()) {
+  if (isExplore()) {
     const db = getDb();
     db.tiers = (db.tiers as any[]).filter((t) => t.id !== id);
     saveDb(db);
@@ -361,7 +361,7 @@ export async function deleteTier(id: string) {
 
 /* Inventario y paquetes. */
 export async function fetchMovements(lotId?: string) {
-  if (isDemo()) {
+  if (isExplore()) {
     const all = [...(getDb().movements as any[])].sort((a, b) =>
       String(b.created_at).localeCompare(String(a.created_at)),
     );
@@ -385,7 +385,7 @@ export async function addMovement(input: {
   reference: string;
   notes: string;
 }) {
-  if (isDemo()) {
+  if (isExplore()) {
     const db = getDb();
     const lot = (db.lots as any[]).find((l) => l.id === input.lot_id);
     if (!lot) throw new Error('Lote no encontrado');
@@ -427,7 +427,7 @@ export async function addMovement(input: {
 }
 
 export async function fetchPackages() {
-  if (isDemo()) {
+  if (isExplore()) {
     return [...(getDb().packages as any[])].sort((a, b) =>
       String(b.received_at).localeCompare(String(a.received_at)),
     );
@@ -442,7 +442,7 @@ export async function fetchPackages() {
 }
 
 export async function savePackage(id: string | null, input: any) {
-  if (isDemo()) {
+  if (isExplore()) {
     const db = getDb();
     if (id) {
       const i = (db.packages as any[]).findIndex((p) => p.id === id);
@@ -474,7 +474,7 @@ export async function savePackage(id: string | null, input: any) {
 
 /* Pedidos (admin): todos + cambio de estado + despacho. */
 export async function fetchAllOrders() {
-  if (isDemo()) {
+  if (isExplore()) {
     const db = getDb();
     return [...(db.orders as any[])]
       .sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)))
@@ -498,7 +498,7 @@ export async function fetchAllOrders() {
 }
 
 export async function updateOrderStatus(id: string, status: string) {
-  if (isDemo()) {
+  if (isExplore()) {
     const db = getDb();
     const o = (db.orders as any[]).find((x) => x.id === id);
     if (!o) throw new Error('Pedido no encontrado');
@@ -515,7 +515,7 @@ export async function saveShipment(
   input: { carrier: string; tracking_number: string | null; status: string },
   existingId?: string,
 ) {
-  if (isDemo()) {
+  if (isExplore()) {
     const db = getDb();
     if (existingId) {
       const s = (db.shipments as any[]).find((x) => x.id === existingId);
@@ -552,7 +552,7 @@ export async function saveShipment(
 }
 
 export async function addShipmentEvent(shipmentId: string, status: string, location: string) {
-  if (isDemo()) {
+  if (isExplore()) {
     const db = getDb();
     const s = (db.shipments as any[]).find((x) => x.id === shipmentId);
     if (!s) throw new Error('Despacho no encontrado');
@@ -576,7 +576,7 @@ export async function addShipmentEvent(shipmentId: string, status: string, locat
 
 /* Empresas y usuarios. */
 export async function fetchCompanies() {
-  if (isDemo()) return [...(getDb().companies as any[])];
+  if (isExplore()) return [...(getDb().companies as any[])];
   const { data, error } = await requireSupabase()
     .from('companies')
     .select('id, name, tax_id, verification_code, is_verified, city, contact_email')
@@ -586,7 +586,7 @@ export async function fetchCompanies() {
 }
 
 export async function saveCompany(id: string | null, input: any) {
-  if (isDemo()) {
+  if (isExplore()) {
     const db = getDb();
     if (id) {
       const i = (db.companies as any[]).findIndex((c) => c.id === id);
@@ -611,7 +611,7 @@ export async function saveCompany(id: string | null, input: any) {
 }
 
 export async function fetchUsers() {
-  if (isDemo()) return [...(getDb().users as any[])];
+  if (isExplore()) return [...(getDb().users as any[])];
   const { data, error } = await requireSupabase()
     .from('profiles')
     .select('id, first_name, last_name, phone, is_active, created_at, roles!inner (code, name)')
@@ -622,7 +622,7 @@ export async function fetchUsers() {
 }
 
 export async function fetchRoles() {
-  if (isDemo()) {
+  if (isExplore()) {
     return [
       { id: 'r1', code: 'customer', name: 'Cliente particular' },
       { id: 'r2', code: 'reseller', name: 'Revendedor' },
@@ -636,7 +636,7 @@ export async function fetchRoles() {
 }
 
 export async function updateUser(id: string, input: { role_id?: string; is_active?: boolean }) {
-  if (isDemo()) {
+  if (isExplore()) {
     const db = getDb();
     const u = (db.users as any[]).find((x) => x.id === id);
     if (!u) throw new Error('Usuario no encontrado');
@@ -671,7 +671,7 @@ const DEMO_TABLES: Record<string, string> = {
 };
 
 export async function fetchTable(table: string, orderBy = 'name') {
-  if (isDemo()) {
+  if (isExplore()) {
     const key = DEMO_TABLES[table];
     if (!key) throw new Error(`Tabla demo no soportada: ${table}`);
     const rows = [...((getDb() as any)[key] as any[])];
@@ -684,7 +684,7 @@ export async function fetchTable(table: string, orderBy = 'name') {
 }
 
 export async function saveRow(table: string, id: string | null, input: any) {
-  if (isDemo()) {
+  if (isExplore()) {
     const key = DEMO_TABLES[table];
     if (!key) throw new Error(`Tabla demo no soportada: ${table}`);
     const db = getDb();
@@ -712,7 +712,7 @@ export async function saveRow(table: string, id: string | null, input: any) {
 }
 
 export async function deleteRow(table: string, id: string) {
-  if (isDemo()) {
+  if (isExplore()) {
     const key = DEMO_TABLES[table];
     if (!key) throw new Error(`Tabla demo no soportada: ${table}`);
     const db = getDb();
@@ -725,7 +725,7 @@ export async function deleteRow(table: string, id: string) {
 }
 
 export async function linkPromotionLot(promotionId: string, lotId: string) {
-  if (isDemo()) {
+  if (isExplore()) {
     const db = getDb();
     const exists = (db.promotionLots as any[]).some(
       (p) => p.promotion_id === promotionId && p.lot_id === lotId,

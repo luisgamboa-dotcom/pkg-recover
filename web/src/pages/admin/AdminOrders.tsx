@@ -34,7 +34,7 @@ function List() {
       <PageHeader title="Pedidos" subtitle="Todos los pedidos, compradores y estados." />
       {msg && <p className="mb-3 text-sm text-red-700 bg-red-50 border rounded-lg p-3">{msg}</p>}
       <div className="mb-4">
-        <select className="field-input !w-auto" value={status} onChange={(e) => setStatus(e.target.value)} aria-label="Filtrar por estado">
+        <select className="field-input w-auto!" value={status} onChange={(e) => setStatus(e.target.value)} aria-label="Filtrar por estado">
           <option value="">Todos los estados</option>
           {['pending_payment', 'paid', 'preparing', 'shipped', 'delivered', 'cancelled', 'returned'].map((s) => (
             <option key={s} value={s}>{orderStatusLabel(s)}</option>

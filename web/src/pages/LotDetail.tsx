@@ -241,11 +241,16 @@ export default function LotDetail() {
                 onChange={(e) =>
                   setQty(parseQty(e.target.value, Math.max(lot.stock_quantity, 1)))
                 }
-                className="field-input !w-20 inline-block ml-1"
+                className="field-input w-20! inline-block ml-1"
               />
             </label>
             <button
               onClick={() => {
+                // Invitados: el carrito exige cuenta → van a iniciar sesión.
+                if (!user) {
+                  navigate('/login', { replace: true });
+                  return;
+                }
                 add(lot.id, qty);
                 setAdded(true);
               }}

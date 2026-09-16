@@ -173,7 +173,7 @@ function Editor() {
         <section className="bg-white rounded-2xl border border-slate-200 p-5">
           <h2 className="font-bold text-brand-950">Datos personales</h2>
           <form onSubmit={onProfile} className="mt-3 space-y-3">
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="field-label" htmlFor="pf-fn">Nombre</label>
                 <input id="pf-fn" className="field-input" maxLength={LIMITS.name} value={firstName} onChange={(e) => setFirstName(e.target.value)} />
@@ -277,11 +277,11 @@ function Editor() {
             {editing ? 'Editar dirección' : 'Nueva dirección'}
           </h3>
           <form onSubmit={onAddress} className="mt-2 space-y-2.5">
-            <div className="grid grid-cols-2 gap-2.5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               <input className="field-input" maxLength={LIMITS.label} placeholder="Etiqueta (Casa)" value={label} onChange={(e) => setLabel(e.target.value)} aria-label="Etiqueta" />
               <input className="field-input" maxLength={150} placeholder="Destinatario" value={recipient} onChange={(e) => setRecipient(e.target.value)} aria-label="Destinatario" />
             </div>
-            <div className="grid grid-cols-2 gap-2.5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               <input className="field-input" maxLength={LIMITS.phone} placeholder="Teléfono" value={aPhone} onChange={(e) => setAPhone(e.target.value)} aria-label="Teléfono" />
               <input className="field-input" maxLength={LIMITS.city} placeholder="Ciudad" value={city} onChange={(e) => setCity(e.target.value)} aria-label="Ciudad" />
             </div>

@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
+import Footer from '../components/Footer';
 
 type Status = 'done' | 'waiting' | 'next';
 
@@ -250,12 +251,9 @@ export default function Home() {
         </div>
       </main>
 
-      <footer className="border-t border-slate-200">
-        <div className="max-w-6xl mx-auto px-6 py-6 text-xs text-slate-500 flex flex-wrap gap-2 justify-between">
-          <span>© 2026 RecuperaPack · Plataforma de recuperación de paquetes</span>
-          <span>Bun · Vite · React · Supabase · Tailwind</span>
-        </div>
-      </footer>
+      <div className="pb-16">
+        <Footer />
+      </div>
     </div>
   );
 }
