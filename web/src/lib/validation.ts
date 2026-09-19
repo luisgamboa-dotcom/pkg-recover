@@ -19,6 +19,12 @@ export const LIMITS = {
   label: 60,
   city: 100,
   address: 300,
+  street: 150,
+  streetNumber: 20,
+  apartment: 60,
+  commune: 100,
+  region: 60,
+  postal: 10,
   notes: 500,
   title: 200,
   comment: 2000,
@@ -27,6 +33,26 @@ export const LIMITS = {
   search: 100,
   sku: 20,
 } as const;
+
+/** Regiones de Chile (selectores de dirección). */
+export const REGIONS = [
+  'Arica y Parinacota',
+  'Tarapacá',
+  'Antofagasta',
+  'Atacama',
+  'Coquimbo',
+  'Valparaíso',
+  'Metropolitana de Santiago',
+  "O'Higgins",
+  'Maule',
+  'Ñuble',
+  'Biobío',
+  'La Araucanía',
+  'Los Ríos',
+  'Los Lagos',
+  'Aysén',
+  'Magallanes',
+] as const;
 
 // Controles C0 (excepto tab, salto de línea y retorno) + DEL. Se generan por
 // código para no incrustar bytes literales en el fuente.
@@ -66,7 +92,10 @@ export function normalizeEmail(value: string): string {
 }
 
 const NAME_RE = /^[\p{L}\p{M} .'-]+$/u;
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+// Parte local RFC 5322 (simplificada): letras, dígitos y .!#$%&'*+/=?^_`{|}~-
+const EMAIL_LOCAL_RE = /^[a-z0-9.!#$%&'*+/=?^_`{|}~-]+$/i;
+// Etiqueta de dominio: 1-63 caracteres, alfanumérica + guion (no extremo).
+const DOMAIN_LABEL_RE = /^(?!-)[a-z0-9-]{1,63}(?<!-)$/i;
 const PHONE_ALLOWED_RE = /^[+\d][\d\s\-().]*$/;
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -79,8 +108,26 @@ export function checkName(value: string, label = 'Nombre'): string | null {
 }
 
 export function checkEmail(value: string): string | null {
-  if (value.length < 5 || !EMAIL_RE.test(value))
-    return 'Correo electrónico inválido.';
+  // Acepta cualquier dominio válido: .cl, .com.cl, .gob.cl, subdominios,
+  // TLD largos (.technology), guiones y etiquetas + en la parte local.
+  const fail = 'Correo electrónico inválido.';
+  if (value.length < 5 || value.length > LIMITS.email) return fail;
+  if (/\s/.test(value)) return fail;
+  const at = value.lastIndexOf('@');
+  if (at <= 0) return fail;
+  const local = value.slice(0, at);
+  const domain = value.slice(at + 1);
+  if (local.length === 0 || local.length > 64) return fail;
+  if (local.startsWith('.') || local.endsWith('.') || local.includes('..')) return fail;
+  if (!EMAIL_LOCAL_RE.test(local)) return fail;
+  const labels = domain.toLowerCase().split('.');
+  // Mínimo 2 etiquetas (dominio + TLD): cubre .cl, .com.cl, .edu.cl…
+  if (labels.length < 2) return fail;
+  for (const label of labels) {
+    if (!DOMAIN_LABEL_RE.test(label)) return fail;
+  }
+  const tld = labels[labels.length - 1];
+  if (!/^[a-z]{2,63}$/.test(tld)) return fail;
   return null;
 }
 
@@ -144,4 +191,50 @@ export function parseDiscount(raw: string): number | null {
 
 export function isUuid(value: string | undefined): value is string {
   return typeof value === 'string' && UUID_RE.test(value);
+}
+
+/**
+ * Mensaje legible para cualquier error. Los errores de Supabase/PostgREST son
+ * objetos planos ({message, details, hint, code}), NO instancias de Error:
+ * mostrarlos con String() produce el inútil "[object Object]".
+ */
+export function errorMessage(err: unknown): string {
+  if (err instanceof Error && err.message) return err.message;
+  if (typeof err === 'string' && err) return err;
+  if (typeof err === 'object' && err !== null) {
+    const o = err as Record<string, unknown>;
+    if (typeof o.message === 'string' && o.message) {
+      const extra =
+        typeof o.hint === 'string' && o.hint ? ` (${o.hint})` : '';
+      return `${o.message}${extra}`;
+    }
+    try {
+      const s = JSON.stringify(o);
+      if (s && s !== '{}') return s;
+    } catch {
+      /* cae al genérico */
+    }
+  }
+  return 'Error desconocido. Inténtalo de nuevo.';
+}
+
+const STREET_NUMBER_RE = /^[0-9a-zA-Z][0-9a-zA-Z ./-]{0,19}$/;
+const POSTAL_RE = /^\d{7}$/;
+
+export function checkStreetNumber(value: string): string | null {
+  if (!value) return 'Número: requerido.';
+  if (!STREET_NUMBER_RE.test(value)) return 'Número: caracteres inválidos.';
+  return null;
+}
+
+export function checkRegion(value: string): string | null {
+  if (!(REGIONS as readonly string[]).includes(value)) return 'Región inválida.';
+  return null;
+}
+
+/** Postal chileno: vacío (opcional) o exactamente 7 dígitos. */
+export function checkPostal(value: string): string | null {
+  if (value === '') return null;
+  if (!POSTAL_RE.test(value)) return 'Código postal: 7 dígitos.';
+  return null;
 }

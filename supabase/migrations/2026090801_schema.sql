@@ -43,14 +43,14 @@ create index profiles_role_id_idx on public.profiles (role_id);
 create table public.companies (
   id                uuid        primary key default gen_random_uuid(),
   name              text        not null,
-  tax_id            text        unique,              -- NIT / identificación fiscal
+  tax_id            text        unique,              -- RUT / identificación fiscal
   verification_code text        unique,              -- ej. LOG-9982-RP (lo asigna admin)
   is_verified       boolean     not null default false,
   contact_email     text,
   contact_phone     text,
   address_line      text,
-  city              text        not null default 'Bogotá D.C.',
-  country           text        not null default 'Colombia',
+  city              text        not null default 'Santiago',
+  country           text        not null default 'Chile',
   agreement_details text,                            -- convenios con la plataforma
   created_at        timestamptz not null default now(),
   updated_at        timestamptz not null default now()
@@ -71,10 +71,10 @@ create index company_members_profile_id_idx on public.company_members (profile_i
 -- --------------------------------------------------------------------------
 create table public.warehouses (
   id            uuid        primary key default gen_random_uuid(),
-  code          text        not null unique,         -- ej. BOG-01
+  code          text        not null unique,         -- ej. SCL-01
   name          text        not null,
   city          text        not null,
-  country       text        not null default 'Colombia',
+  country       text        not null default 'Chile',
   address_line  text,
   capacity_lots integer     check (capacity_lots is null or capacity_lots >= 0),
   created_at    timestamptz not null default now(),
@@ -148,7 +148,7 @@ create table public.lots (
   height_cm            numeric(8,2)  check (height_cm is null or height_cm > 0),
   base_price           numeric(12,2) not null check (base_price >= 0), -- precio total del lote
   msrp_reference       numeric(12,2) check (msrp_reference is null or msrp_reference >= 0),
-  currency             char(3)     not null default 'COP' check (currency in ('COP','USD')),
+  currency             char(3)     not null default 'CLP' check (currency in ('CLP','USD')),
   stock_quantity       integer     not null default 1 check (stock_quantity >= 0), -- lotes disponibles
   status               text        not null default 'draft'
                        check (status in ('draft','published','paused','sold_out','archived')),
@@ -220,7 +220,7 @@ create index inventory_movements_lot_id_idx on public.inventory_movements (lot_i
 create table public.payment_methods (
   id                  uuid        primary key default gen_random_uuid(),
   code                text        not null unique
-                      check (code in ('card','pse','bank_transfer','cash_on_delivery')),
+                      check (code in ('card','webpay','bank_transfer','cash_on_delivery')),
   name                text        not null,
   description         text,
   allows_installments boolean     not null default false,
@@ -263,7 +263,7 @@ create table public.orders (
   shipping_cost      numeric(12,2) not null default 0 check (shipping_cost >= 0),
   tax_amount         numeric(12,2) not null default 0 check (tax_amount >= 0), -- IVA 19%
   total              numeric(12,2) not null default 0 check (total >= 0),
-  currency           char(3)     not null default 'COP' check (currency in ('COP','USD')),
+  currency           char(3)     not null default 'CLP' check (currency in ('CLP','USD')),
   payment_method_id  uuid        references public.payment_methods (id) on delete restrict,
   shipping_address_id uuid       references public.addresses (id) on delete set null,
   ship_recipient_name text       not null,            -- snapshot histórico

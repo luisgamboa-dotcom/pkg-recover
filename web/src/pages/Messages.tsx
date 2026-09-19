@@ -6,7 +6,7 @@ import { EmptyState, PageHeader } from '../components/ui';
 import { useAuth } from '../auth/AuthContext';
 import { fetchThreadMessages, fetchThreads, sendMessage, type Thread } from '../data/account';
 import { formatDate } from '../lib/format';
-import { LIMITS, checkRequired, sanitizeMultiline } from '../lib/validation';
+import { errorMessage,  LIMITS, checkRequired, sanitizeMultiline } from '../lib/validation';
 
 export default function Messages() {
   return (
@@ -28,7 +28,7 @@ function Inbox() {
     if (!user) return;
     fetchThreads(user.id)
       .then(setThreads)
-      .catch((err) => setMsg(err instanceof Error ? err.message : String(err)));
+      .catch((err) => setMsg(errorMessage(err)));
   };
 
   useEffect(loadThreads, [user]);
@@ -60,7 +60,7 @@ function Inbox() {
       setMessages(msgs);
       loadThreads();
     } catch (err) {
-      setMsg(err instanceof Error ? err.message : String(err));
+      setMsg(errorMessage(err));
     }
   }
 

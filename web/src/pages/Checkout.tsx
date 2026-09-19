@@ -8,19 +8,26 @@ import { useCart } from '../lib/cart';
 import { fetchTiers, tierPrice, useLotsByIds, type PriceTier } from '../data/shop';
 import {
   createOrder,
+  quoteShipping,
+  requestPayment,
   useAddresses,
   usePaymentMethods,
 } from '../data/account';
-import { cop, totals } from '../lib/format';
+import { FLAT_SHIPPING_CLP, clp, formatAddress, totals } from '../lib/format';
+import AddressModal, { type AddressFormData } from '../components/AddressModal';
 import {
+  errorMessage,
   LIMITS,
   checkMax,
   checkPhone,
+  checkPostal,
+  checkRegion,
   checkRequired,
+  checkStreetNumber,
   sanitizeText,
 } from '../lib/validation';
 
-const CITIES = ['Bogotá D.C.', 'Medellín', 'Cali', 'Barranquilla', 'Otra'];
+const CITIES = ['Santiago', 'Valparaíso', 'Concepción', 'La Serena', 'Otra'];
 
 export default function Checkout() {
   return (
@@ -50,8 +57,13 @@ function CheckoutForm() {
   const [addressId, setAddressId] = useState('');
   const [recipient, setRecipient] = useState('');
   const [phone, setPhone] = useState('');
+  const [streetName, setStreetName] = useState('');
+  const [streetNumber, setStreetNumber] = useState('');
+  const [apartment, setApartment] = useState('');
+  const [commune, setCommune] = useState('');
   const [city, setCity] = useState(CITIES[0]);
-  const [address, setAddress] = useState('');
+  const [region, setRegion] = useState('');
+  const [postalCode, setPostalCode] = useState('');
   const [notes, setNotes] = useState('');
   const [paymentId, setPaymentId] = useState('');
   const [cardNumber, setCardNumber] = useState('');
@@ -59,6 +71,7 @@ function CheckoutForm() {
   const [cardCvv, setCardCvv] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [addrOpen, setAddrOpen] = useState(false);
 
   const lines = items
     .map((i) => ({ item: i, lot: map[i.lotId] }))
@@ -69,7 +82,19 @@ function CheckoutForm() {
     (a, l) => a + priceFor(l.lot!.id, l.item.qty, l.lot!.base_price) * l.item.qty,
     0,
   );
-  const t = totals(subtotal);
+  const totalKg = lines.reduce(
+    (a, l) => a + Number(l.lot!.total_weight_kg ?? 0) * l.item.qty,
+    0,
+  );
+  // Flete dinámico por ciudad + peso (matriz shipping_rates).
+  const [shipping, setShipping] = useState(FLAT_SHIPPING_CLP);
+
+  useEffect(() => {
+    quoteShipping(city, totalKg).then(setShipping).catch(() => undefined);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [city, totalKg]);
+
+  const t = totals(subtotal, shipping);
   const selectedMethod = paymentMethods.find((m) => m.id === paymentId);
   const needsCard = selectedMethod?.code === 'card';
 
@@ -79,8 +104,13 @@ function CheckoutForm() {
     if (a) {
       setRecipient(a.recipient_name);
       setPhone(a.phone);
+      setStreetName(a.street_name);
+      setStreetNumber(a.street_number);
+      setApartment(a.apartment ?? '');
+      setCommune(a.commune);
       setCity(a.city);
-      setAddress(a.address_line);
+      setRegion(a.region);
+      setPostalCode(a.postal_code ?? '');
       setNotes(a.delivery_notes ?? '');
     }
   }
@@ -97,14 +127,24 @@ function CheckoutForm() {
     const clean = {
       recipient: sanitizeText(recipient, 150),
       phone: sanitizeText(phone, LIMITS.phone),
+      streetName: sanitizeText(streetName, LIMITS.street),
+      streetNumber: sanitizeText(streetNumber, LIMITS.streetNumber),
+      apartment: sanitizeText(apartment, LIMITS.apartment),
+      commune: sanitizeText(commune, LIMITS.commune),
       city: sanitizeText(city, LIMITS.city),
-      address: sanitizeText(address, LIMITS.address),
+      region: sanitizeText(region, LIMITS.region),
+      postalCode: sanitizeText(postalCode, LIMITS.postal).replace(/\D/g, ''),
       notes: sanitizeText(notes, LIMITS.notes),
     };
     const fieldErr =
       checkRequired(clean.recipient, 'Destinatario', 2, 150) ??
       checkPhone(clean.phone) ??
-      checkRequired(clean.address, 'Dirección', 5, LIMITS.address) ??
+      checkRequired(clean.streetName, 'Calle', 2, LIMITS.street) ??
+      checkStreetNumber(clean.streetNumber) ??
+      checkMax(clean.apartment, 'Depto', LIMITS.apartment) ??
+      checkRequired(clean.commune, 'Comuna', 2, LIMITS.commune) ??
+      checkRegion(clean.region) ??
+      checkPostal(clean.postalCode) ??
       checkMax(clean.notes, 'Notas', LIMITS.notes);
     if (fieldErr) {
       setError(fieldErr);
@@ -130,7 +170,6 @@ function CheckoutForm() {
     }
     setBusy(true);
     try {
-      // El cobro real vía pasarela se integra en la siguiente sección.
       // cardNumber/cardExp/cardCvv NO se incluyen en ningún payload.
       const orderId = await createOrder({
         buyerId: user.id,
@@ -140,8 +179,13 @@ function CheckoutForm() {
         ship: {
           recipient: clean.recipient,
           phone: clean.phone,
+          streetName: clean.streetName,
+          streetNumber: clean.streetNumber,
+          apartment: clean.apartment,
+          commune: clean.commune,
           city: clean.city,
-          address: clean.address,
+          region: clean.region,
+          postalCode: clean.postalCode,
           notes: clean.notes,
           addressId: addressId || null,
         },
@@ -152,9 +196,19 @@ function CheckoutForm() {
         })),
       });
       clear();
+      // Tarjeta/Webpay: intenta el cobro por pasarela; si no está configurada
+      // u otro medio, el pedido queda pendiente (se paga desde su detalle).
+      const methodCode = selectedMethod?.code;
+      if (methodCode === 'card' || methodCode === 'webpay') {
+        const attempt = await requestPayment(orderId);
+        if (attempt.kind === 'redirect') {
+          window.location.href = attempt.url;
+          return;
+        }
+      }
       navigate(`/pedidos/${orderId}`, { replace: true });
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(errorMessage(err));
     } finally {
       setBusy(false);
     }
@@ -188,37 +242,65 @@ function CheckoutForm() {
                   <option value="">Escribir una nueva…</option>
                   {addresses.map((a) => (
                     <option key={a.id} value={a.id}>
-                      {a.label ?? 'Dirección'} — {a.address_line} ({a.city})
+                      {a.label ?? 'Dirección'} — {formatAddress(a)}
                     </option>
                   ))}
                 </select>
               )}
-              <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                <div className="sm:col-span-2">
-                  <label className="field-label" htmlFor="co-name">Nombre completo / empresa</label>
-                  <input id="co-name" className="field-input" maxLength={150} value={recipient} onChange={(e) => setRecipient(e.target.value)} />
-                </div>
-                <div>
-                  <label className="field-label" htmlFor="co-phone">Teléfono de contacto</label>
-                  <input id="co-phone" className="field-input" maxLength={LIMITS.phone} value={phone} onChange={(e) => setPhone(e.target.value)} />
-                </div>
-                <div>
-                  <label className="field-label" htmlFor="co-city">Ciudad</label>
-                  <select id="co-city" className="field-input" value={city} onChange={(e) => setCity(e.target.value)}>
-                    {CITIES.map((c) => (
-                      <option key={c}>{c}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="sm:col-span-2">
-                  <label className="field-label" htmlFor="co-addr">Dirección exacta</label>
-                  <input id="co-addr" className="field-input" maxLength={LIMITS.address} value={address} onChange={(e) => setAddress(e.target.value)} />
-                </div>
-                <div className="sm:col-span-2">
-                  <label className="field-label" htmlFor="co-notes">Notas de entrega (opcional)</label>
-                  <input id="co-notes" className="field-input" maxLength={LIMITS.notes} value={notes} onChange={(e) => setNotes(e.target.value)} />
-                </div>
+              <div className="mt-3 rounded-xl border border-slate-200 bg-brand-50 p-4">
+                {recipient || streetName ? (
+                  <>
+                    <p className="font-bold text-brand-950">{recipient}</p>
+                    <p className="text-sm text-slate-600">
+                      {formatAddress({
+                        street_name: streetName,
+                        street_number: streetNumber,
+                        apartment,
+                        commune,
+                        city,
+                        region,
+                        postal_code: postalCode,
+                      })}
+                    </p>
+                    <p className="text-sm text-slate-600">{phone}</p>
+                    {notes && <p className="text-xs text-slate-500 mt-1">{notes}</p>}
+                  </>
+                ) : (
+                  <p className="text-sm text-slate-500">Aún no ingresas la dirección de envío.</p>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setAddrOpen(true)}
+                  className="mt-3 rounded-lg bg-brand-900 text-white px-5 py-2.5 font-semibold hover:bg-brand-700"
+                >
+                  {recipient || streetName ? 'Editar dirección' : 'Ingresar dirección'}
+                </button>
               </div>
+              <AddressModal
+                open={addrOpen}
+                title="Dirección de envío"
+                submitLabel="Usar esta dirección"
+                onClose={() => setAddrOpen(false)}
+                initial={{
+                  label: '', recipient, phone, streetName, streetNumber,
+                  apartment, commune, city, region, postalCode, notes,
+                  isDefault: false,
+                }}
+                onSubmit={(d: AddressFormData) => {
+                  setRecipient(d.recipient);
+                  setPhone(d.phone);
+                  setStreetName(d.streetName);
+                  setStreetNumber(d.streetNumber);
+                  setApartment(d.apartment);
+                  setCommune(d.commune);
+                  setCity(d.city);
+                  setRegion(d.region);
+                  setPostalCode(d.postalCode);
+                  setNotes(d.notes);
+                  setAddressId('');
+                  setAddrOpen(false);
+                }}
+              />
             </section>
 
             <section className="bg-white rounded-2xl border border-slate-200 p-5">
@@ -296,7 +378,7 @@ function CheckoutForm() {
                       )}
                     </span>
                     <span className="font-semibold whitespace-nowrap">
-                      {cop(unit * item.qty)}
+                      {clp(unit * item.qty)}
                     </span>
                   </li>
                 );
@@ -305,19 +387,19 @@ function CheckoutForm() {
             <dl className="mt-3 space-y-1.5 text-sm border-t border-slate-200 pt-3">
               <div className="flex justify-between">
                 <dt className="text-slate-500">Subtotal</dt>
-                <dd className="font-semibold">{cop(t.subtotal)}</dd>
+                <dd className="font-semibold">{clp(t.subtotal)}</dd>
               </div>
               <div className="flex justify-between">
-                <dt className="text-slate-500">Envío</dt>
-                <dd className="font-semibold">{cop(t.shipping)}</dd>
+                <dt className="text-slate-500">Envío <span className="text-xs">({city} · {Math.round(totalKg)} kg)</span></dt>
+                <dd className="font-semibold">{clp(t.shipping)}</dd>
               </div>
               <div className="flex justify-between">
                 <dt className="text-slate-500">IVA 19%</dt>
-                <dd className="font-semibold">{cop(t.tax)}</dd>
+                <dd className="font-semibold">{clp(t.tax)}</dd>
               </div>
               <div className="flex justify-between text-base font-extrabold text-brand-950 border-t border-slate-200 pt-2">
                 <dt>Total</dt>
-                <dd>{cop(t.total)}</dd>
+                <dd>{clp(t.total)}</dd>
               </div>
             </dl>
             {error && (
@@ -331,9 +413,14 @@ function CheckoutForm() {
             >
               {busy ? 'Procesando…' : '🔒 Finalizar compra'}
             </button>
-            <p className="mt-2 text-xs text-slate-400 text-center">
-              Al completar aceptas los Términos. El pedido queda pendiente de
-              pago hasta integrar la pasarela.
+            <p className="mt-2 text-xs text-slate-500 text-center">
+              {(selectedMethod?.code === 'card' || selectedMethod?.code === 'webpay')
+                ? 'Al finalizar serás redirigido a la pasarela de pago seguro. Podrás retomar el pago desde el detalle del pedido.'
+                : selectedMethod?.code === 'bank_transfer'
+                  ? 'Al finalizar te contactaremos con los datos de transferencia y podrás avisar el pago desde el detalle del pedido.'
+                  : selectedMethod?.code === 'cash_on_delivery'
+                    ? 'Pagarás en efectivo o QR al recibir. Sin pagos anticipados.'
+                    : 'Elige un método de pago para ver cómo continuar.'}
             </p>
             <Link to="/carrito" className="mt-1 block text-center text-sm text-brand-900 underline">
               Volver al carrito

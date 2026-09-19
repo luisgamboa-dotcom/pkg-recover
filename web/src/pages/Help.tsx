@@ -5,6 +5,7 @@ import { useAuth } from '../auth/AuthContext';
 import { isSupabaseConfigured } from '../lib/supabase';
 import { createTicket, useFaqs, useMyOrders } from '../data/account';
 import {
+  errorMessage,
   LIMITS,
   checkRequired,
   isUuid,
@@ -65,7 +66,7 @@ export default function Help() {
       setOrderId('');
       setResult('Ticket creado. Te contactaremos por correo.');
     } catch (err) {
-      setResult(err instanceof Error ? err.message : String(err));
+      setResult(errorMessage(err));
     } finally {
       setBusy(false);
     }
@@ -106,7 +107,7 @@ export default function Help() {
           </div>
           <div className="mt-4 text-sm text-slate-600 bg-white rounded-xl border border-slate-200 p-4">
             <p className="font-bold text-brand-950">Contacto</p>
-            <p>soporte@recuperapack.com · Lun–Vie 8:00–18:00 (Bogotá)</p>
+            <p>soporte@recuperapack.com · Lun–Vie 9:00–18:00 (Santiago)</p>
           </div>
         </section>
 

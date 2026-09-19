@@ -4,7 +4,7 @@ import { ConfigNotice, EmptyState, LotImage, PageHeader } from '../components/ui
 import { useCart } from '../lib/cart';
 import { isSupabaseConfigured } from '../lib/supabase';
 import { useLotsByIds } from '../data/shop';
-import { cop, totals } from '../lib/format';
+import { clp, totals } from '../lib/format';
 import { parseQty } from '../lib/validation';
 
 export default function Cart() {
@@ -78,7 +78,7 @@ export default function Cart() {
                   </div>
                 </div>
                 <p className="font-extrabold text-brand-950">
-                  {cop(lot!.base_price * item.qty)}
+                  {clp(lot!.base_price * item.qty)}
                 </p>
               </article>
             ))}
@@ -94,19 +94,19 @@ export default function Cart() {
             <dl className="mt-3 space-y-1.5 text-sm">
               <div className="flex justify-between">
                 <dt className="text-slate-500">Subtotal</dt>
-                <dd className="font-semibold">{cop(t.subtotal)}</dd>
+                <dd className="font-semibold">{clp(t.subtotal)}</dd>
               </div>
               <div className="flex justify-between">
-                <dt className="text-slate-500">Envío (RecuperaLogistics)</dt>
-                <dd className="font-semibold">{cop(t.shipping)}</dd>
+                <dt className="text-slate-500">Envío estimado</dt>
+                <dd className="font-semibold">{clp(t.shipping)}</dd>
               </div>
               <div className="flex justify-between">
                 <dt className="text-slate-500">IVA 19%</dt>
-                <dd className="font-semibold">{cop(t.tax)}</dd>
+                <dd className="font-semibold">{clp(t.tax)}</dd>
               </div>
               <div className="flex justify-between text-base font-extrabold text-brand-950 border-t border-slate-200 pt-2">
                 <dt>Total</dt>
-                <dd>{cop(t.total)}</dd>
+                <dd>{clp(t.total)}</dd>
               </div>
             </dl>
             <Link

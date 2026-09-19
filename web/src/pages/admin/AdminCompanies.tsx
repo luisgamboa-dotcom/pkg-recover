@@ -3,7 +3,7 @@ import AdminLayout from '../../components/AdminLayout';
 import { RequireAdmin } from '../../components/RequireRole';
 import { EmptyState, PageHeader } from '../../components/ui';
 import { fetchCompanies, saveCompany } from '../../data/admin';
-import { checkMax, checkRequired, sanitizeText } from '../../lib/validation';
+import { errorMessage,  checkMax, checkRequired, sanitizeText } from '../../lib/validation';
 
 export default function AdminCompanies() {
   return (
@@ -24,14 +24,14 @@ function View() {
   const [verified, setVerified] = useState(false);
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
-  const [city, setCity] = useState('Bogotá D.C.');
+  const [city, setCity] = useState('Santiago');
   const [agreement, setAgreement] = useState('');
   const [msg, setMsg] = useState<string | null>(null);
 
   const load = () =>
     fetchCompanies()
       .then(setItems)
-      .catch((err) => setMsg(err instanceof Error ? err.message : String(err)));
+      .catch((err) => setMsg(errorMessage(err)));
 
   useEffect(() => { void load(); }, []);
 
@@ -39,7 +39,7 @@ function View() {
     setEditing(c);
     setName(c?.name ?? ''); setTaxId(c?.tax_id ?? ''); setCode(c?.verification_code ?? '');
     setVerified(c?.is_verified ?? false); setEmail(c?.contact_email ?? '');
-    setPhone(c?.contact_phone ?? ''); setCity(c?.city ?? 'Bogotá D.C.');
+    setPhone(c?.contact_phone ?? ''); setCity(c?.city ?? 'Santiago');
     setAgreement((c as any)?.agreement_details ?? '');
     setMsg(null);
   }
@@ -58,7 +58,7 @@ function View() {
     };
     const errLen =
       checkRequired(clean.name, 'Nombre', 2, 200) ??
-      checkMax(clean.tax_id, 'NIT', 50) ??
+      checkMax(clean.tax_id, 'RUT', 50) ??
       checkMax(clean.verification_code, 'Código', 50);
     if (errLen) { setMsg(errLen); return; }
     if (clean.verification_code && !/^[A-Z0-9-]{4,50}$/.test(clean.verification_code)) {
@@ -73,13 +73,13 @@ function View() {
         is_verified: verified,
         contact_email: clean.contact_email || null,
         contact_phone: clean.contact_phone || null,
-        city: clean.city || 'Bogotá D.C.',
+        city: clean.city || 'Santiago',
         agreement_details: clean.agreement_details || null,
       });
       startEdit(null);
       await load();
     } catch (err) {
-      setMsg(err instanceof Error ? err.message : String(err));
+      setMsg(errorMessage(err));
     }
   }
 
@@ -92,7 +92,7 @@ function View() {
           <table className="w-full text-sm min-w-[560px]">
             <thead>
               <tr className="text-left text-xs uppercase tracking-wider text-slate-500 border-b">
-                <th className="p-3">Empresa</th><th className="p-3">NIT</th><th className="p-3">Código</th><th className="p-3">Estado</th><th className="p-3"></th>
+                <th className="p-3">Empresa</th><th className="p-3">RUT</th><th className="p-3">Código</th><th className="p-3">Estado</th><th className="p-3"></th>
               </tr>
             </thead>
             <tbody>
@@ -117,7 +117,7 @@ function View() {
           <h2 className="font-bold text-brand-950">{editing ? 'Editar empresa' : 'Nueva empresa'}</h2>
           <input className="field-input" maxLength={200} placeholder="Nombre *" value={name} onChange={(e) => setName(e.target.value)} aria-label="Nombre" />
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-            <input className="field-input" maxLength={50} placeholder="NIT" value={taxId} onChange={(e) => setTaxId(e.target.value)} aria-label="NIT" />
+            <input className="field-input" maxLength={50} placeholder="RUT (12.345.678-9)" value={taxId} onChange={(e) => setTaxId(e.target.value)} aria-label="RUT" />
             <input className="field-input" maxLength={50} placeholder="Código (LOG-####-RP)" value={code} onChange={(e) => setCode(e.target.value)} aria-label="Código" />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">

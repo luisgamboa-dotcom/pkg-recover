@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth, type AccountType } from '../auth/AuthContext';
 import AuthLayout from '../components/AuthLayout';
 import {
+  errorMessage,
   LIMITS,
   checkEmail,
   checkName,
@@ -43,9 +44,15 @@ interface FieldErrors {
 function friendlyError(message: string): string {
   if (/already registered|already exists|user already/i.test(message))
     return 'Ese correo ya tiene una cuenta. Inicia sesión.';
+  // Estos se revisan ANTES para no disfrazarlos de "formato inválido".
+  if (/rate limit|too many requests/i.test(message))
+    return 'Demasiados intentos. Espera unos minutos e inténtalo de nuevo.';
+  if (/network|fetch|timeout|connection/i.test(message))
+    return 'Problema de conexión. Revisa tu internet e inténtalo de nuevo.';
   if (/password/i.test(message))
     return 'La contraseña debe tener al menos 6 caracteres.';
-  if (/email/i.test(message)) return 'Revisa el formato del correo electrónico.';
+  if (/invalid.*email|email.*invalid|malformed|bad email/i.test(message))
+    return 'Revisa el formato del correo electrónico.';
   return message;
 }
 
@@ -124,7 +131,7 @@ export default function Register() {
       }
     } catch (err) {
       setSubmitError(
-        friendlyError(err instanceof Error ? err.message : String(err)),
+        friendlyError(errorMessage(err)),
       );
     } finally {
       setBusy(false);
@@ -264,7 +271,7 @@ export default function Register() {
             className="field-input"
             autoComplete="tel"
             maxLength={LIMITS.phone}
-            placeholder="+57 300 123 4567"
+            placeholder="+56 9 1234 5678"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             {...input(Boolean(errors.phone))}

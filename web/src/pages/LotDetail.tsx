@@ -20,13 +20,14 @@ import {
 } from '../data/shop';
 import { findSellerForLot, sendMessage, useMyOrders } from '../data/account';
 import {
-  cop,
+  clp,
   discountPct,
   formatDate,
   packagingLabel,
   productStateLabel,
 } from '../lib/format';
 import {
+  errorMessage,
   LIMITS,
   checkMax,
   checkRequired,
@@ -131,7 +132,7 @@ export default function LotDetail() {
       setReviewComment('');
       setReviewMsg('Reseña publicada. ¡Gracias!');
     } catch (err) {
-      setReviewMsg(err instanceof Error ? err.message : String(err));
+      setReviewMsg(errorMessage(err));
     }
   }
 
@@ -172,11 +173,11 @@ export default function LotDetail() {
 
           <div className="mt-3 flex items-baseline gap-3">
             <span className="text-3xl font-extrabold text-brand-950">
-              {cop(lot.base_price)}
+              {clp(lot.base_price)}
             </span>
             {lot.msrp_reference != null && (
               <span className="text-slate-400 line-through">
-                {cop(lot.msrp_reference)}
+                {clp(lot.msrp_reference)}
               </span>
             )}
             {discount != null && (
@@ -186,7 +187,7 @@ export default function LotDetail() {
             )}
           </div>
           <p className="text-xs text-slate-400">
-            ≈ {cop(Math.round(lot.base_price / lot.unit_count))} por unidad · Precios
+            ≈ {clp(Math.round(lot.base_price / lot.unit_count))} por unidad · Precios
             sin IVA ni envío · {lot.stock_quantity} lote(s) disponibles
           </p>
           {isReseller && tiers.length > 0 && (
@@ -195,7 +196,7 @@ export default function LotDetail() {
               <ul className="mt-1 space-y-0.5">
                 {tiers.map((t) => (
                   <li key={t.id} className={qty >= t.min_quantity ? 'font-bold text-success-700' : 'text-slate-600'}>
-                    Desde {t.min_quantity} uds → {cop(t.unit_price)}/lote
+                    Desde {t.min_quantity} uds → {clp(t.unit_price)}/lote
                     {qty >= t.min_quantity && ' ✓ aplicado en caja'}
                   </li>
                 ))}
@@ -292,7 +293,7 @@ export default function LotDetail() {
                   .then((sellerId) => sendMessage(lot.id, user.id, sellerId, clean))
                   .then(() => navigate('/mensajes'))
                   .catch((err) => {
-                    setInquiryMsg(err instanceof Error ? err.message : String(err));
+                    setInquiryMsg(errorMessage(err));
                     setInquiryBusy(false);
                   });
               }}

@@ -3,8 +3,9 @@ import { Link } from 'react-router-dom';
 import AdminLayout from '../../components/AdminLayout';
 import { RequireAdmin } from '../../components/RequireRole';
 import { EmptyState, PageHeader } from '../../components/ui';
-import { cop, formatDate, orderStatusLabel } from '../../lib/format';
+import { clp, formatDate, orderStatusLabel } from '../../lib/format';
 import { fetchAllOrders } from '../../data/admin';
+import { errorMessage } from '../../lib/validation';
 
 export default function AdminOrders() {
   return (
@@ -24,7 +25,7 @@ function List() {
   useEffect(() => {
     fetchAllOrders()
       .then(setOrders)
-      .catch((err) => setMsg(err instanceof Error ? err.message : String(err)));
+      .catch((err) => setMsg(errorMessage(err)));
   }, []);
 
   const shown = status ? orders.filter((o) => o.status === status) : orders;
@@ -47,7 +48,7 @@ function List() {
           <thead>
             <tr className="text-left text-xs uppercase tracking-wider text-slate-500 border-b">
               <th className="p-3">Pedido</th><th className="p-3">Fecha</th><th className="p-3">Comprador</th>
-              <th className="p-3">Ciudad</th><th className="p-3">Estado</th><th className="p-3">Total</th><th className="p-3"></th>
+              <th className="p-3">Ciudad</th><th className="p-3">Pago</th><th className="p-3">Estado</th><th className="p-3">Total</th><th className="p-3"></th>
             </tr>
           </thead>
           <tbody>
@@ -57,8 +58,9 @@ function List() {
                 <td className="p-3 whitespace-nowrap">{formatDate(o.created_at)}</td>
                 <td className="p-3">{o.profiles ? `${o.profiles.first_name ?? ''} ${o.profiles.last_name ?? ''}`.trim() || '—' : '—'}</td>
                 <td className="p-3">{o.ship_city}</td>
+                <td className="p-3">{o.payment_methods?.name ?? '—'}</td>
                 <td className="p-3">{orderStatusLabel(o.status)}</td>
-                <td className="p-3 font-bold">{cop(Number(o.total))}</td>
+                <td className="p-3 font-bold">{clp(Number(o.total))}</td>
                 <td className="p-3"><Link to={`/admin/pedidos/${o.id}`} className="text-brand-900 underline">Gestionar</Link></td>
               </tr>
             ))}

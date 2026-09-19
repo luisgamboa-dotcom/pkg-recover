@@ -1,0 +1,57 @@
+REINICIAR EL SERVIDOR WEB (RecuperaPack)
+=========================================
+Servidor: http://localhost:5173
+Carpeta:  ~/HackerHouse/pkg-recover/web
+
+PASO 1 — Ver si hay un servidor corriendo
+-----------------------------------------
+ps aux | grep "[v]ite"
+
+Si aparece una línea como:
+  luis  12345 ... node .../node_modules/.bin/vite --port 5173 ...
+anota el PID (el número, aquí 12345). Si no aparece nada, no hay
+servidor corriendo: salta al PASO 3.
+
+Comprobación rápida alternativa:
+  curl -s -o /dev/null -w "%{http_code}\n" http://localhost:5173/
+  200 = corriendo. 000 = caído.
+
+PASO 2 — Detener el proceso anterior
+------------------------------------
+kill <PID>
+Ejemplo:
+  kill 12345
+
+Espera 2 segundos y confirma que murió:
+  ps aux | grep "[v]ite"
+
+Si un PID no muere, fórzalo (último recurso):
+  kill -9 <PID>
+
+Atajo (detiene todos los vite del puerto 5173):
+  pkill -f "vite.*5173"
+
+PASO 3 — Iniciar el servidor nuevo
+-----------------------------------
+cd ~/HackerHouse/pkg-recover/web
+export PATH="$HOME/.bun/bin:$PATH"
+bun run dev --port 5173 --host 127.0.0.1
+
+Déjalo corriendo en esa terminal y abre:
+  http://localhost:5173
+
+VARIANTE — Segundo plano (la terminal queda libre)
+--------------------------------------------------
+cd ~/HackerHouse/pkg-recover/web
+export PATH="$HOME/.bun/bin:$PATH"
+setsid nohup bun run dev --port 5173 --host 127.0.0.1 < /dev/null > /tmp/pkg-web-dev.log 2>&1 &
+
+Ver el registro:
+  tail -20 /tmp/pkg-web-dev.log
+
+NOTAS
+-----
+- Vite carga web/.env solo al arrancar: si creas o cambias el .env,
+  reinicia el servidor (PASO 2 + PASO 3).
+- Si el puerto está ocupado verás "Port 5173 is in use": repite el PASO 2.
+- Recarga el navegador con Ctrl + Shift + R para ver los últimos cambios.

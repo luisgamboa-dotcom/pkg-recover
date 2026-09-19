@@ -45,7 +45,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         </Link>
       </aside>
       <div className="flex-1 flex flex-col min-w-0">
-        <main className="flex-1 p-4 lg:p-8 pb-20 max-w-6xl w-full">{children}</main>
+        <main className="flex-1 p-4 lg:p-8 max-w-6xl w-full">{children}</main>
         <Footer />
       </div>
     </div>

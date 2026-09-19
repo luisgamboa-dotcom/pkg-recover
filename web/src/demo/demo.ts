@@ -137,32 +137,32 @@ function seedDb(): ExploreDb {
   const companies = [
     {
       id: duid(21),
-      name: 'Andina Cargo S.A.S.',
-      tax_id: '900123456',
+      name: 'Andina Cargo SpA',
+      tax_id: '76.123.456-7',
       verification_code: 'LOG-9982-RP',
       is_verified: true,
-      contact_email: 'operaciones@andinacargo.com',
-      contact_phone: '+57 601 555 0101',
-      city: 'Bogotá D.C.',
-      country: 'Colombia',
+      contact_email: 'operaciones@andinacargo.cl',
+      contact_phone: '+56 2 2555 0101',
+      city: 'Santiago',
+      country: 'Chile',
       agreement_details: 'Entrega semanal de paquetes no reclamados.',
     },
     {
       id: duid(22),
       name: 'Pacífico Express',
-      tax_id: '900654321',
+      tax_id: '76.654.321-0',
       verification_code: null,
       is_verified: false,
-      contact_email: 'contacto@pacificoexpress.com',
-      contact_phone: '+57 602 555 0202',
-      city: 'Cali',
-      country: 'Colombia',
+      contact_email: 'contacto@pacificoexpress.cl',
+      contact_phone: '+56 32 555 0202',
+      city: 'Valparaíso',
+      country: 'Chile',
       agreement_details: null,
     },
   ];
   const warehouses = [
-    { id: duid(31), code: 'BOG-01', name: 'Bodega Central Bogotá', city: 'Bogotá D.C.', country: 'Colombia', capacity_lots: 5000 },
-    { id: duid(32), code: 'MED-01', name: 'Bodega Medellín', city: 'Medellín', country: 'Colombia', capacity_lots: 2000 },
+    { id: duid(31), code: 'SCL-01', name: 'Bodega Central Santiago', city: 'Santiago', country: 'Chile', capacity_lots: 5000 },
+    { id: duid(32), code: 'VLP-01', name: 'Bodega Valparaíso', city: 'Valparaíso', country: 'Chile', capacity_lots: 2000 },
   ];
 
   const lot = (
@@ -175,7 +175,7 @@ function seedDb(): ExploreDb {
     description: o.description,
     base_price: o.base_price,
     msrp_reference: o.msrp,
-    currency: 'COP',
+    currency: 'CLP',
     stock_quantity: o.stock,
     status: 'published',
     is_verified: o.verified,
@@ -191,9 +191,9 @@ function seedDb(): ExploreDb {
     published_at: '2026-09-01T10:00:00.000Z',
     circularity_percent: 92,
     waste_avoided_kg: 142,
-    warehouses: { code: 'BOG-01', name: 'Bodega Central Bogotá', city: 'Bogotá D.C.' },
+    warehouses: { code: 'SCL-01', name: 'Bodega Central Santiago', city: 'Santiago' },
     brands: o.brand ? { name: o.brand } : null,
-    companies: { name: 'Andina Cargo S.A.S.', is_verified: true },
+    companies: { name: 'Andina Cargo SpA', is_verified: true },
     company_id: companies[0].id,
     warehouse_id: warehouses[0].id,
     lot_categories: o.cats.map((c: number) => ({
@@ -207,51 +207,51 @@ function seedDb(): ExploreDb {
     lot(101, {
       sku: 'RP-99231', title: 'Lote Mixto Electrónica A1',
       description: 'Pallet con electrónica de consumo verificada: audio, cómputo y accesorios.',
-      base_price: 2940000, msrp: 4900000, stock: 3, verified: true,
+      base_price: 1490000, msrp: 2490000, stock: 3, verified: true,
       packaging: 'original', state: 'intact', units: 120, weight: 450,
       zone: 'Pasillo 4', featured: true, brand: 'Varios', cats: [11], ratings: [5, 4, 5],
     }),
     lot(102, {
       sku: 'RP-88402', title: 'Mix Hogar Grado B',
       description: 'Pequeños electrodomésticos con caja dañada, funcionales.',
-      base_price: 1850000, msrp: 3100000, stock: 5, verified: false,
+      base_price: 949000, msrp: 1590000, stock: 5, verified: false,
       packaging: 'damaged', state: 'functional', units: 80, weight: 320,
       zone: 'Muelle 2', featured: true, brand: null, cats: [12], ratings: [4],
     }),
     lot(103, {
       sku: 'RP-99105', title: 'Set Herramientas Pro',
       description: 'Herramientas eléctricas selladas de devolución comercial.',
-      base_price: 3200000, msrp: 4300000, stock: 2, verified: true,
+      base_price: 1690000, msrp: 2290000, stock: 2, verified: true,
       packaging: 'original', state: 'intact', units: 60, weight: 280,
       zone: 'Pasillo 1', featured: false, brand: 'ProTools', cats: [16], ratings: [5, 5],
     }),
     lot(104, {
       sku: 'RP-99250', title: 'Lote Smart Home IoT',
       description: 'Dispositivos IoT: bombillos, sensores y asistentes.',
-      base_price: 4100000, msrp: 5900000, stock: 4, verified: true,
+      base_price: 2190000, msrp: 3190000, stock: 4, verified: true,
       packaging: 'original', state: 'intact', units: 45, weight: 120,
       zone: 'Pasillo 4', featured: false, brand: null, cats: [11], ratings: [],
     }),
     lot(105, {
       sku: 'RP-87001', title: 'Pallet Devoluciones Oficina',
       description: 'Electrónica de oficina sin caja, para repuestos o reacondicionar.',
-      base_price: 1250000, msrp: null, stock: 6, verified: false,
+      base_price: 649000, msrp: null, stock: 6, verified: false,
       packaging: 'no_box', state: 'for_parts', units: 200, weight: 510,
       zone: 'Muelle 1', featured: false, brand: null, cats: [11], ratings: [3],
     }),
     lot(106, {
       sku: 'RP-99300', title: 'Lote Moda Temporada',
       description: 'Vestuario y calzado de temporada, tallas surtidas.',
-      base_price: 2100000, msrp: 3500000, stock: 8, verified: true,
+      base_price: 1090000, msrp: 1790000, stock: 8, verified: true,
       packaging: 'original', state: 'intact', units: 300, weight: 260,
       zone: 'Pasillo 2', featured: true, brand: null, cats: [13], ratings: [4, 4],
     }),
   ];
 
   const tiers = [
-    { id: duid(111), lot_id: lots[0].id, min_quantity: 5, unit_price: 2790000 },
-    { id: duid(112), lot_id: lots[0].id, min_quantity: 10, unit_price: 2650000 },
-    { id: duid(113), lot_id: lots[5].id, min_quantity: 5, unit_price: 1995000 },
+    { id: duid(111), lot_id: lots[0].id, min_quantity: 5, unit_price: 1419000 },
+    { id: duid(112), lot_id: lots[0].id, min_quantity: 10, unit_price: 1340000 },
+    { id: duid(113), lot_id: lots[5].id, min_quantity: 5, unit_price: 1035000 },
   ];
 
   const orders = [
@@ -260,22 +260,23 @@ function seedDb(): ExploreDb {
       order_number: 'RP-2026-000123',
       buyer_id: EXPLORE_USER_ID,
       status: 'delivered',
-      subtotal: 2940000,
+      subtotal: 1490000,
       shipping_cost: 45000,
-      tax_amount: 567150,
-      total: 3552150,
-      currency: 'COP',
+      tax_amount: 291650,
+      total: 1826650,
+      currency: 'CLP',
       payment_method_id: duid(401),
       carrier: 'RecuperaLogistics',
       created_at: '2026-08-20T15:30:00.000Z',
       ship_recipient_name: 'Invitado',
-      ship_phone: '+57 300 123 4567',
-      ship_city: 'Bogotá D.C.',
-      ship_address_line: 'Calle 100 #15-20, Apto 501',
+      ship_phone: '+56 9 1234 5678',
+      ship_street_name: 'Av. Libertador Bernardo O\u2019Higgins', ship_street_number: '1234',
+      ship_apartment: 'Depto 501', ship_commune: 'Santiago', ship_city: 'Santiago',
+      ship_region: 'Metropolitana de Santiago', ship_postal_code: '7500000', ship_country: 'Chile',
       payment_methods: { name: 'Tarjeta de Crédito / Débito' },
       order_items: [
         {
-          id: duid(211), quantity: 1, unit_price: 2940000, line_total: 2940000,
+          id: duid(211), quantity: 1, unit_price: 1490000, line_total: 1490000,
           lots: { id: lots[0].id, sku: lots[0].sku, title: lots[0].title },
         },
       ],
@@ -285,22 +286,23 @@ function seedDb(): ExploreDb {
       order_number: 'RP-2026-000131',
       buyer_id: EXPLORE_USER_ID,
       status: 'shipped',
-      subtotal: 1850000,
+      subtotal: 949000,
       shipping_cost: 45000,
-      tax_amount: 360100,
-      total: 2255100,
-      currency: 'COP',
+      tax_amount: 188860,
+      total: 1182860,
+      currency: 'CLP',
       payment_method_id: duid(402),
       carrier: 'RecuperaLogistics',
       created_at: '2026-09-05T09:12:00.000Z',
       ship_recipient_name: 'Invitado',
-      ship_phone: '+57 300 123 4567',
-      ship_city: 'Medellín',
-      ship_address_line: 'Carrera 43A #10-25',
-      payment_methods: { name: 'PSE / Transferencia Bancaria' },
+      ship_phone: '+56 9 1234 5678',
+      ship_street_name: 'Av. Providencia', ship_street_number: '2500',
+      ship_apartment: 'Of. 302', ship_commune: 'Providencia', ship_city: 'Santiago',
+      ship_region: 'Metropolitana de Santiago', ship_postal_code: null, ship_country: 'Chile',
+      payment_methods: { name: 'Transferencia Bancaria' },
       order_items: [
         {
-          id: duid(212), quantity: 1, unit_price: 1850000, line_total: 1850000,
+          id: duid(212), quantity: 1, unit_price: 949000, line_total: 949000,
           lots: { id: lots[1].id, sku: lots[1].sku, title: lots[1].title },
         },
       ],
@@ -308,7 +310,7 @@ function seedDb(): ExploreDb {
   ];
 
   return {
-    profile: { first_name: 'Invitado', last_name: '', phone: '+57 300 123 4567' },
+    profile: { first_name: 'Invitado', last_name: '', phone: '+56 9 1234 5678' },
     prefs: { offers: true, new_lots: true, order_updates: true, shipping_updates: true, availability: false },
     categories,
     brands: [
@@ -324,18 +326,18 @@ function seedDb(): ExploreDb {
     packages: [
       {
         id: duid(51), company_id: companies[0].id, received_at: '2026-08-28T08:00:00.000Z',
-        origin: 'Vuelo AV-920 · Miami', total_units: 120, total_weight_kg: 450,
+        origin: 'Vuelo LA-576 · Miami', total_units: 120, total_weight_kg: 450,
         status: 'processed', notes: 'Origen del lote RP-99231',
         companies: { name: companies[0].name },
       },
       {
         id: duid(52), company_id: companies[0].id, received_at: '2026-09-03T08:00:00.000Z',
-        origin: 'Terrestre · Cali', total_units: 300, total_weight_kg: 260,
+        origin: 'Terrestre · Concepción', total_units: 300, total_weight_kg: 260,
         status: 'classified', notes: null, companies: { name: companies[0].name },
       },
       {
         id: duid(53), company_id: companies[1].id, received_at: '2026-09-06T08:00:00.000Z',
-        origin: 'Marítimo · Buenaventura', total_units: 500, total_weight_kg: 900,
+        origin: 'Marítimo · San Antonio', total_units: 500, total_weight_kg: 900,
         status: 'received', notes: null, companies: { name: companies[1].name },
       },
     ],
@@ -359,8 +361,11 @@ function seedDb(): ExploreDb {
     addresses: [
       {
         id: duid(71), label: 'Casa', recipient_name: 'Invitado',
-        phone: '+57 300 123 4567', city: 'Bogotá D.C.',
-        address_line: 'Calle 100 #15-20, Apto 501', delivery_notes: 'Portería 24h',
+        phone: '+56 9 1234 5678',
+        street_name: 'Av. Libertador Bernardo O\u2019Higgins', street_number: '1234',
+        apartment: 'Depto 501', commune: 'Santiago', city: 'Santiago',
+        region: 'Metropolitana de Santiago', postal_code: '7500000',
+        country: 'Chile', delivery_notes: 'Conserjería 24h',
         is_default: true,
       },
     ],
@@ -372,10 +377,10 @@ function seedDb(): ExploreDb {
         shipped_at: '2026-08-21T08:00:00.000Z', estimated_at: '2026-08-23T18:00:00.000Z',
         delivered_at: '2026-08-23T15:40:00.000Z',
         shipment_events: [
-          { status: 'picked_up', location_text: 'Bodega Central Bogotá', event_at: '2026-08-21T08:00:00.000Z' },
+          { status: 'picked_up', location_text: 'Bodega Central Santiago', event_at: '2026-08-21T08:00:00.000Z' },
           { status: 'in_transit', location_text: 'Centro de distribución', event_at: '2026-08-22T09:00:00.000Z' },
-          { status: 'out_for_delivery', location_text: 'Bogotá D.C.', event_at: '2026-08-23T07:30:00.000Z' },
-          { status: 'delivered', location_text: 'Calle 100 #15-20', event_at: '2026-08-23T15:40:00.000Z' },
+          { status: 'out_for_delivery', location_text: 'Santiago', event_at: '2026-08-23T07:30:00.000Z' },
+          { status: 'delivered', location_text: 'Av. O\u2019Higgins 1234', event_at: '2026-08-23T15:40:00.000Z' },
         ],
       },
       {
@@ -384,8 +389,8 @@ function seedDb(): ExploreDb {
         shipped_at: '2026-09-06T08:00:00.000Z', estimated_at: '2026-09-09T18:00:00.000Z',
         delivered_at: null,
         shipment_events: [
-          { status: 'picked_up', location_text: 'Bodega Central Bogotá', event_at: '2026-09-06T08:00:00.000Z' },
-          { status: 'in_transit', location_text: 'Ruta Bogotá–Medellín', event_at: '2026-09-07T06:00:00.000Z' },
+          { status: 'picked_up', location_text: 'Bodega Central Santiago', event_at: '2026-09-06T08:00:00.000Z' },
+          { status: 'in_transit', location_text: 'Ruta Santiago–Valparaíso', event_at: '2026-09-07T06:00:00.000Z' },
         ],
       },
     ],
@@ -410,7 +415,7 @@ function seedDb(): ExploreDb {
     messages: [
       {
         id: duid(95), lot_id: lots[0].id, sender_id: EXPLORE_USER_ID, receiver_id: OWNER_ID,
-        body: 'Hola, ¿el precio incluye el envío a Medellín?', is_read: true,
+        body: 'Hola, ¿el precio incluye el envío a Valparaíso?', is_read: true,
         created_at: '2026-09-02T10:45:00.000Z',
       },
       {
@@ -424,12 +429,12 @@ function seedDb(): ExploreDb {
     users: [
       {
         id: EXPLORE_USER_ID, first_name: 'Invitado', last_name: 'Temporal',
-        phone: '+57 300 123 4567', is_active: true,
+        phone: '+56 9 1234 5678', is_active: true,
         created_at: '2026-09-01T09:00:00.000Z', roles: { code: 'admin', name: 'Administrador' },
       },
       {
         id: OWNER_ID, first_name: 'Marco', last_name: 'Reus',
-        phone: '+57 601 555 0101', is_active: true,
+        phone: '+56 2 2555 0101', is_active: true,
         created_at: '2026-08-15T09:00:00.000Z', roles: { code: 'company', name: 'Empresa proveedora' },
       },
       {
@@ -463,8 +468,8 @@ function seedDb(): ExploreDb {
     ],
     payments: [
       { id: duid(401), code: 'card', name: 'Tarjeta de Crédito / Débito', description: 'Hasta 12 cuotas.' },
-      { id: duid(402), code: 'pse', name: 'PSE / Transferencia Bancaria', description: 'Débito directo.' },
-      { id: duid(403), code: 'bank_transfer', name: 'Transferencia Bancaria', description: 'Directa a la plataforma.' },
+      { id: duid(402), code: 'webpay', name: 'Webpay (Transbank)', description: 'Tarjetas vía Webpay.' },
+      { id: duid(403), code: 'bank_transfer', name: 'Transferencia Bancaria', description: 'Directa a cuenta de la plataforma.' },
       { id: duid(404), code: 'cash_on_delivery', name: 'Pago contra entrega', description: 'Sujeto a cobertura.' },
     ],
     seq: { order: 200, ticket: 1 },
@@ -500,7 +505,11 @@ export function createExploreOrder(input: {
   items: { lotId: string; qty: number; unitPrice: number }[];
   shippingCost: number;
   taxAmount: number;
-  ship: { recipient: string; phone: string; city: string; address: string; notes: string };
+  ship: {
+    recipient: string; phone: string; streetName: string; streetNumber: string;
+    apartment: string; commune: string; city: string; region: string;
+    postalCode: string; notes: string;
+  };
   paymentName: string;
 }): string {
   const db = getDb();
@@ -528,14 +537,20 @@ export function createExploreOrder(input: {
     shipping_cost: input.shippingCost,
     tax_amount: input.taxAmount,
     total: subtotal + input.shippingCost + input.taxAmount,
-    currency: 'COP',
+    currency: 'CLP',
     payment_method_id: null,
     carrier: 'RecuperaLogistics',
     created_at: new Date().toISOString(),
     ship_recipient_name: input.ship.recipient,
     ship_phone: input.ship.phone,
+    ship_street_name: input.ship.streetName,
+    ship_street_number: input.ship.streetNumber,
+    ship_apartment: input.ship.apartment || null,
+    ship_commune: input.ship.commune,
     ship_city: input.ship.city,
-    ship_address_line: input.ship.address,
+    ship_region: input.ship.region,
+    ship_postal_code: input.ship.postalCode || null,
+    ship_country: 'Chile',
     payment_methods: { name: input.paymentName },
     order_items: items,
   });

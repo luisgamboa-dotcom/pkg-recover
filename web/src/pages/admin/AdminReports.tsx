@@ -15,8 +15,9 @@ import {
 import AdminLayout from '../../components/AdminLayout';
 import { RequireAdmin } from '../../components/RequireRole';
 import { PageHeader } from '../../components/ui';
-import { cop, orderStatusLabel } from '../../lib/format';
+import { clp, orderStatusLabel } from '../../lib/format';
 import { fetchBestSellers, fetchCompanyRecovery, fetchCounts, fetchInventorySummary } from '../../data/admin';
+import { errorMessage } from '../../lib/validation';
 
 const PIE_COLORS = ['#1a365d', '#ed8936', '#2f855a', '#718096', '#9f7aea', '#e53e3e'];
 
@@ -66,7 +67,7 @@ function View() {
         setBest(b);
         setOrderStates(c.orders ?? {});
       })
-      .catch((err) => setMsg(err instanceof Error ? err.message : String(err)));
+      .catch((err) => setMsg(errorMessage(err)));
   }, []);
 
   const totalStockValue = inventory.reduce((a, r) => a + Number(r.stock_value ?? 0), 0);
@@ -96,13 +97,13 @@ function View() {
       {msg && <p className="mb-3 text-sm text-red-700 bg-red-50 border rounded-lg p-3">{msg}</p>}
 
       <div className="grid gap-4 lg:grid-cols-2 mb-4">
-        <ChartCard title="Valor recuperado por empresa (COP)">
+        <ChartCard title="Valor recuperado por empresa (CLP)">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={recoveryChart} margin={{ top: 8, right: 8, left: 8, bottom: 40 }}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" angle={-20} textAnchor="end" interval={0} fontSize={11} height={50} />
               <YAxis fontSize={11} tickFormatter={(v: any) => `${Math.round(Number(v) / 1000000)}M`} />
-              <Tooltip formatter={(v: any) => cop(Number(v ?? 0))} />
+              <Tooltip formatter={(v: any) => clp(Number(v ?? 0))} />
               <Bar dataKey="recuperado" fill="#2f855a" radius={[6, 6, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
@@ -115,7 +116,7 @@ function View() {
                   <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
                 ))}
               </Pie>
-              <Tooltip formatter={(v: any) => cop(Number(v ?? 0))} />
+              <Tooltip formatter={(v: any) => clp(Number(v ?? 0))} />
               <Legend wrapperStyle={{ fontSize: 12 }} />
             </PieChart>
           </ResponsiveContainer>
@@ -131,13 +132,13 @@ function View() {
             </BarChart>
           </ResponsiveContainer>
         </ChartCard>
-        <ChartCard title="Top lotes por ingresos (COP)">
+        <ChartCard title="Top lotes por ingresos (CLP)">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={bestChart} margin={{ top: 8, right: 8, left: 8, bottom: 40 }}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" angle={-20} textAnchor="end" interval={0} fontSize={11} height={50} />
               <YAxis fontSize={11} tickFormatter={(v: any) => `${Math.round(Number(v) / 1000000)}M`} />
-              <Tooltip formatter={(v: any) => cop(Number(v ?? 0))} />
+              <Tooltip formatter={(v: any) => clp(Number(v ?? 0))} />
               <Bar dataKey="ingresos" fill="#ed8936" radius={[6, 6, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
@@ -146,12 +147,12 @@ function View() {
 
       <div className="grid gap-4 md:grid-cols-2">
         <section className="bg-white rounded-2xl border p-5">
-          <h2 className="font-bold text-brand-950">Valor económico recuperado: {cop(totalRecovered)}</h2>
+          <h2 className="font-bold text-brand-950">Valor económico recuperado: {clp(totalRecovered)}</h2>
           <ul className="mt-3 space-y-1.5 text-sm max-h-72 overflow-auto">
             {recovery.map((r) => (
               <li key={r.company_id} className="flex justify-between gap-2 border-b border-slate-100 pb-1.5">
                 <span>{r.company_name} <span className="text-slate-400">({r.packages_received} paq. · {r.lots_sold} vendidos)</span></span>
-                <span className="font-bold whitespace-nowrap">{cop(Number(r.revenue_recovered))}</span>
+                <span className="font-bold whitespace-nowrap">{clp(Number(r.revenue_recovered))}</span>
               </li>
             ))}
           </ul>
@@ -167,13 +168,13 @@ function View() {
         </section>
 
         <section className="bg-white rounded-2xl border p-5">
-          <h2 className="font-bold text-brand-950">Inventario valorizado: {cop(totalStockValue)}</h2>
+          <h2 className="font-bold text-brand-950">Inventario valorizado: {clp(totalStockValue)}</h2>
           <ul className="mt-3 space-y-1.5 text-sm max-h-72 overflow-auto">
             {inventory.slice(0, 30).map((r) => (
               <li key={r.id} className="flex justify-between gap-2 border-b border-slate-100 pb-1.5">
                 <span className="font-mono text-slate-500">{r.sku}</span>
                 <span className="flex-1 truncate">{r.title}</span>
-                <span className="font-bold whitespace-nowrap">{cop(Number(r.stock_value))}</span>
+                <span className="font-bold whitespace-nowrap">{clp(Number(r.stock_value))}</span>
               </li>
             ))}
           </ul>
@@ -195,7 +196,7 @@ function View() {
           {best.map((b, i) => (
             <li key={b.id} className="flex justify-between gap-2 border-b border-slate-100 pb-1.5">
               <span>#{i + 1} {b.title} <span className="text-slate-400">({b.units_sold} uds · {b.orders_count} pedidos)</span></span>
-              <span className="font-bold whitespace-nowrap">{cop(Number(b.revenue))}</span>
+              <span className="font-bold whitespace-nowrap">{clp(Number(b.revenue))}</span>
             </li>
           ))}
           {best.length === 0 && <li className="text-slate-500">Sin ventas aún.</li>}

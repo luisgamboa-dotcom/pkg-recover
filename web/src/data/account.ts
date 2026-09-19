@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
-import { isSupabaseConfigured, requireSupabase } from '../lib/supabase';
+import { isSupabaseConfigured, requireSupabase, supabaseAnonKey, supabaseUrl } from '../lib/supabase';
+import { FLAT_SHIPPING_CLP } from '../lib/format';
 import { isUuid } from '../lib/validation';
 import { createExploreOrder, getDb, hasData, isExplore, saveDb } from '../demo/demo';
 
@@ -22,10 +23,15 @@ export interface Order {
   currency: string;
   carrier: string | null;
   created_at: string;
-  payment_method: { name: string } | null;
+  payment_method: { code: string; name: string } | null;
   ship_recipient_name: string;
   ship_city: string;
-  ship_address_line: string;
+  ship_street_name: string;
+  ship_street_number: string;
+  ship_apartment: string | null;
+  ship_commune: string;
+  ship_region: string;
+  ship_postal_code: string | null;
   items: OrderItem[];
 }
 
@@ -45,8 +51,13 @@ export interface Address {
   label: string | null;
   recipient_name: string;
   phone: string;
+  street_name: string;
+  street_number: string;
+  apartment: string | null;
+  commune: string;
   city: string;
-  address_line: string;
+  region: string;
+  postal_code: string | null;
   delivery_notes: string | null;
   is_default: boolean;
 }
@@ -61,8 +72,10 @@ export interface PaymentMethod {
 const ORDER_SELECT = `
   id, order_number, status, subtotal, shipping_cost, tax_amount, total,
   currency, carrier, created_at,
-  ship_recipient_name, ship_city, ship_address_line,
-  payment_methods (name),
+  ship_recipient_name, ship_city,
+  ship_street_name, ship_street_number, ship_apartment, ship_commune,
+  ship_region, ship_postal_code,
+  payment_methods (code, name),
   order_items (id, quantity, unit_price, line_total, lots (id, sku, title))
 `;
 
@@ -81,7 +94,12 @@ export function toOrder(r: any): Order {
     payment_method: r.payment_methods ?? null,
     ship_recipient_name: r.ship_recipient_name,
     ship_city: r.ship_city,
-    ship_address_line: r.ship_address_line,
+    ship_street_name: r.ship_street_name,
+    ship_street_number: r.ship_street_number,
+    ship_apartment: r.ship_apartment ?? null,
+    ship_commune: r.ship_commune,
+    ship_region: r.ship_region,
+    ship_postal_code: r.ship_postal_code ?? null,
     items: (r.order_items ?? []).map((i: any) => ({
       id: i.id,
       quantity: i.quantity,
@@ -130,9 +148,18 @@ export function useMyOrders(userId: string | undefined) {
   return { orders, loading, configured: hasData() };
 }
 
+export interface OrderPayment {
+  id: string;
+  provider: string;
+  status: string;
+  amount: number;
+  created_at: string;
+}
+
 export function useOrder(orderId: string | undefined, userId: string | undefined) {
   const [order, setOrder] = useState<Order | null>(null);
   const [shipment, setShipment] = useState<Shipment | null>(null);
+  const [payments, setPayments] = useState<OrderPayment[]>([]);
   const [loading, setLoading] = useState(Boolean(orderId));
 
   useEffect(() => {
@@ -181,6 +208,12 @@ export function useOrder(orderId: string | undefined, userId: string | undefined
       .then(async ({ data, error }) => {
         if (!error && data) {
           setOrder(toOrder(data));
+          const { data: pays } = await sb
+            .from('payments')
+            .select('id, provider, status, amount, created_at')
+            .eq('order_id', orderId)
+            .order('created_at', { ascending: false });
+          setPayments(((pays ?? []) as any[]).map((p) => ({ ...p, amount: Number(p.amount) })));
           const { data: ship } = await sb
             .from('shipments')
             .select(
@@ -208,7 +241,7 @@ export function useOrder(orderId: string | undefined, userId: string | undefined
       });
   }, [orderId, userId]);
 
-  return { order, shipment, loading, configured: hasData() };
+  return { order, shipment, payments, loading, configured: hasData() };
 }
 
 export interface NewOrderInput {
@@ -219,8 +252,13 @@ export interface NewOrderInput {
   ship: {
     recipient: string;
     phone: string;
+    streetName: string;
+    streetNumber: string;
+    apartment: string;
+    commune: string;
     city: string;
-    address: string;
+    region: string;
+    postalCode: string;
     notes: string;
     addressId: string | null;
   };
@@ -249,13 +287,18 @@ export async function createOrder(input: NewOrderInput): Promise<string> {
       status: 'pending_payment',
       shipping_cost: input.shippingCost,
       tax_amount: input.taxAmount,
-      currency: 'COP',
+      currency: 'CLP',
       payment_method_id: input.paymentMethodId,
       shipping_address_id: input.ship.addressId,
       ship_recipient_name: input.ship.recipient,
       ship_phone: input.ship.phone,
+      ship_street_name: input.ship.streetName,
+      ship_street_number: input.ship.streetNumber,
+      ship_apartment: input.ship.apartment || null,
+      ship_commune: input.ship.commune,
       ship_city: input.ship.city,
-      ship_address_line: input.ship.address,
+      ship_region: input.ship.region,
+      ship_postal_code: input.ship.postalCode || null,
       ship_notes: input.ship.notes || null,
     })
     .select('id')
@@ -347,8 +390,13 @@ export async function saveAddress(
         label: input.label,
         recipient_name: input.recipient_name,
         phone: input.phone,
+        street_name: input.street_name,
+        street_number: input.street_number,
+        apartment: input.apartment,
+        commune: input.commune,
         city: input.city,
-        address_line: input.address_line,
+        region: input.region,
+        postal_code: input.postal_code,
         delivery_notes: input.delivery_notes,
         is_default: input.is_default,
       })
@@ -363,8 +411,13 @@ export async function saveAddress(
       label: input.label,
       recipient_name: input.recipient_name,
       phone: input.phone,
+      street_name: input.street_name,
+      street_number: input.street_number,
+      apartment: input.apartment,
+      commune: input.commune,
       city: input.city,
-      address_line: input.address_line,
+      region: input.region,
+      postal_code: input.postal_code,
       delivery_notes: input.delivery_notes,
       is_default: input.is_default,
     })
@@ -383,6 +436,67 @@ export async function deleteAddress(id: string) {
   }
   const { error } = await requireSupabase().from('addresses').delete().eq('id', id);
   if (error) throw error;
+}
+
+/**
+ * Cotiza el flete por ciudad destino y peso total (tabla shipping_rates).
+ * Ciudad exacta primero, 'Otra' como fallback, tarifa plana si no hay match.
+ */
+export async function quoteShipping(destCity: string, totalKg: number): Promise<number> {
+  const kg = Number.isFinite(totalKg) && totalKg > 0 ? totalKg : 0;
+  if (isExplore()) return FLAT_SHIPPING_CLP;
+  if (!isSupabaseConfigured) return FLAT_SHIPPING_CLP;
+  const sb = requireSupabase();
+  for (const city of [destCity, 'Otra']) {
+    const { data } = await sb
+      .from('shipping_rates')
+      .select('price, min_weight_kg, max_weight_kg')
+      .eq('is_active', true)
+      .eq('dest_city', city)
+      .lte('min_weight_kg', kg)
+      .order('min_weight_kg', { ascending: false })
+      .limit(5);
+    const hit = ((data ?? []) as any[]).find(
+      (r) => r.max_weight_kg == null || kg <= Number(r.max_weight_kg),
+    );
+    if (hit) return Number(hit.price);
+  }
+  return FLAT_SHIPPING_CLP;
+}
+
+export type PaymentAttempt =
+  | { kind: 'redirect'; url: string }
+  | { kind: 'manual'; reason: 'gateway_not_configured' | 'failed' };
+
+/**
+ * Intenta el cobro por pasarela (Edge Function create-payment).
+ * - redirect: ir a la URL de pago.
+ * - manual: seguir flujo pendiente (pasarela sin configurar o fallo).
+ */
+export async function requestPayment(orderId: string): Promise<PaymentAttempt> {
+  try {
+    if (!isSupabaseConfigured || !supabaseUrl) {
+      return { kind: 'manual', reason: 'failed' };
+    }
+    const { data: { session } } = await requireSupabase().auth.getSession();
+    if (!session) return { kind: 'manual', reason: 'failed' };
+    const res = await fetch(`${supabaseUrl}/functions/v1/create-payment`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        apikey: supabaseAnonKey,
+        Authorization: `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify({ order_id: orderId }),
+    });
+    if (res.status === 501) return { kind: 'manual', reason: 'gateway_not_configured' };
+    if (!res.ok) return { kind: 'manual', reason: 'failed' };
+    const data = (await res.json()) as { init_point?: string };
+    if (!data.init_point) return { kind: 'manual', reason: 'failed' };
+    return { kind: 'redirect', url: data.init_point };
+  } catch {
+    return { kind: 'manual', reason: 'failed' };
+  }
 }
 
 export function usePaymentMethods() {

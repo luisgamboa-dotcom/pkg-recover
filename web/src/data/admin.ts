@@ -486,11 +486,12 @@ export async function fetchAllOrders() {
         created_at: o.created_at,
         ship_city: o.ship_city,
         profiles: { first_name: 'Demo', last_name: 'Usuario' },
+        payment_methods: { name: o.payment_methods?.name ?? '—' },
       }));
   }
   const { data, error } = await requireSupabase()
     .from('orders')
-    .select('id, order_number, status, total, created_at, ship_city, profiles!orders_buyer_id_fkey (first_name, last_name)')
+    .select('id, order_number, status, total, created_at, ship_city, payment_methods (name), profiles!orders_buyer_id_fkey (first_name, last_name)')
     .order('created_at', { ascending: false })
     .limit(200);
   if (error) throw error;
@@ -595,7 +596,7 @@ export async function saveCompany(id: string | null, input: any) {
       return id;
     }
     const nid = rid();
-    (db.companies as any[]).push({ id: nid, country: 'Colombia', ...input });
+    (db.companies as any[]).push({ id: nid, country: 'Chile', ...input });
     saveDb(db);
     return nid;
   }

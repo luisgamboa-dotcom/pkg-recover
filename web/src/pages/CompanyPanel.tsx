@@ -10,8 +10,8 @@ import {
   fetchMyCompanies,
   registerCompanyPackage,
 } from '../data/company';
-import { cop, formatDate, orderStatusLabel } from '../lib/format';
-import { sanitizeText } from '../lib/validation';
+import { clp, formatDate, orderStatusLabel } from '../lib/format';
+import { errorMessage,  sanitizeText } from '../lib/validation';
 
 export default function CompanyPanel() {
   return (
@@ -43,7 +43,7 @@ function Panel() {
         setCompanies(c);
         if (c.length > 0) setActiveId(c[0].id);
       })
-      .catch((err) => setMsg(err instanceof Error ? err.message : String(err)));
+      .catch((err) => setMsg(errorMessage(err)));
   }, [user]);
 
   useEffect(() => {
@@ -58,7 +58,7 @@ function Panel() {
         setLots(l);
         setSales(s);
       })
-      .catch((err) => setMsg(err instanceof Error ? err.message : String(err)));
+      .catch((err) => setMsg(errorMessage(err)));
   }, [activeId]);
 
   const active = companies.find((c) => c.id === activeId);
@@ -84,7 +84,7 @@ function Panel() {
       setPackages(await fetchCompanyPackages(activeId));
       setMsg('Paquete registrado como entregado.');
     } catch (err) {
-      setMsg(err instanceof Error ? err.message : String(err));
+      setMsg(errorMessage(err));
     }
   }
 
@@ -107,7 +107,7 @@ function Panel() {
               ['Paquetes entregados', active.stats?.packages_received ?? packages.length],
               ['Lotes publicados', active.stats?.lots_published ?? '—'],
               ['Lotes vendidos', active.stats?.lots_sold ?? '—'],
-              ['Recuperado', cop(revenue)],
+              ['Recuperado', clp(revenue)],
             ].map(([label, value]) => (
               <div key={label as string} className="bg-white rounded-2xl border p-5">
                 <p className="text-2xl font-extrabold text-brand-950">{value}</p>
@@ -150,7 +150,7 @@ function Panel() {
                   <li key={l.id} className="flex justify-between gap-2 border-b border-slate-100 pb-1.5">
                     <span className="font-mono text-slate-500">{l.sku}</span>
                     <span className="flex-1 truncate">{l.title}</span>
-                    <span className="whitespace-nowrap">{l.status} · {cop(Number(l.base_price))}</span>
+                    <span className="whitespace-nowrap">{l.status} · {clp(Number(l.base_price))}</span>
                   </li>
                 ))}
                 {lots.length === 0 && <li className="text-slate-500">Aún no hay lotes de tus paquetes.</li>}
@@ -160,7 +160,7 @@ function Panel() {
                 {sales.map((s, i) => (
                   <li key={i} className="flex justify-between gap-2 border-b border-slate-100 pb-1.5">
                     <span>{s.orders?.order_number} · {s.lots?.title} × {s.quantity}</span>
-                    <span className="whitespace-nowrap">{orderStatusLabel(s.orders?.status ?? '')} · {cop(Number(s.line_total))}</span>
+                    <span className="whitespace-nowrap">{orderStatusLabel(s.orders?.status ?? '')} · {clp(Number(s.line_total))}</span>
                   </li>
                 ))}
                 {sales.length === 0 && <li className="text-slate-500">Sin ventas aún.</li>}

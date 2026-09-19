@@ -4,7 +4,7 @@ import { RequireAdmin } from '../../components/RequireRole';
 import { EmptyState, PageHeader } from '../../components/ui';
 import { addMovement, fetchAllLots, fetchMovements } from '../../data/admin';
 import { formatDate } from '../../lib/format';
-import { checkMax, sanitizeText } from '../../lib/validation';
+import { errorMessage,  checkMax, sanitizeText } from '../../lib/validation';
 
 const TYPES = ['inbound', 'sale', 'adjustment', 'return', 'removal'];
 
@@ -31,7 +31,7 @@ function View() {
   const load = () =>
     fetchMovements()
       .then(setMovs)
-      .catch((err) => setMsg(err instanceof Error ? err.message : String(err)));
+      .catch((err) => setMsg(errorMessage(err)));
 
   useEffect(() => {
     void load();
@@ -54,7 +54,7 @@ function View() {
       await load();
       setMsg('Movimiento registrado.');
     } catch (err) {
-      setMsg(err instanceof Error ? err.message : String(err));
+      setMsg(errorMessage(err));
     }
   }
 

@@ -6,6 +6,10 @@ const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
 /** false si falta configurar web/.env (ver .env.example). */
 export const isSupabaseConfigured = Boolean(url && anonKey);
 
+/** URL pública del proyecto (para invocar Edge Functions). Vacía si no hay .env. */
+export const supabaseUrl = url ?? '';
+export const supabaseAnonKey = anonKey ?? '';
+
 export const supabase: SupabaseClient | null = isSupabaseConfigured
   ? createClient(url as string, anonKey as string)
   : null;

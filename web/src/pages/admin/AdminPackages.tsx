@@ -4,7 +4,7 @@ import { RequireAdmin } from '../../components/RequireRole';
 import { EmptyState, PageHeader } from '../../components/ui';
 import { fetchPackages, fetchTable, savePackage } from '../../data/admin';
 import { formatDate } from '../../lib/format';
-import { checkMax, sanitizeText } from '../../lib/validation';
+import { errorMessage,  checkMax, sanitizeText } from '../../lib/validation';
 
 const STATUS = ['received', 'inspecting', 'classified', 'processed', 'cancelled'];
 
@@ -31,7 +31,7 @@ function View() {
   const load = () =>
     fetchPackages()
       .then(setItems)
-      .catch((err) => setMsg(err instanceof Error ? err.message : String(err)));
+      .catch((err) => setMsg(errorMessage(err)));
 
   useEffect(() => {
     void load();
@@ -62,7 +62,7 @@ function View() {
       await load();
       setMsg('Paquete registrado como recibido.');
     } catch (err) {
-      setMsg(err instanceof Error ? err.message : String(err));
+      setMsg(errorMessage(err));
     }
   }
 
@@ -71,7 +71,7 @@ function View() {
       await savePackage(id, { status });
       await load();
     } catch (err) {
-      setMsg(err instanceof Error ? err.message : String(err));
+      setMsg(errorMessage(err));
     }
   }
 

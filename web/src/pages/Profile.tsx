@@ -12,13 +12,14 @@ import {
   usePrefs,
   type Address,
 } from '../data/account';
+import { formatAddress } from '../lib/format';
+import AddressModal, { type AddressFormData } from '../components/AddressModal';
 import {
+  errorMessage,
   LIMITS,
-  checkMax,
   checkName,
   checkPassword,
   checkPhone,
-  checkRequired,
   sanitizeText,
 } from '../lib/validation';
 
@@ -49,13 +50,7 @@ function Editor() {
   const [msg, setMsg] = useState<string | null>(null);
 
   const [editing, setEditing] = useState<Address | null>(null);
-  const [label, setLabel] = useState('');
-  const [recipient, setRecipient] = useState('');
-  const [aPhone, setAPhone] = useState('');
-  const [city, setCity] = useState('Bogotá D.C.');
-  const [addressLine, setAddressLine] = useState('');
-  const [notes, setNotes] = useState('');
-  const [isDefault, setIsDefault] = useState(false);
+  const [addrOpen, setAddrOpen] = useState(false);
   const [addrMsg, setAddrMsg] = useState<string | null>(null);
 
   const [newPass, setNewPass] = useState('');
@@ -88,59 +83,41 @@ function Editor() {
       await refreshProfile();
       setMsg('Datos actualizados.');
     } catch (err) {
-      setMsg(err instanceof Error ? err.message : String(err));
+      setMsg(errorMessage(err));
     }
   }
 
-  function startEdit(a: Address | null) {
+  function openModal(a: Address | null) {
     setEditing(a);
-    setLabel(a?.label ?? '');
-    setRecipient(a?.recipient_name ?? '');
-    setAPhone(a?.phone ?? '');
-    setCity(a?.city ?? 'Bogotá D.C.');
-    setAddressLine(a?.address_line ?? '');
-    setNotes(a?.delivery_notes ?? '');
-    setIsDefault(a?.is_default ?? addresses.length === 0);
     setAddrMsg(null);
+    setAddrOpen(true);
   }
 
-  async function onAddress(e: FormEvent) {
-    e.preventDefault();
+  async function handleSave(d: AddressFormData) {
     if (!user) return;
     setAddrMsg(null);
-    const clean = {
-      label: sanitizeText(label, LIMITS.label),
-      recipient: sanitizeText(recipient, 150),
-      phone: sanitizeText(aPhone, LIMITS.phone),
-      city: sanitizeText(city, LIMITS.city),
-      addressLine: sanitizeText(addressLine, LIMITS.address),
-      notes: sanitizeText(notes, LIMITS.notes),
-    };
-    const errMsg =
-      checkRequired(clean.recipient, 'Destinatario', 2, 150) ??
-      checkPhone(clean.phone) ??
-      checkRequired(clean.addressLine, 'Dirección', 5, LIMITS.address) ??
-      checkMax(clean.notes, 'Notas', LIMITS.notes) ??
-      checkMax(clean.label, 'Etiqueta', LIMITS.label);
-    if (errMsg) {
-      setAddrMsg(errMsg);
-      return;
-    }
     try {
       await saveAddress(user.id, {
         id: editing?.id,
-        label: clean.label || null,
-        recipient_name: clean.recipient,
-        phone: clean.phone,
-        city: clean.city,
-        address_line: clean.addressLine,
-        delivery_notes: clean.notes || null,
-        is_default: isDefault,
+        label: d.label || null,
+        recipient_name: d.recipient,
+        phone: d.phone,
+        street_name: d.streetName,
+        street_number: d.streetNumber,
+        apartment: d.apartment || null,
+        commune: d.commune,
+        city: d.city,
+        region: d.region,
+        postal_code: d.postalCode || null,
+        delivery_notes: d.notes || null,
+        is_default: d.isDefault || addresses.length === 0,
       });
-      startEdit(null);
+      setEditing(null);
+      setAddrOpen(false);
       await refreshAddresses();
     } catch (err) {
-      setAddrMsg(err instanceof Error ? err.message : String(err));
+      setAddrMsg(errorMessage(err));
+      throw err;
     }
   }
 
@@ -159,7 +136,7 @@ function Editor() {
       setNewPass('');
       setPassMsg('Contraseña actualizada.');
     } catch (err) {
-      setPassMsg(err instanceof Error ? err.message : String(err));
+      setPassMsg(errorMessage(err));
     }
   }
 
@@ -185,7 +162,7 @@ function Editor() {
             </div>
             <div>
               <label className="field-label" htmlFor="pf-ph">Teléfono</label>
-              <input id="pf-ph" className="field-input" maxLength={LIMITS.phone} value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+57 300 123 4567" />
+              <input id="pf-ph" className="field-input" maxLength={LIMITS.phone} value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+56 9 1234 5678" />
             </div>
             {msg && <p className="text-sm text-slate-600">{msg}</p>}
             <button className="rounded-lg bg-brand-900 text-white font-semibold px-5 py-2.5 hover:bg-brand-700">
@@ -250,11 +227,11 @@ function Editor() {
                     )}
                   </span>
                   <span className="block text-slate-600">
-                    {a.recipient_name} · {a.address_line} · {a.city}
+                    {a.recipient_name} · {formatAddress(a)}
                   </span>
                 </span>
                 <span className="flex gap-2 shrink-0">
-                  <button onClick={() => startEdit(a)} className="text-brand-900 underline">
+                  <button onClick={() => openModal(a)} className="text-brand-900 underline">
                     Editar
                   </button>
                   <button
@@ -273,36 +250,41 @@ function Editor() {
             )}
           </ul>
 
-          <h3 className="mt-4 font-bold text-brand-950 text-sm">
-            {editing ? 'Editar dirección' : 'Nueva dirección'}
-          </h3>
-          <form onSubmit={onAddress} className="mt-2 space-y-2.5">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-              <input className="field-input" maxLength={LIMITS.label} placeholder="Etiqueta (Casa)" value={label} onChange={(e) => setLabel(e.target.value)} aria-label="Etiqueta" />
-              <input className="field-input" maxLength={150} placeholder="Destinatario" value={recipient} onChange={(e) => setRecipient(e.target.value)} aria-label="Destinatario" />
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-              <input className="field-input" maxLength={LIMITS.phone} placeholder="Teléfono" value={aPhone} onChange={(e) => setAPhone(e.target.value)} aria-label="Teléfono" />
-              <input className="field-input" maxLength={LIMITS.city} placeholder="Ciudad" value={city} onChange={(e) => setCity(e.target.value)} aria-label="Ciudad" />
-            </div>
-            <input className="field-input" maxLength={LIMITS.address} placeholder="Dirección exacta" value={addressLine} onChange={(e) => setAddressLine(e.target.value)} aria-label="Dirección" />
-            <input className="field-input" maxLength={LIMITS.notes} placeholder="Notas (opcional)" value={notes} onChange={(e) => setNotes(e.target.value)} aria-label="Notas" />
-            <label className="flex items-center gap-2 text-sm">
-              <input type="checkbox" className="accent-[#1a365d]" checked={isDefault} onChange={(e) => setIsDefault(e.target.checked)} />
-              Usar como principal
-            </label>
-            {addrMsg && <p className="text-sm text-slate-600">{addrMsg}</p>}
-            <div className="flex gap-2">
-              <button className="rounded-lg bg-brand-900 text-white font-semibold px-4 py-2 hover:bg-brand-700">
-                {editing ? 'Guardar' : 'Agregar'}
-              </button>
-              {editing && (
-                <button type="button" onClick={() => startEdit(null)} className="rounded-lg border border-slate-300 px-4 py-2">
-                  Cancelar
-                </button>
-              )}
-            </div>
-          </form>
+          <button
+            onClick={() => openModal(null)}
+            className="mt-4 rounded-lg bg-brand-900 text-white font-semibold px-4 py-2 hover:bg-brand-700"
+          >
+            + Nueva dirección
+          </button>
+          {addrMsg && <p className="mt-2 text-sm text-slate-600">{addrMsg}</p>}
+          <AddressModal
+            open={addrOpen}
+            title={editing ? 'Editar dirección' : 'Nueva dirección'}
+            submitLabel={editing ? 'Guardar cambios' : 'Agregar dirección'}
+            onClose={() => {
+              setAddrOpen(false);
+              setEditing(null);
+            }}
+            initial={
+              editing
+                ? {
+                    label: editing.label ?? '',
+                    recipient: editing.recipient_name,
+                    phone: editing.phone,
+                    streetName: editing.street_name,
+                    streetNumber: editing.street_number,
+                    apartment: editing.apartment ?? '',
+                    commune: editing.commune,
+                    city: editing.city,
+                    region: editing.region,
+                    postalCode: editing.postal_code ?? '',
+                    notes: editing.delivery_notes ?? '',
+                    isDefault: editing.is_default,
+                  }
+                : undefined
+            }
+            onSubmit={handleSave}
+          />
         </section>
       </div>
     </Layout>

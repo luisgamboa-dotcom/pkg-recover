@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { cop, discountPct } from '../lib/format';
+import { clp, discountPct } from '../lib/format';
 import type { Lot } from '../data/shop';
 
 export function ConfigNotice() {
@@ -121,11 +121,11 @@ export function LotCard({ lot }: { lot: Lot }) {
         </div>
         <div className="mt-3 flex items-baseline gap-2">
           <span className="text-lg font-extrabold text-brand-950">
-            {cop(lot.base_price)}
+            {clp(lot.base_price)}
           </span>
           {lot.msrp_reference != null && (
             <span className="text-sm text-slate-400 line-through">
-              {cop(lot.msrp_reference)}
+              {clp(lot.msrp_reference)}
             </span>
           )}
         </div>

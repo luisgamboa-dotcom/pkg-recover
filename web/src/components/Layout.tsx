@@ -97,7 +97,7 @@ export default function Layout({ children }: { children: ReactNode }) {
         </div>
       </header>
 
-      <main className="flex-1 w-full max-w-6xl mx-auto px-6 py-8 pb-20">{children}</main>
+      <main className="flex-1 w-full max-w-6xl mx-auto px-6 py-8">{children}</main>
 
       <Footer />
     </div>

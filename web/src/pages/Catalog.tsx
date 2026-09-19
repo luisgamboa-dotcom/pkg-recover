@@ -17,7 +17,7 @@ export default function Catalog() {
     <Layout>
       <PageHeader
         title="Catálogo de lotes"
-        subtitle={`${total} lotes publicados · precios en COP con IVA calculado en caja`}
+        subtitle={`${total} lotes publicados · precios en CLP con IVA calculado en caja`}
       />
       {!configured && (
         <div className="mb-4">

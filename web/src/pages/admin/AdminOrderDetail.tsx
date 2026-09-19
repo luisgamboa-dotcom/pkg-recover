@@ -5,9 +5,9 @@ import { RequireAdmin } from '../../components/RequireRole';
 import { EmptyState, PageHeader } from '../../components/ui';
 import { useAuth } from '../../auth/AuthContext';
 import { useOrder } from '../../data/account';
-import { cop, formatDate, orderStatusLabel } from '../../lib/format';
+import { clp, formatDate, orderStatusLabel } from '../../lib/format';
 import { addShipmentEvent, saveShipment, updateOrderStatus } from '../../data/admin';
-import { sanitizeText } from '../../lib/validation';
+import { errorMessage,  sanitizeText } from '../../lib/validation';
 
 const ORDER_STATUS = ['pending_payment', 'paid', 'preparing', 'shipped', 'delivered', 'cancelled', 'returned'];
 const SHIP_STATUS = ['pending', 'picked_up', 'in_transit', 'out_for_delivery', 'delivered', 'failed', 'returned'];
@@ -25,7 +25,7 @@ export default function AdminOrderDetail() {
 function Detail() {
   const { id } = useParams();
   const { user } = useAuth();
-  const { order, shipment, loading } = useOrder(id, user?.id);
+  const { order, shipment, payments, loading } = useOrder(id, user?.id);
   const [msg, setMsg] = useState<string | null>(null);
   const [carrier, setCarrier] = useState('RecuperaLogistics');
   const [tracking, setTracking] = useState('');
@@ -52,7 +52,7 @@ function Detail() {
       await updateOrderStatus(id, sel);
       setMsg(`Estado del pedido → ${orderStatusLabel(sel)}. Recarga para ver el cambio.`);
     } catch (err) {
-      setMsg(err instanceof Error ? err.message : String(err));
+      setMsg(errorMessage(err));
     }
   }
 
@@ -69,7 +69,7 @@ function Detail() {
       await saveShipment(id, { carrier: cleanCarrier, tracking_number: cleanTracking || null, status: shipStatus }, shipment?.id);
       setMsg('Despacho guardado. Recarga para ver el cambio.');
     } catch (err) {
-      setMsg(err instanceof Error ? err.message : String(err));
+      setMsg(errorMessage(err));
     }
   }
 
@@ -81,7 +81,7 @@ function Detail() {
       setEvLocation('');
       setMsg('Evento de seguimiento registrado. Recarga para ver el cambio.');
     } catch (err) {
-      setMsg(err instanceof Error ? err.message : String(err));
+      setMsg(errorMessage(err));
     }
   }
 
@@ -103,12 +103,24 @@ function Detail() {
             </select>
             <button className="rounded-lg bg-brand-900 text-white px-4 font-semibold shrink-0">Actualizar</button>
           </form>
-          <h2 className="mt-5 font-bold text-brand-950">Detalle ({cop(order.total)})</h2>
+          <p className="mt-3 text-sm text-slate-600">
+            <span className="font-semibold">Pago:</span> {order.payment_method?.name ?? '—'}
+            {payments.length > 0 && (
+              <span className="ml-2">
+                {payments.map((p) => (
+                  <span key={p.id} className="mr-1.5 text-xs font-bold uppercase rounded-full px-2 py-0.5 bg-slate-100 text-slate-600">
+                    {p.provider} · {p.status}
+                  </span>
+                ))}
+              </span>
+            )}
+          </p>
+          <h2 className="mt-5 font-bold text-brand-950">Detalle ({clp(order.total)})</h2>
           <ul className="mt-2 text-sm space-y-1">
             {order.items.map((i) => (
               <li key={i.id} className="flex justify-between gap-2">
                 <span>{i.lot?.title ?? 'Lote'} × {i.quantity}</span>
-                <span className="font-semibold">{cop(i.line_total)}</span>
+                <span className="font-semibold">{clp(i.line_total)}</span>
               </li>
             ))}
           </ul>

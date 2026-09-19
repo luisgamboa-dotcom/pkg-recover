@@ -4,7 +4,7 @@ import ProtectedRoute from '../components/ProtectedRoute';
 import { EmptyState, PageHeader } from '../components/ui';
 import { useAuth } from '../auth/AuthContext';
 import { useMyOrders } from '../data/account';
-import { cop, formatDate, orderStatusLabel } from '../lib/format';
+import { clp, formatDate, orderStatusLabel } from '../lib/format';
 
 export default function Orders() {
   return (
@@ -52,7 +52,7 @@ function OrdersList() {
               <span className="text-xs font-bold uppercase tracking-wider text-white bg-brand-900 rounded-full px-3 py-1">
                 {orderStatusLabel(o.status)}
               </span>
-              <p className="font-extrabold text-brand-950">{cop(o.total)}</p>
+              <p className="font-extrabold text-brand-950">{clp(o.total)}</p>
             </div>
           </Link>
         ))}

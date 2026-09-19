@@ -4,6 +4,7 @@ import { RequireAdmin } from '../../components/RequireRole';
 import { EmptyState, PageHeader } from '../../components/ui';
 import { formatDate } from '../../lib/format';
 import { fetchRoles, fetchUsers, updateUser } from '../../data/admin';
+import { errorMessage } from '../../lib/validation';
 
 export default function AdminUsers() {
   return (
@@ -23,7 +24,7 @@ function List() {
   const load = () =>
     fetchUsers()
       .then(setUsers)
-      .catch((err) => setMsg(err instanceof Error ? err.message : String(err)));
+      .catch((err) => setMsg(errorMessage(err)));
 
   useEffect(() => {
     void load();
@@ -35,7 +36,7 @@ function List() {
       await updateUser(id, patch);
       await load();
     } catch (err) {
-      setMsg(err instanceof Error ? err.message : String(err));
+      setMsg(errorMessage(err));
     }
   }
 
@@ -63,6 +64,7 @@ function List() {
                 <td className="p-3">
                   <select
                     className="field-input w-auto! py-1!"
+                    disabled={roles.length === 0}
                     value={u.roles?.code ?? ''}
                     onChange={(e) => {
                       const r = roles.find((x) => x.code === e.target.value);

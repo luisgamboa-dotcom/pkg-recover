@@ -3,7 +3,7 @@ import AdminLayout from '../../components/AdminLayout';
 import { RequireAdmin } from '../../components/RequireRole';
 import { PageHeader } from '../../components/ui';
 import { deleteRow, fetchTable, linkPromotionLot, saveRow } from '../../data/admin';
-import { sanitizeText } from '../../lib/validation';
+import { errorMessage,  sanitizeText } from '../../lib/validation';
 
 /** Editor genérico: lista + formulario simple por tabla catálogo. */
 function CatalogEditor({
@@ -27,7 +27,7 @@ function CatalogEditor({
   const load = () =>
     fetchTable(table, orderBy)
       .then(setRows)
-      .catch((err) => setMsg(err instanceof Error ? err.message : String(err)));
+      .catch((err) => setMsg(errorMessage(err)));
 
   useEffect(() => {
     void load();
@@ -67,7 +67,7 @@ function CatalogEditor({
       startEdit(null);
       await load();
     } catch (err) {
-      setMsg(err instanceof Error ? err.message : String(err));
+      setMsg(errorMessage(err));
     }
   }
 
@@ -84,7 +84,7 @@ function CatalogEditor({
               <button
                 onClick={() => {
                   if (window.confirm('¿Eliminar?')) {
-                    void deleteRow(table, r.id).then(load).catch((err) => setMsg(err instanceof Error ? err.message : String(err)));
+                    void deleteRow(table, r.id).then(load).catch((err) => setMsg(errorMessage(err)));
                   }
                 }}
                 className="text-red-700 underline"
@@ -159,7 +159,7 @@ export default function AdminCatalogs() {
       setLotSku('');
       setPromoMsg(`Lote ${sku} vinculado.`);
     } catch (err) {
-      setPromoMsg(err instanceof Error ? err.message : String(err));
+      setPromoMsg(errorMessage(err));
     }
   }
 

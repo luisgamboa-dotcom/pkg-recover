@@ -2,15 +2,17 @@ import { useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import AuthLayout from '../components/AuthLayout';
-import { LIMITS, checkEmail, normalizeEmail } from '../lib/validation';
+import { errorMessage,  LIMITS, checkEmail, normalizeEmail } from '../lib/validation';
 
 function friendlyError(message: string): string {
   if (/invalid login credentials/i.test(message))
     return 'Correo o contraseña incorrectos.';
   if (/email not confirmed/i.test(message))
     return 'Debes confirmar tu correo antes de ingresar. Revisa tu bandeja.';
-  if (/too many requests/i.test(message))
+  if (/too many requests|rate limit/i.test(message))
     return 'Demasiados intentos. Espera unos minutos e inténtalo de nuevo.';
+  if (/network|fetch|timeout|connection/i.test(message))
+    return 'Problema de conexión. Revisa tu internet e inténtalo de nuevo.';
   return message;
 }
 
@@ -44,7 +46,7 @@ export default function Login() {
       await signIn(cleanEmail, password.slice(0, LIMITS.password));
       navigate('/', { replace: true });
     } catch (err) {
-      setError(friendlyError(err instanceof Error ? err.message : String(err)));
+      setError(friendlyError(errorMessage(err)));
     } finally {
       setBusy(false);
     }
@@ -64,7 +66,7 @@ export default function Login() {
       await sendPasswordReset(cleanEmail);
       setInfo('Te enviamos un enlace para restablecer tu contraseña.');
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(errorMessage(err));
     } finally {
       setResetting(false);
     }

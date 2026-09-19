@@ -25,7 +25,26 @@ CONEXIÓN BACKEND (bloquea datos reales)
 
 PAGOS Y LOGÍSTICA
 -----------------
-7. Pasarela de pago real (Wompi/MercadoPago) para tarjeta y PSE.
+7. [PARCIAL 2026-09-18] Pasarela MercadoPago: tabla payments + Edge
+   Functions create-payment y payment-webhook desplegadas y probadas
+   (401/500 controlados sin secretos). Flete dinámico por ciudad/peso
+   (shipping_rates, 20 tarifas) integrado al checkout. FALTA: secretos en
+   Dashboard → Edge Functions → Secrets: MP_ACCESS_TOKEN (MercadoPago →
+   Tus integraciones → Credenciales), MP_WEBHOOK_SECRET (crear en
+   MercadoPago → Webhooks apuntando a
+   https://rnxhmfrkoljayokycwiy.supabase.co/functions/v1/payment-webhook),
+   FRONTEND_URL (ej. http://localhost:5173). Sin secretos el pedido queda
+   pendiente de pago como antes.
+   Moneda del sistema: CLP, IVA 19% (Chile).
+   [HECHO 2026-09-18] UX de pago por método: panel "Completa tu pago" en el
+   detalle (Pagar ahora con redirect, instrucciones transferencia/contra
+   entrega, botón "Ya transferí" que abre ticket vinculado), hints en
+   checkout y columna de método en admin.
+7b. [PENDIENTE — NO ASOCIAR AÚN] Cuenta bancaria para transferencias:
+    definir banco, tipo y número de cuenta, titular, RUT y correo de
+    comprobantes. Cuando se defina, mostrarla en el panel de transferencia
+    y en el correo al comprador. También decidir zonas de cobertura de
+    pago contra entrega.
    Hoy el pedido queda en "pendiente de pago".
 8. Integración con empresa de transporte (tracking automático, webhook).
 9. Flete dinámico por peso/ciudad (hoy tarifa plana de referencia).
@@ -35,7 +54,9 @@ FUNCIONALIDADES POST-MVP (según prompt.txt)
 10. Panel avanzado para empresas (reportes descargables, convenios).
 11. Sistema avanzado para revendedores (crédito, listas de precios).
 12. Recomendaciones personalizadas y programa de fidelización.
-13. Automatización de notificaciones por evento (trigger → notifications).
+13. [HECHO 2026-09-18] Automatización de notificaciones por evento
+    (migración 8: pedido, despacho, novedad, oferta, disponibilidad,
+    todas con preferencias) + historial de ventas en inventario.
 14. Analítica avanzada, aplicación móvil, integraciones externas.
 
 DISEÑO / UX

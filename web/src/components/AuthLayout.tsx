@@ -73,7 +73,7 @@ export default function AuthLayout({
       </aside>
 
       {/* Formulario */}
-      <main className="flex-1 flex items-center justify-center p-6 lg:p-12 pb-20">
+      <main className="flex-1 flex items-center justify-center p-6 lg:p-12">
         <div className="w-full max-w-md bg-white rounded-2xl border border-slate-200 shadow-[0_10px_30px_rgba(26,54,93,0.08)] p-8">
           <h2 className="text-2xl font-bold tracking-tight text-brand-950">
             {title}

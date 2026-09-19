@@ -64,7 +64,7 @@ const roadmap: { title: string; text: string }[] = [
   },
   {
     title: 'Pasarela de pago real',
-    text: 'Integrar Wompi/MercadoPago para tarjeta y PSE (hoy el pedido queda pendiente de pago).',
+    text: 'Integrar MercadoPago o Webpay para tarjeta y transferencia (hoy el pedido queda pendiente de pago).',
   },
   {
     title: 'Automatización',
@@ -251,9 +251,7 @@ export default function Home() {
         </div>
       </main>
 
-      <div className="pb-16">
-        <Footer />
-      </div>
+      <Footer />
     </div>
   );
 }

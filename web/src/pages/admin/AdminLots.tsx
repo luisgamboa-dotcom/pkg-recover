@@ -3,8 +3,9 @@ import { Link } from 'react-router-dom';
 import AdminLayout from '../../components/AdminLayout';
 import { RequireAdmin } from '../../components/RequireRole';
 import { EmptyState, PageHeader } from '../../components/ui';
-import { cop } from '../../lib/format';
+import { clp } from '../../lib/format';
 import { deleteLot, fetchAllLots, saveLot } from '../../data/admin';
+import { errorMessage } from '../../lib/validation';
 
 const STATUSES = ['', 'draft', 'published', 'paused', 'sold_out', 'archived'];
 
@@ -26,7 +27,7 @@ function List() {
   const load = () =>
     fetchAllLots()
       .then(setLots)
-      .catch((err) => setMsg(err instanceof Error ? err.message : String(err)));
+      .catch((err) => setMsg(errorMessage(err)));
 
   useEffect(() => {
     void load();
@@ -40,7 +41,7 @@ function List() {
       await saveLot(lot.id, { status: lot.status === 'published' ? 'paused' : 'published' } as any);
       await load();
     } catch (err) {
-      setMsg(err instanceof Error ? err.message : String(err));
+      setMsg(errorMessage(err));
     }
   }
 
@@ -51,7 +52,7 @@ function List() {
       await deleteLot(lot.id);
       await load();
     } catch (err) {
-      setMsg(err instanceof Error ? err.message : String(err));
+      setMsg(errorMessage(err));
     }
   }
 
@@ -94,7 +95,7 @@ function List() {
                 <td className="p-3 font-semibold">{l.title}</td>
                 <td className="p-3">{l.status}</td>
                 <td className="p-3">{l.stock_quantity}</td>
-                <td className="p-3">{cop(Number(l.base_price))}</td>
+                <td className="p-3">{clp(Number(l.base_price))}</td>
                 <td className="p-3">{l.companies?.name ?? '—'}</td>
                 <td className="p-3 flex gap-2">
                   <Link to={`/admin/lotes/${l.id}`} className="text-brand-900 underline">Editar</Link>

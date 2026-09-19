@@ -1,15 +1,15 @@
-/** Formato moneda COP sin decimales, como en Stitch ($1.240.000). */
-export function cop(value: number): string {
-  return new Intl.NumberFormat('es-CO', {
+/** Formato moneda CLP sin decimales, es-CL ($1.490.000). */
+export function clp(value: number): string {
+  return new Intl.NumberFormat('es-CL', {
     style: 'currency',
-    currency: 'COP',
+    currency: 'CLP',
     maximumFractionDigits: 0,
   }).format(value);
 }
 
 export function formatDate(value: string | null): string {
   if (!value) return '—';
-  return new Intl.DateTimeFormat('es-CO', {
+  return new Intl.DateTimeFormat('es-CL', {
     dateStyle: 'medium',
     timeStyle: 'short',
   }).format(new Date(value));
@@ -24,12 +24,28 @@ export function discountPct(
   return Math.round((1 - basePrice / msrp) * 100);
 }
 
-/** IVA colombiano 19% sobre (subtotal + envío), igual que el checkout Stitch. */
-export const IVA_RATE = 0.19;
-/** Flete plano de referencia (RecuperaLogistics). Ajustable por admin a futuro. */
-export const FLAT_SHIPPING_COP = 45000;
+/** Compone una dirección atómica en una línea legible. */
+export function formatAddress(p: {
+  street_name?: string | null;
+  street_number?: string | null;
+  apartment?: string | null;
+  commune?: string | null;
+  city?: string | null;
+  region?: string | null;
+  postal_code?: string | null;
+}): string {
+  const line1 = [p.street_name, p.street_number].filter(Boolean).join(' ');
+  const parts = [line1, p.apartment, p.commune, p.city, p.region].filter(Boolean);
+  const base = parts.join(', ');
+  return p.postal_code ? `${base} (${p.postal_code})` : base;
+}
 
-export function totals(subtotal: number, shipping = FLAT_SHIPPING_COP) {
+/** IVA chileno 19% sobre (subtotal + envío). */
+export const IVA_RATE = 0.19;
+/** Flete plano de referencia en CLP (RecuperaLogistics). Ajustable a futuro. */
+export const FLAT_SHIPPING_CLP = 45000;
+
+export function totals(subtotal: number, shipping = FLAT_SHIPPING_CLP) {
   const tax = Math.round((subtotal + shipping) * IVA_RATE);
   return { subtotal, shipping, tax, total: subtotal + shipping + tax };
 }

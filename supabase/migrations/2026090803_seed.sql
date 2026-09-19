@@ -42,8 +42,8 @@ on conflict (name) do update set
 insert into public.payment_methods (code, name, description, allows_installments, max_installments, sort_order) values
   ('card', 'Tarjeta de Crédito / Débito',
    'Hasta 12 cuotas sin interés con bancos aliados.', true, 12, 1),
-  ('pse', 'PSE / Transferencia Bancaria',
-   'Débito directo desde cuenta de ahorros o corriente.', false, null, 2),
+  ('webpay', 'Webpay (Transbank)',
+   'Tarjetas de crédito y débito vía Webpay.', false, null, 2),
   ('bank_transfer', 'Transferencia Bancaria',
    'Transferencia directa a cuenta de la plataforma.', false, null, 3),
   ('cash_on_delivery', 'Pago contra entrega',
@@ -57,8 +57,8 @@ on conflict (code) do update set
 
 -- Bodegas iniciales
 insert into public.warehouses (code, name, city, country, capacity_lots) values
-  ('BOG-01', 'Bodega Central Bogotá', 'Bogotá D.C.', 'Colombia', 5000),
-  ('MED-01', 'Bodega Medellín', 'Medellín', 'Colombia', 2000)
+  ('SCL-01', 'Bodega Central Santiago', 'Santiago', 'Chile', 5000),
+  ('VLP-01', 'Bodega Valparaíso', 'Valparaíso', 'Chile', 2000)
 on conflict (code) do update set
   name = excluded.name,
   city = excluded.city,
@@ -73,7 +73,7 @@ insert into public.faqs (category, question, answer, sort_order) values
    'Es la reducción estimada frente al precio de referencia (MSRP) de los productos que componen el lote. El precio publicado excluye IVA y costo de envío.',
    2),
   ('compra', '¿Qué métodos de pago aceptan?',
-   'Tarjeta de crédito/débito hasta 12 cuotas, PSE/transferencia bancaria y pago contra entrega en zonas con cobertura. No almacenamos datos de tarjetas.',
+   'Tarjeta de crédito/débito hasta 12 cuotas, Webpay/transferencia bancaria y pago contra entrega en zonas con cobertura. No almacenamos datos de tarjetas.',
    3),
   ('despachos', '¿Cómo sigo mi pedido?',
    'Cada pedido genera un número de seguimiento. En "Mis pedidos" ves el estado del despacho y su historial: preparación, tránsito y entrega.',

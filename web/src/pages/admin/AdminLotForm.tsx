@@ -14,6 +14,7 @@ import {
 } from '../../data/admin';
 import { publicImageUrl } from '../../data/shop';
 import {
+  errorMessage,
   checkRequired,
   parsePrice,
   sanitizeText,
@@ -56,7 +57,7 @@ function Form() {
     warehouse_id: '', warehouse_zone: '', brand_id: '',
     packaging_state: 'original', product_state: 'intact', is_verified: false,
     unit_count: '1', total_weight_kg: '0', length_cm: '', width_cm: '', height_cm: '',
-    base_price: '', msrp_reference: '', currency: 'COP', stock_quantity: '1',
+    base_price: '', msrp_reference: '', currency: 'CLP', stock_quantity: '1',
     status: 'draft', is_featured: false, circularity_percent: '', waste_avoided_kg: '',
   });
   const [catIds, setCatIds] = useState<string[]>([]);
@@ -72,7 +73,7 @@ function Form() {
       fetchTable('packages', 'received_at'),
     ]).then(([c, w, b, cat, p]) => {
       setCompanies(c); setWarehouses(w); setBrands(b); setCategories(cat); setPackages(p);
-    }).catch((err) => setMsg(err instanceof Error ? err.message : String(err)));
+    }).catch((err) => setMsg(errorMessage(err)));
     if (!isNew && id) {
       fetchLotAdmin(id).then((lot) => {
         setF({
@@ -91,7 +92,7 @@ function Form() {
         setCatIds((lot.lot_categories ?? []).map((c: any) => c.category_id));
         setImages(lot.lot_images ?? []);
         setTiers(lot.lot_price_tiers ?? []);
-      }).catch((err) => setMsg(err instanceof Error ? err.message : String(err)));
+      }).catch((err) => setMsg(errorMessage(err)));
     }
   }, [id, isNew]);
 
@@ -127,7 +128,7 @@ function Form() {
         height_cm: f.height_cm === '' ? null : Math.max(0, num(f.height_cm)),
         base_price: base,
         msrp_reference: f.msrp_reference === '' ? null : parsePrice(f.msrp_reference),
-        currency: f.currency === 'USD' ? 'USD' : 'COP',
+        currency: f.currency === 'USD' ? 'USD' : 'CLP',
         stock_quantity: Math.max(0, Math.floor(num(f.stock_quantity, 1))),
         status: f.status,
         is_featured: f.is_featured,
@@ -137,7 +138,7 @@ function Form() {
       });
       navigate(`/admin/lotes/${savedId}`, { replace: true });
     } catch (err) {
-      setMsg(err instanceof Error ? err.message : String(err));
+      setMsg(errorMessage(err));
     } finally {
       setBusy(false);
     }
@@ -152,7 +153,7 @@ function Form() {
       const lot = await fetchLotAdmin(id);
       setImages(lot.lot_images ?? []);
     } catch (err) {
-      setMsg(err instanceof Error ? err.message : String(err));
+      setMsg(errorMessage(err));
     }
     e.target.value = '';
   }
@@ -168,7 +169,7 @@ function Form() {
       setTiers(lot.lot_price_tiers ?? []);
       setTierQty(''); setTierPrice('');
     } catch (err) {
-      setMsg(err instanceof Error ? err.message : String(err));
+      setMsg(errorMessage(err));
     }
   }
 
@@ -295,7 +296,7 @@ function Form() {
             <div>
               <label className="field-label" htmlFor="lt-cur">Moneda</label>
               <select id="lt-cur" className={input} value={f.currency} onChange={(e) => set('currency', e.target.value)}>
-                <option>COP</option>
+                <option>CLP</option>
                 <option>USD</option>
               </select>
             </div>

@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import {
   ROLE_NAMES,
@@ -11,7 +12,17 @@ import {
 /** Barra del modo exploración temporal: cambiar rol, restablecer o salir. */
 export default function DemoBanner() {
   const { user, signOut } = useAuth();
-  if (!isExplore() || !user) return null;
+  const active = isExplore() && !!user;
+  // Reserva espacio bajo el footer SOLO mientras el banner existe.
+  useEffect(() => {
+    if (!active) return;
+    const prev = document.body.style.paddingBottom;
+    document.body.style.paddingBottom = '52px';
+    return () => {
+      document.body.style.paddingBottom = prev;
+    };
+  }, [active]);
+  if (!active) return null;
   const role = getExploreRole();
 
   return (

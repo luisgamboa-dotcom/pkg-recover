@@ -17,17 +17,27 @@ import {
   getDb,
   getExploreRole,
   isExplore,
+  type ExploreRole,
 } from '../demo/demo';
+
+const VALID_ROLES = ['customer', 'reseller', 'company', 'admin'] as const;
+
+/** Falla cerrado: cualquier rol desconocido se trata como cliente. */
+function safeRole(code: string): (typeof VALID_ROLES)[number] {
+  return (VALID_ROLES as readonly string[]).includes(code)
+    ? (code as (typeof VALID_ROLES)[number])
+    : 'customer';
+}
 
 const EXPLORE_USER = { id: EXPLORE_USER_ID, email: 'revisor@local' } as unknown as User;
 
 function exploreProfile(): Profile {
-  const role = getExploreRole();
+  const role = safeRole(getExploreRole());
   const p = getDb().profile;
   return {
     id: EXPLORE_USER_ID,
     roleCode: role,
-    roleName: ROLE_NAMES[role],
+    roleName: ROLE_NAMES[role as ExploreRole],
     firstName: p.first_name,
     lastName: p.last_name,
   };
@@ -78,10 +88,11 @@ async function fetchProfile(userId: string): Promise<Profile | null> {
     .single();
   if (error || !data) return null;
   const role = data.roles as unknown as { code: string; name: string };
+  const safe = safeRole(role.code);
   return {
     id: data.id as string,
-    roleCode: role.code,
-    roleName: role.name,
+    roleCode: safe,
+    roleName: safe === role.code ? role.name : 'Cliente particular',
     firstName: (data.first_name as string | null) ?? null,
     lastName: (data.last_name as string | null) ?? null,
   };
@@ -152,7 +163,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (error) throw error;
 
       // Completa nombre/teléfono en el perfil creado por el trigger.
-      if (data.user) {
+      // Solo con sesión: sin ella (confirmación pendiente) RLS lo rechazaría
+      // y mostraría un error falso, pues la cuenta sí se creó.
+      if (data.user && data.session) {
         await sb
           .from('profiles')
           .update({
@@ -161,6 +174,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             phone: input.phone,
           })
           .eq('id', data.user.id);
+        setSession(data.session);
         await loadProfile(data.user.id);
       }
       return { needsConfirmation: !data.session };
@@ -172,7 +186,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const sb = requireSupabase();
     const { error } = await sb.auth.signInWithPassword({ email, password });
     if (error) throw error;
-  }, []);
+    // Fija la sesión en el contexto ANTES de volver: así la redirección del
+    // login ya encuentra user/profile y no muestra la vista sin sesión.
+    const { data } = await sb.auth.getSession();
+    setSession(data.session);
+    await loadProfile(data.session?.user.id);
+  }, [loadProfile]);
 
   const explore = useCallback(() => {
     enterExploreMode();

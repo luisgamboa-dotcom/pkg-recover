@@ -3,8 +3,9 @@ import { Link } from 'react-router-dom';
 import AdminLayout from '../../components/AdminLayout';
 import { RequireAdmin } from '../../components/RequireRole';
 import { PageHeader } from '../../components/ui';
-import { cop } from '../../lib/format';
+import { clp } from '../../lib/format';
 import { fetchBestSellers, fetchCompanyRecovery, fetchCounts } from '../../data/admin';
+import { errorMessage } from '../../lib/validation';
 
 function Card({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -38,7 +39,7 @@ function Dashboard() {
         setBest(b);
         setRecovery(r.slice(0, 5));
       })
-      .catch((err) => setError(err instanceof Error ? err.message : String(err)));
+      .catch((err) => setError(errorMessage(err)));
   }, []);
 
   return (
@@ -71,7 +72,7 @@ function Dashboard() {
               <li key={b.id} className="flex justify-between gap-2">
                 <span className="font-mono text-slate-500">{b.sku}</span>
                 <span className="flex-1 truncate">{b.title}</span>
-                <span className="font-bold whitespace-nowrap">{cop(Number(b.revenue))}</span>
+                <span className="font-bold whitespace-nowrap">{clp(Number(b.revenue))}</span>
               </li>
             ))}
           </ul>
@@ -82,7 +83,7 @@ function Dashboard() {
             {recovery.map((r) => (
               <li key={r.company_id} className="flex justify-between gap-2">
                 <span className="flex-1 truncate font-semibold">{r.company_name}</span>
-                <span className="whitespace-nowrap">{r.lots_sold} lotes · {cop(Number(r.revenue_recovered))}</span>
+                <span className="whitespace-nowrap">{r.lots_sold} lotes · {clp(Number(r.revenue_recovered))}</span>
               </li>
             ))}
           </ul>
