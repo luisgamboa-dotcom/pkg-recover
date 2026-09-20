@@ -2,7 +2,6 @@ import { lazy, Suspense } from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { AuthProvider } from './auth/AuthContext';
 import { CartProvider } from './lib/cart';
-import DemoBanner from './components/DemoBanner';
 import Cart from './pages/Cart';
 import Catalog from './pages/Catalog';
 import Checkout from './pages/Checkout';
@@ -35,7 +34,6 @@ export default function App() {
   return (
     <AuthProvider>
       <CartProvider>
-        <DemoBanner />
         <BrowserRouter>
         <Suspense fallback={<p className="p-6 text-sm text-slate-500">Cargando…</p>}>
           <Routes>

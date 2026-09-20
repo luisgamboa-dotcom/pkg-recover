@@ -2,7 +2,6 @@ import { useCallback, useEffect, useState } from 'react';
 import { isSupabaseConfigured, requireSupabase, supabaseAnonKey, supabaseUrl } from '../lib/supabase';
 import { FLAT_SHIPPING_CLP } from '../lib/format';
 import { isUuid } from '../lib/validation';
-import { createExploreOrder, getDb, hasData, isExplore, saveDb } from '../demo/demo';
 
 export interface OrderItem {
   id: string;
@@ -121,15 +120,6 @@ export function useMyOrders(userId: string | undefined) {
       setLoading(false);
       return;
     }
-    if (isExplore()) {
-      setOrders(
-        (getDb().orders as any[])
-          .filter((o) => o.buyer_id === userId)
-          .map(toOrder),
-      );
-      setLoading(false);
-      return;
-    }
     if (!isSupabaseConfigured) {
       setLoading(false);
       return;
@@ -145,7 +135,7 @@ export function useMyOrders(userId: string | undefined) {
       });
   }, [userId]);
 
-  return { orders, loading, configured: hasData() };
+  return { orders, loading, configured: isSupabaseConfigured };
 }
 
 export interface OrderPayment {
@@ -169,30 +159,6 @@ export function useOrder(orderId: string | undefined, userId: string | undefined
     }
     // El :id viene de la URL: exige UUID antes de consultar.
     if (!isUuid(orderId)) {
-      setLoading(false);
-      return;
-    }
-    if (isExplore()) {
-      const db = getDb();
-      const found = (db.orders as any[]).find((o) => o.id === orderId);
-      if (found) {
-        setOrder(toOrder(found));
-        const ship = (db.shipments as any[]).find((s) => s.order_id === orderId);
-        if (ship) {
-          setShipment({
-            id: ship.id,
-            carrier: ship.carrier,
-            tracking_number: ship.tracking_number,
-            status: ship.status,
-            shipped_at: ship.shipped_at,
-            estimated_at: ship.estimated_at,
-            delivered_at: ship.delivered_at,
-            events: [...(ship.shipment_events ?? [])].sort((a: any, b: any) =>
-              String(a.event_at).localeCompare(String(b.event_at)),
-            ),
-          });
-        }
-      }
       setLoading(false);
       return;
     }
@@ -241,7 +207,7 @@ export function useOrder(orderId: string | undefined, userId: string | undefined
       });
   }, [orderId, userId]);
 
-  return { order, shipment, payments, loading, configured: hasData() };
+  return { order, shipment, payments, loading, configured: isSupabaseConfigured };
 }
 
 export interface NewOrderInput {
@@ -267,18 +233,6 @@ export interface NewOrderInput {
 
 /** Crea pedido + detalle. Los triggers calculan totales y descuentan stock. */
 export async function createOrder(input: NewOrderInput): Promise<string> {
-  if (isExplore()) {
-    const db = getDb();
-    const method =
-      db.payments.find((m: any) => m.id === input.paymentMethodId)?.name ?? 'Demo';
-    return createExploreOrder({
-      items: input.items,
-      shippingCost: input.shippingCost,
-      taxAmount: input.taxAmount,
-      ship: input.ship,
-      paymentName: method,
-    });
-  }
   const sb = requireSupabase();
   const { data: order, error: orderError } = await sb
     .from('orders')
@@ -330,11 +284,6 @@ export function useAddresses(userId: string | undefined) {
       setLoading(false);
       return;
     }
-    if (isExplore()) {
-      setItems([...(getDb().addresses as Address[])]);
-      setLoading(false);
-      return;
-    }
     if (!isSupabaseConfigured) {
       setLoading(false);
       return;
@@ -359,23 +308,6 @@ export async function saveAddress(
   userId: string,
   input: Omit<Address, 'id'> & { id?: string },
 ) {
-  if (isExplore()) {
-    const db = getDb();
-    if (input.is_default) {
-      for (const a of db.addresses as any[]) a.is_default = false;
-    }
-    if (input.id) {
-      const i = (db.addresses as any[]).findIndex((a) => a.id === input.id);
-      if (i >= 0) db.addresses[i] = { ...db.addresses[i], ...input };
-    } else {
-      const id = `demo-addr-${Date.now()}`;
-      (db.addresses as any[]).push({ ...input, id });
-      saveDb(db);
-      return id;
-    }
-    saveDb(db);
-    return input.id as string;
-  }
   const sb = requireSupabase();
   if (input.is_default) {
     await sb
@@ -428,12 +360,6 @@ export async function saveAddress(
 }
 
 export async function deleteAddress(id: string) {
-  if (isExplore()) {
-    const db = getDb();
-    db.addresses = (db.addresses as any[]).filter((a) => a.id !== id);
-    saveDb(db);
-    return;
-  }
   const { error } = await requireSupabase().from('addresses').delete().eq('id', id);
   if (error) throw error;
 }
@@ -444,7 +370,6 @@ export async function deleteAddress(id: string) {
  */
 export async function quoteShipping(destCity: string, totalKg: number): Promise<number> {
   const kg = Number.isFinite(totalKg) && totalKg > 0 ? totalKg : 0;
-  if (isExplore()) return FLAT_SHIPPING_CLP;
   if (!isSupabaseConfigured) return FLAT_SHIPPING_CLP;
   const sb = requireSupabase();
   for (const city of [destCity, 'Otra']) {
@@ -502,10 +427,6 @@ export async function requestPayment(orderId: string): Promise<PaymentAttempt> {
 export function usePaymentMethods() {
   const [items, setItems] = useState<PaymentMethod[]>([]);
   useEffect(() => {
-    if (isExplore()) {
-      setItems(getDb().payments as PaymentMethod[]);
-      return;
-    }
     if (!isSupabaseConfigured) return;
     requireSupabase()
       .from('payment_methods')
@@ -521,12 +442,6 @@ export async function updateProfile(
   userId: string,
   input: { firstName: string; lastName: string; phone: string },
 ) {
-  if (isExplore()) {
-    const db = getDb();
-    db.profile = { first_name: input.firstName, last_name: input.lastName, phone: input.phone };
-    saveDb(db);
-    return;
-  }
   const { error } = await requireSupabase()
     .from('profiles')
     .update({
@@ -548,10 +463,6 @@ export interface Faq {
 export function useFaqs() {
   const [items, setItems] = useState<Faq[]>([]);
   useEffect(() => {
-    if (isExplore()) {
-      setItems(getDb().faqs as Faq[]);
-      return;
-    }
     if (!isSupabaseConfigured) return;
     requireSupabase()
       .from('faqs')
@@ -570,29 +481,6 @@ export async function createTicket(input: {
   category: string;
   message: string;
 }) {
-  if (isExplore()) {
-    const db = getDb();
-    const id = `demo-ticket-${Date.now()}`;
-    db.tickets.unshift({
-      id,
-      ticket_number: `SUP-${String(db.seq.ticket++).padStart(6, '0')}`,
-      profile_id: input.profileId,
-      order_id: input.orderId,
-      subject: input.subject,
-      category: input.category,
-      status: 'open',
-      created_at: new Date().toISOString(),
-    });
-    db.ticketMessages.push({
-      id: `demo-tmsg-${Date.now()}`,
-      ticket_id: id,
-      sender_id: input.profileId,
-      body: input.message,
-      created_at: new Date().toISOString(),
-    });
-    saveDb(db);
-    return id;
-  }
   const sb = requireSupabase();
   const { data: ticket, error } = await sb
     .from('support_tickets')
@@ -642,15 +530,6 @@ export function useNotifications(userId: string | undefined) {
       setLoading(false);
       return;
     }
-    if (isExplore()) {
-      setItems(
-        [...(getDb().notifications as Notification[])].sort((a, b) =>
-          String(b.created_at).localeCompare(String(a.created_at)),
-        ),
-      );
-      setLoading(false);
-      return;
-    }
     if (!isSupabaseConfigured) {
       setLoading(false);
       return;
@@ -671,15 +550,7 @@ export function useNotifications(userId: string | undefined) {
 
   const markRead = useCallback(
     async (id: string) => {
-      if (isExplore()) {
-        const db = getDb();
-        for (const n of db.notifications as any[]) {
-          if (n.id === id) n.is_read = true;
-        }
-        saveDb(db);
-      } else {
-        await requireSupabase().from('notifications').update({ is_read: true }).eq('id', id);
-      }
+      await requireSupabase().from('notifications').update({ is_read: true }).eq('id', id);
       setItems((prev) => prev.map((n) => (n.id === id ? { ...n, is_read: true } : n)));
     },
     [],
@@ -687,13 +558,6 @@ export function useNotifications(userId: string | undefined) {
 
   const markAllRead = useCallback(async () => {
     if (!userId) return;
-    if (isExplore()) {
-      const db = getDb();
-      for (const n of db.notifications as any[]) n.is_read = true;
-      saveDb(db);
-      await refresh();
-      return;
-    }
     await requireSupabase()
       .from('notifications')
       .update({ is_read: true })
@@ -716,40 +580,6 @@ export interface Thread {
 }
 
 export async function fetchThreads(userId: string): Promise<Thread[]> {
-  if (isExplore()) {
-    const db = getDb();
-    const mine = (db.messages as any[]).filter(
-      (m) => m.sender_id === userId || m.receiver_id === userId,
-    );
-    const lotName = (id: string) => {
-      const l = (db.lots as any[]).find((x) => x.id === id);
-      return { title: l?.title ?? 'Lote', sku: l?.sku ?? '' };
-    };
-    const userName = (id: string) => {
-      if (id === userId) return 'Tú';
-      const u = (db.users as any[]).find((x) => x.id === id);
-      return u ? `${u.first_name ?? ''} ${u.last_name ?? ''}`.trim() || 'Usuario' : 'Usuario';
-    };
-    const map = new Map<string, Thread>();
-    for (const m of mine.sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)))) {
-      if (!map.has(m.lot_id)) {
-        const other = m.sender_id === userId ? m.receiver_id : m.sender_id;
-        const info = lotName(m.lot_id);
-        map.set(m.lot_id, {
-          lotId: m.lot_id,
-          lotTitle: info.title,
-          lotSku: info.sku,
-          otherName: userName(other),
-          lastBody: m.body,
-          lastAt: m.created_at,
-          unread: 0,
-        });
-      }
-      const t = map.get(m.lot_id)!;
-      if (m.receiver_id === userId && !m.is_read) t.unread += 1;
-    }
-    return [...map.values()];
-  }
   const sb = requireSupabase();
   const { data, error } = await sb
     .from('messages')
@@ -780,18 +610,6 @@ export async function fetchThreads(userId: string): Promise<Thread[]> {
 }
 
 export async function fetchThreadMessages(userId: string, lotId: string) {
-  if (isExplore()) {
-    const db = getDb();
-    const msgs = (db.messages as any[]).filter(
-      (m) =>
-        m.lot_id === lotId && (m.sender_id === userId || m.receiver_id === userId),
-    );
-    for (const m of msgs) {
-      if (m.receiver_id === userId) m.is_read = true;
-    }
-    saveDb(db);
-    return msgs.sort((a, b) => String(a.created_at).localeCompare(String(b.created_at)));
-  }
   const sb = requireSupabase();
   const { data, error } = await sb
     .from('messages')
@@ -809,20 +627,6 @@ export async function fetchThreadMessages(userId: string, lotId: string) {
 }
 
 export async function sendMessage(lotId: string, senderId: string, receiverId: string, body: string) {
-  if (isExplore()) {
-    const db = getDb();
-    (db.messages as any[]).push({
-      id: `demo-msg-${Date.now()}`,
-      lot_id: lotId,
-      sender_id: senderId,
-      receiver_id: receiverId,
-      body,
-      is_read: false,
-      created_at: new Date().toISOString(),
-    });
-    saveDb(db);
-    return;
-  }
   const { error } = await requireSupabase()
     .from('messages')
     .insert({ lot_id: lotId, sender_id: senderId, receiver_id: receiverId, body });
@@ -831,15 +635,6 @@ export async function sendMessage(lotId: string, senderId: string, receiverId: s
 
 /** Receptor de consulta por un lote: dueño de la empresa o admin. */
 export async function findSellerForLot(lotId: string, excludeId: string): Promise<string> {
-  if (isExplore()) {
-    const db = getDb();
-    const lot = (db.lots as any[]).find((l) => l.id === lotId);
-    const members = (db.company_members as any[]).filter(
-      (m) => m.company_id === lot?.company_id && m.profile_id !== excludeId,
-    );
-    if (members.length > 0) return members[0].profile_id as string;
-    return '00000000-0000-0000-0000-000000000002';
-  }
   const sb = requireSupabase();
   const { data: lot } = await sb.from('lots').select('company_id').eq('id', lotId).single();
   const companyId = (lot as any)?.company_id;
@@ -867,10 +662,6 @@ export function usePrefs(userId: string | undefined) {
   const [prefs, setPrefs] = useState<Prefs | null>(null);
   useEffect(() => {
     if (!userId) return;
-    if (isExplore()) {
-      setPrefs({ ...getDb().prefs });
-      return;
-    }
     if (!isSupabaseConfigured) return;
     requireSupabase()
       .from('notification_preferences')
@@ -885,13 +676,6 @@ export function usePrefs(userId: string | undefined) {
   const save = useCallback(
     async (next: Prefs) => {
       if (!userId) return;
-      if (isExplore()) {
-        const db = getDb();
-        db.prefs = { ...next };
-        saveDb(db);
-        setPrefs(next);
-        return;
-      }
       const { error } = await requireSupabase()
         .from('notification_preferences')
         .update(next)

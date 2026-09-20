@@ -247,7 +247,7 @@ function Detail() {
                 <p className="mt-2 text-sm">
                   <span className="font-semibold">{shipment.carrier}</span>
                   {shipment.tracking_number && (
-                    <span className="ml-2 font-mono bg-brand-50 border border-slate-200 rounded px-2 py-0.5">
+                    <span className="ml-2 inline-block max-w-full font-mono bg-brand-50 border border-slate-200 rounded px-2 py-0.5 break-all align-middle">
                       {shipment.tracking_number}
                     </span>
                   )}

@@ -9,16 +9,6 @@ import {
   type ReactNode,
 } from 'react';
 import { isSupabaseConfigured, requireSupabase } from '../lib/supabase';
-import {
-  EXPLORE_USER_ID,
-  ROLE_NAMES,
-  enterExploreMode,
-  exitExplore,
-  getDb,
-  getExploreRole,
-  isExplore,
-  type ExploreRole,
-} from '../demo/demo';
 
 const VALID_ROLES = ['customer', 'reseller', 'company', 'admin'] as const;
 
@@ -27,20 +17,6 @@ function safeRole(code: string): (typeof VALID_ROLES)[number] {
   return (VALID_ROLES as readonly string[]).includes(code)
     ? (code as (typeof VALID_ROLES)[number])
     : 'customer';
-}
-
-const EXPLORE_USER = { id: EXPLORE_USER_ID, email: 'revisor@local' } as unknown as User;
-
-function exploreProfile(): Profile {
-  const role = safeRole(getExploreRole());
-  const p = getDb().profile;
-  return {
-    id: EXPLORE_USER_ID,
-    roleCode: role,
-    roleName: ROLE_NAMES[role as ExploreRole],
-    firstName: p.first_name,
-    lastName: p.last_name,
-  };
 }
 
 export type AccountType = 'customer' | 'reseller' | 'company';
@@ -61,8 +37,6 @@ interface AuthState {
   profile: Profile | null;
   signUp: (input: SignUpInput) => Promise<{ needsConfirmation: boolean }>;
   signIn: (email: string, password: string) => Promise<void>;
-  /** Entrada directa temporal (revisión sin backend). */
-  explore: () => void;
   signOut: () => Promise<void>;
   sendPasswordReset: (email: string) => Promise<void>;
   refreshProfile: () => Promise<void>;
@@ -102,7 +76,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [exploreActive, setExploreActive] = useState(false);
 
   const loadProfile = useCallback(async (userId: string | undefined) => {
     if (!userId) {
@@ -119,12 +92,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (isExplore()) {
-      setExploreActive(true);
-      setProfile(exploreProfile());
-      setLoading(false);
-      return;
-    }
     if (!isSupabaseConfigured) {
       setLoading(false);
       return;
@@ -193,53 +160,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await loadProfile(data.session?.user.id);
   }, [loadProfile]);
 
-  const explore = useCallback(() => {
-    enterExploreMode();
-    setExploreActive(true);
-    setProfile(exploreProfile());
-  }, []);
-
   const signOut = useCallback(async () => {
-    if (exploreActive || isExplore()) {
-      exitExplore();
-      setExploreActive(false);
-      setSession(null);
-      setProfile(null);
-      return;
-    }
     const sb = requireSupabase();
     const { error } = await sb.auth.signOut();
     if (error) throw error;
+    setSession(null);
     setProfile(null);
-  }, [exploreActive]);
+  }, []);
 
   const sendPasswordReset = useCallback(async (email: string) => {
-    if (exploreActive || isExplore()) return; // en exploración no se envía correo
     const sb = requireSupabase();
     const { error } = await sb.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/login`,
     });
     if (error) throw error;
-  }, [exploreActive]);
+  }, []);
 
   const refreshProfile = useCallback(async () => {
-    if (exploreActive || isExplore()) {
-      setProfile(exploreProfile());
-      return;
-    }
     await loadProfile(session?.user.id);
-  }, [loadProfile, session, exploreActive]);
+  }, [loadProfile, session]);
 
   const value = useMemo<AuthState>(
     () => ({
-      configured: isSupabaseConfigured || exploreActive,
+      configured: isSupabaseConfigured,
       loading,
       session,
-      user: exploreActive ? EXPLORE_USER : (session?.user ?? null),
+      user: session?.user ?? null,
       profile,
       signUp,
       signIn,
-      explore,
       signOut,
       sendPasswordReset,
       refreshProfile,
@@ -250,11 +199,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       profile,
       signUp,
       signIn,
-      explore,
       signOut,
       sendPasswordReset,
       refreshProfile,
-      exploreActive,
     ],
   );
 

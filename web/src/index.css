@@ -27,6 +27,14 @@ body {
   background: var(--color-brand-50);
   color: #0d1c2e;
   -webkit-font-smoothing: antialiased;
+  /* Táctil: sin resaltado gris al tocar, scroll suave en iOS */
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: none;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
 }
 
 /* Etiquetas estilo "label-caps" del design system */

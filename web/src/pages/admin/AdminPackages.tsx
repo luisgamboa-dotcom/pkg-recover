@@ -21,7 +21,9 @@ export default function AdminPackages() {
 function View() {
   const [items, setItems] = useState<any[]>([]);
   const [companies, setCompanies] = useState<any[]>([]);
+  const [methods, setMethods] = useState<any[]>([]);
   const [companyId, setCompanyId] = useState('');
+  const [methodId, setMethodId] = useState('');
   const [origin, setOrigin] = useState('');
   const [units, setUnits] = useState('');
   const [weight, setWeight] = useState('');
@@ -36,6 +38,10 @@ function View() {
   useEffect(() => {
     void load();
     fetchTable('companies').then(setCompanies).catch(() => undefined);
+    fetchTable('reception_methods', 'name').then((m) => {
+      setMethods(m);
+      if (m.length === 1) setMethodId(m[0].id);
+    }).catch(() => undefined);
   }, []);
 
   async function onSubmit(e: FormEvent) {
@@ -49,9 +55,11 @@ function View() {
     const cleanNotes = sanitizeText(notes, 2000);
     const errLen = checkMax(cleanOrigin, 'Origen', 200) ?? checkMax(cleanNotes, 'Notas', 2000);
     if (errLen) { setMsg(errLen); return; }
+    if (!methodId) { setMsg('Selecciona el método de recepción.'); return; }
     try {
       await savePackage(null, {
         company_id: companyId || null,
+        reception_method_id: methodId,
         origin: cleanOrigin || null,
         total_units: u,
         total_weight_kg: w,
@@ -79,10 +87,14 @@ function View() {
     <>
       <PageHeader title="Paquetes" subtitle="Recepción, clasificación y procesamiento." />
       {msg && <p className="mb-3 text-sm text-slate-700 bg-slate-100 border rounded-lg p-3">{msg}</p>}
-      <form onSubmit={onSubmit} className="bg-white rounded-2xl border p-4 grid gap-3 md:grid-cols-5 mb-6">
+      <form onSubmit={onSubmit} className="bg-white rounded-2xl border p-4 grid gap-3 md:grid-cols-6 mb-6">
         <select className="field-input" value={companyId} onChange={(e) => setCompanyId(e.target.value)} aria-label="Empresa origen">
           <option value="">Empresa…</option>
           {companies.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+        </select>
+        <select className="field-input" value={methodId} onChange={(e) => setMethodId(e.target.value)} aria-label="Método de recepción">
+          <option value="">Recepción…</option>
+          {methods.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
         </select>
         <input className="field-input" maxLength={200} placeholder="Origen" value={origin} onChange={(e) => setOrigin(e.target.value)} aria-label="Origen" />
         <input className="field-input" type="number" min={0} placeholder="Unidades" value={units} onChange={(e) => setUnits(e.target.value)} aria-label="Unidades" />
@@ -94,8 +106,8 @@ function View() {
       <div className="bg-white rounded-2xl border overflow-x-auto">
         <table className="w-full text-sm min-w-[720px]">
           <thead>
-            <tr className="text-left text-xs uppercase tracking-wider text-slate-500 border-b">
-              <th className="p-3">Recepción</th><th className="p-3">Empresa</th><th className="p-3">Origen</th>
+              <tr className="text-left text-xs uppercase tracking-wider text-slate-500 border-b">
+              <th className="p-3">Recepción</th><th className="p-3">Empresa</th><th className="p-3">Método</th><th className="p-3">Origen</th>
               <th className="p-3">Uds</th><th className="p-3">Kg</th><th className="p-3">Estado</th>
             </tr>
           </thead>
@@ -104,6 +116,7 @@ function View() {
               <tr key={p.id} className="border-b last:border-0">
                 <td className="p-3 whitespace-nowrap">{formatDate(p.received_at)}</td>
                 <td className="p-3">{p.companies?.name ?? '—'}</td>
+                <td className="p-3">{p.reception_methods?.name ?? '—'}</td>
                 <td className="p-3">{p.origin ?? '—'}</td>
                 <td className="p-3">{p.total_units}</td>
                 <td className="p-3">{Number(p.total_weight_kg)}</td>

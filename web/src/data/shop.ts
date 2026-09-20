@@ -8,7 +8,6 @@ import {
   parsePrice,
   sanitizeText,
 } from '../lib/validation';
-import { getDb, hasData, isExplore, saveDb } from '../demo/demo';
 
 export interface Category {
   id: string;
@@ -203,14 +202,6 @@ export function useCatalog(filters: Filters) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (isExplore()) {
-      const all = getDb().lots
-        .filter((l: any) => l.status === 'published' && l.stock_quantity > 0)
-        .map((r: any) => toLot(r as Record<string, unknown>));
-      setLots(all);
-      setLoading(false);
-      return;
-    }
     if (!isSupabaseConfigured) {
       setLoading(false);
       return;
@@ -235,7 +226,7 @@ export function useCatalog(filters: Filters) {
     total: lots.length,
     loading,
     error,
-    configured: hasData(),
+    configured: isSupabaseConfigured,
   };
 }
 
@@ -248,13 +239,6 @@ export function useLot(id: string | undefined) {
     // El :id viene de la URL (control del usuario): exige UUID antes de consultar.
     if (!id || !isUuid(id)) {
       if (id) setError('Identificador de lote inválido.');
-      setLoading(false);
-      return;
-    }
-    if (isExplore()) {
-      const found = getDb().lots.find((l: any) => l.id === id);
-      if (found) setLot(toLot(found as Record<string, unknown>));
-      else setError('Lote no encontrado.');
       setLoading(false);
       return;
     }
@@ -274,7 +258,7 @@ export function useLot(id: string | undefined) {
       });
   }, [id]);
 
-  return { lot, loading, error, configured: hasData() };
+  return { lot, loading, error, configured: isSupabaseConfigured };
 }
 
 export function useLotsByIds(ids: string[]) {
@@ -286,16 +270,6 @@ export function useLotsByIds(ids: string[]) {
     // Los ids pueden venir de localStorage (manipulable): filtra a UUIDs.
     const safeIds = ids.filter(isUuid);
     if (safeIds.length === 0) {
-      setLoading(false);
-      return;
-    }
-    if (isExplore()) {
-      const m: Record<string, Lot> = {};
-      for (const row of getDb().lots as unknown as Record<string, unknown>[]) {
-        const lot = toLot(row);
-        if (safeIds.includes(lot.id)) m[lot.id] = lot;
-      }
-      setMap(m);
       setLoading(false);
       return;
     }
@@ -319,16 +293,12 @@ export function useLotsByIds(ids: string[]) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key]);
 
-  return { map, loading, configured: hasData() };
+  return { map, loading, configured: isSupabaseConfigured };
 }
 
 export function useCategories() {
   const [items, setItems] = useState<Category[]>([]);
   useEffect(() => {
-    if (isExplore()) {
-      setItems(getDb().categories);
-      return;
-    }
     if (!isSupabaseConfigured) return;
     requireSupabase()
       .from('categories')
@@ -343,10 +313,6 @@ export function useCategories() {
 export function useBrands() {
   const [items, setItems] = useState<Brand[]>([]);
   useEffect(() => {
-    if (isExplore()) {
-      setItems(getDb().brands);
-      return;
-    }
     if (!isSupabaseConfigured) return;
     requireSupabase()
       .from('brands')
@@ -367,14 +333,6 @@ export function usePriceTiers(lotId: string | undefined) {
   const [tiers, setTiers] = useState<PriceTier[]>([]);
   useEffect(() => {
     if (!lotId) return;
-    if (isExplore()) {
-      setTiers(
-        getDb().tiers
-          .filter((t: any) => t.lot_id === lotId)
-          .map((t: any) => ({ id: t.id, min_quantity: t.min_quantity, unit_price: t.unit_price })),
-      );
-      return;
-    }
     if (!isSupabaseConfigured) return;
     requireSupabase()
       .from('lot_price_tiers')
@@ -395,19 +353,6 @@ export function usePriceTiers(lotId: string | undefined) {
 
 export async function fetchTiers(lotIds: string[]): Promise<Record<string, PriceTier[]>> {
   if (lotIds.length === 0) return {};
-  if (isExplore()) {
-    const map: Record<string, PriceTier[]> = {};
-    for (const t of getDb().tiers as any[]) {
-      if (lotIds.includes(t.lot_id)) {
-        (map[t.lot_id] ??= []).push({
-          id: t.id,
-          min_quantity: t.min_quantity,
-          unit_price: t.unit_price,
-        });
-      }
-    }
-    return map;
-  }
   if (!isSupabaseConfigured) return {};
   const { data } = await requireSupabase()
     .from('lot_price_tiers')
@@ -435,21 +380,6 @@ export function useSimilarLots(lot: Lot | null) {
     if (!lot) return;
     const catIds = lot.categories.map((c) => c.id);
     if (catIds.length === 0) return;
-    if (isExplore()) {
-      const all = (getDb().lots as unknown as Record<string, unknown>[]).map(toLot);
-      setItems(
-        all
-          .filter(
-            (l) =>
-              l.id !== lot.id &&
-              l.status === 'published' &&
-              l.stock_quantity > 0 &&
-              l.categories.some((c) => catIds.includes(c.id)),
-          )
-          .slice(0, 4),
-      );
-      return;
-    }
     if (!isSupabaseConfigured) return;
     requireSupabase()
       .from('lots')
@@ -477,11 +407,6 @@ export function useFavorites(userId: string | undefined) {
       setLoading(false);
       return;
     }
-    if (isExplore()) {
-      setIds(new Set(getDb().favorites));
-      setLoading(false);
-      return;
-    }
     if (!isSupabaseConfigured) {
       setLoading(false);
       return;
@@ -501,15 +426,6 @@ export function useFavorites(userId: string | undefined) {
   const toggle = useCallback(
     async (lotId: string) => {
       if (!userId) return;
-      if (isExplore()) {
-        const db = getDb();
-        db.favorites = ids.has(lotId)
-          ? db.favorites.filter((x) => x !== lotId)
-          : [...db.favorites, lotId];
-        saveDb(db);
-        await refresh();
-        return;
-      }
       const sb = requireSupabase();
       if (ids.has(lotId)) {
         await sb
@@ -541,23 +457,6 @@ export function useReviews(lotId: string | undefined) {
 
   useEffect(() => {
     if (!lotId) {
-      setLoading(false);
-      return;
-    }
-    if (isExplore()) {
-      setItems(
-        getDb()
-          .reviews.filter((r: any) => r.lot_id === lotId)
-          .map((r: any) => ({
-            id: r.id,
-            rating: r.rating,
-            title: r.title,
-            comment: r.comment,
-            is_verified_purchase: r.is_verified_purchase,
-            created_at: r.created_at,
-            author: r.profiles?.first_name ?? 'Comprador',
-          })),
-      );
       setLoading(false);
       return;
     }
@@ -599,23 +498,6 @@ export async function addReview(input: {
   comment: string;
   verified: boolean;
 }) {
-  if (isExplore()) {
-    const db = getDb();
-    db.reviews.unshift({
-      id: `demo-rev-${Date.now()}`,
-      lot_id: input.lotId,
-      rating: input.rating,
-      title: input.title || null,
-      comment: input.comment || null,
-      is_verified_purchase: input.verified,
-      created_at: new Date().toISOString(),
-      profiles: { first_name: db.profile.first_name },
-    });
-    const lot = db.lots.find((l: any) => l.id === input.lotId);
-    if (lot) lot.reviews = [...(lot.reviews ?? []), { rating: input.rating }];
-    saveDb(db);
-    return;
-  }
   const { error } = await requireSupabase().from('reviews').insert({
     lot_id: input.lotId,
     profile_id: input.profileId,

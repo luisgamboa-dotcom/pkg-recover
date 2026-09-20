@@ -16,8 +16,8 @@ const links = [
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="min-h-screen bg-brand-50 flex flex-col lg:flex-row">
-      <aside className="lg:w-60 shrink-0 bg-brand-900 text-white p-4 lg:min-h-screen">
+    <div className="min-h-dvh bg-brand-50 flex flex-col lg:flex-row">
+      <aside className="lg:w-60 shrink-0 bg-brand-900 text-white p-4 lg:min-h-dvh">
         <Link to="/" className="flex items-center gap-2 px-2 py-2">
           <span className="grid place-items-center w-8 h-8 rounded-lg bg-accent-500 font-extrabold">
             R

@@ -10,6 +10,7 @@ import {
   fetchMyCompanies,
   registerCompanyPackage,
 } from '../data/company';
+import { fetchTable } from '../data/admin';
 import { clp, formatDate, orderStatusLabel } from '../lib/format';
 import { errorMessage,  sanitizeText } from '../lib/validation';
 
@@ -35,6 +36,8 @@ function Panel() {
   const [origin, setOrigin] = useState('');
   const [units, setUnits] = useState('');
   const [weight, setWeight] = useState('');
+  const [methods, setMethods] = useState<any[]>([]);
+  const [methodId, setMethodId] = useState('');
 
   useEffect(() => {
     if (!user) return;
@@ -44,6 +47,10 @@ function Panel() {
         if (c.length > 0) setActiveId(c[0].id);
       })
       .catch((err) => setMsg(errorMessage(err)));
+    fetchTable('reception_methods', 'name').then((m) => {
+      setMethods(m);
+      if (m.length === 1) setMethodId(m[0].id);
+    }).catch(() => undefined);
   }, [user]);
 
   useEffect(() => {
@@ -73,9 +80,11 @@ function Panel() {
     const w = Number(weight);
     if (!Number.isFinite(u) || u < 0) { setMsg('Unidades inválidas.'); return; }
     if (!Number.isFinite(w) || w < 0) { setMsg('Peso inválido.'); return; }
+    if (!methodId) { setMsg('Selecciona el método de recepción.'); return; }
     try {
       await registerCompanyPackage(user.id, activeId, {
         origin: sanitizeText(origin, 200) || null,
+        reception_method_id: methodId,
         total_units: u,
         total_weight_kg: w,
         status: 'received',
@@ -127,6 +136,10 @@ function Panel() {
               <h2 className="font-bold text-brand-950">Registrar entrega de paquetes</h2>
               <form onSubmit={onPackage} className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-2">
                 <input className="field-input col-span-3" maxLength={200} placeholder="Origen (transportadora, ciudad…)" value={origin} onChange={(e) => setOrigin(e.target.value)} aria-label="Origen" />
+                <select className="field-input col-span-3" value={methodId} onChange={(e) => setMethodId(e.target.value)} aria-label="Método de recepción">
+                  <option value="">Método de recepción…</option>
+                  {methods.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
+                </select>
                 <input className="field-input" type="number" min={0} placeholder="Unidades" value={units} onChange={(e) => setUnits(e.target.value)} aria-label="Unidades" />
                 <input className="field-input" type="number" min={0} step="0.01" placeholder="Peso kg" value={weight} onChange={(e) => setWeight(e.target.value)} aria-label="Peso" />
                 <button className="rounded-lg bg-brand-900 text-white font-semibold hover:bg-brand-700">Registrar</button>

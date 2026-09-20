@@ -5,9 +5,8 @@ import type { Lot } from '../data/shop';
 export function ConfigNotice() {
   return (
     <p className="rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-sm p-4">
-      Vista lista, sin datos: copia <code>web/.env.example</code> a{' '}
-      <code>web/.env</code> con la anon key y aplica las migraciones en
-      Supabase (reinicia opencode para reconectar el MCP).
+      No pudimos cargar los datos en este momento. Inténtalo más tarde o
+      contáctanos por <Link to="/ayuda">ayuda</Link>.
     </p>
   );
 }

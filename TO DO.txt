@@ -63,3 +63,9 @@ DISEÑO / UX
 -----------
 15. Página "Nosotros" (cuando se defina contenido con el cliente).
 16. Revisar contraste y responsive en móviles pequeños (390px).
+
+PERSONAS QUE DESECHAN (nuevo alcance landing)
+--------------------------------------------
+17. [PENDIENTE] Flujo de recepción para personas: formulario "Ofrece tus
+    objetos" (fotos, comuna, retiro a domicilio o punto limpio), evaluación
+    y conversión a lote. Hoy el CTA lleva a /ayuda (contacto manual).

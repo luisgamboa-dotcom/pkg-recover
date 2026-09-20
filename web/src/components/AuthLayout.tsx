@@ -27,7 +27,7 @@ export default function AuthLayout({
   children: ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-brand-50 flex flex-col">
+    <div className="min-h-dvh bg-brand-50 flex flex-col">
       <div className="flex-1 flex flex-col lg:flex-row">
       {/* Panel de marca */}
       <aside className="lg:w-[44%] bg-brand-900 text-white flex flex-col justify-between p-8 lg:p-12">
