@@ -5,9 +5,8 @@ asociado hasta nuevo aviso; solo revisar esta lista.
 
 SECCIONES DEL PIE DE PÁGINA
 ---------------------------
-1. [VACÍA] Página "Nosotros" (Quiénes somos, misión, equipo).
-   - El footer muestra la casilla "Nosotros" vacía ("Próximamente").
-   - No existe la ruta /nosotros ni contenido al respecto.
+1. [HECHO 2026-09-19] Página "Nosotros" (/nosotros): proyecto, aporte
+   (planeta/personas/empresas) y cómo lo hace. Contenido editable a pedido.
 2. [PROVISORIA] Redes sociales del footer (Instagram, Facebook, X).
    - Enlaces actuales apuntan a URLs provisorias /recuperapack.
    - Reemplazar por las cuentas oficiales cuando se creen.

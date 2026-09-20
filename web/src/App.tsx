@@ -12,6 +12,7 @@ import Home from './pages/Home';
 import Login from './pages/Login';
 import LotDetail from './pages/LotDetail';
 import Messages from './pages/Messages';
+import About from './pages/About';
 import Notifications from './pages/Notifications';
 import OrderDetail from './pages/OrderDetail';
 import Orders from './pages/Orders';
@@ -49,6 +50,7 @@ export default function App() {
             <Route path="/favoritos" element={<Favorites />} />
             <Route path="/cuenta" element={<Profile />} />
             <Route path="/ayuda" element={<Help />} />
+            <Route path="/nosotros" element={<About />} />
             <Route path="/notificaciones" element={<Notifications />} />
             <Route path="/mensajes" element={<Messages />} />
             <Route path="/empresa" element={<CompanyPanel />} />

@@ -31,7 +31,23 @@ export default function Footer() {
           <p className="text-xs font-bold uppercase tracking-widest text-white/60">
             Nosotros
           </p>
-          <p className="mt-2 text-sm text-white/40">Próximamente</p>
+          <ul className="mt-2 space-y-1.5 text-sm">
+            <li>
+              <Link to="/nosotros" className="text-white/85 hover:text-white hover:underline">
+                Quiénes somos
+              </Link>
+            </li>
+            <li>
+              <Link to="/nosotros" className="text-white/85 hover:text-white hover:underline">
+                Qué aportamos
+              </Link>
+            </li>
+            <li>
+              <Link to="/nosotros" className="text-white/85 hover:text-white hover:underline">
+                Cómo lo hacemos
+              </Link>
+            </li>
+          </ul>
         </nav>
         <nav aria-label="Ayuda">
           <p className="text-xs font-bold uppercase tracking-widest text-white/60">
