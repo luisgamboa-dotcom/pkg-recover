@@ -69,6 +69,18 @@ PERSONAS QUE DESECHAN (nuevo alcance landing)
     objetos" (fotos, comuna, retiro a domicilio o punto limpio), evaluación
     y conversión a lote. Hoy el CTA lleva a /ayuda (contacto manual).
 
+SEGURIDAD (auditoría 2026-09-29)
+--------------------------------
+18. [PENDIENTE - Dashboard] Authentication → Policies → activar "Leaked
+    password protection" (HaveIBeenPwned) y exigir contraseña fuerte.
+    Detectado por advisors; no se puede activar por API/MCP.
+19. [PENDIENTE - Dashboard] Al desactivar un usuario (is_active=false),
+    bloquearlo también en Authentication → Users (Ban), pues el JWT sigue
+    válido hasta expirar y RLS no revisa is_active.
+20. [ACEPTADO] WARNs restantes: SECURITY DEFINER ejecutables (necesarias
+    para RLS/triggers; solo operan sobre auth.uid() o filas del trigger),
+    pg_trgm en public, auth_rls_initplan, índices sin uso en BD vacía.
+
 RENOMBRE LOTES → PRODUCTOS (2026-09-19)
 ---------------------------------------
 17. [HECHO] Migración 14: tablas, columnas, constraints, índices, secuencias,

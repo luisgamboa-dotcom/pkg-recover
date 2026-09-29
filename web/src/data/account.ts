@@ -393,6 +393,22 @@ export type PaymentAttempt =
   | { kind: 'redirect'; url: string }
   | { kind: 'manual'; reason: 'gateway_not_configured' | 'failed' };
 
+const GATEWAY_HOSTS = [
+  'mercadopago.com',
+  'mercadopago.cl',
+  'link.mercadopago.com',
+];
+
+/** Solo redirige a la pasarela real; bloquea open-redirects. */
+export function isGatewayUrl(url: string): boolean {
+  try {
+    const host = new URL(url).hostname.toLowerCase();
+    return GATEWAY_HOSTS.some((h) => host === h || host.endsWith(`.${h}`));
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Intenta el cobro por pasarela (Edge Function create-payment).
  * - redirect: ir a la URL de pago.
@@ -417,7 +433,9 @@ export async function requestPayment(orderId: string): Promise<PaymentAttempt> {
     if (res.status === 501) return { kind: 'manual', reason: 'gateway_not_configured' };
     if (!res.ok) return { kind: 'manual', reason: 'failed' };
     const data = (await res.json()) as { init_point?: string };
-    if (!data.init_point) return { kind: 'manual', reason: 'failed' };
+    if (!data.init_point || !isGatewayUrl(data.init_point)) {
+      return { kind: 'manual', reason: 'failed' };
+    }
     return { kind: 'redirect', url: data.init_point };
   } catch {
     return { kind: 'manual', reason: 'failed' };

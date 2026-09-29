@@ -19,6 +19,7 @@ import Orders from './pages/Orders';
 import Profile from './pages/Profile';
 import Register from './pages/Register';
 import AdminCatalogs from './pages/admin/AdminCatalogs';
+import AdminChangelog from './pages/admin/AdminChangelog';
 import AdminCompanies from './pages/admin/AdminCompanies';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminInventory from './pages/admin/AdminInventory';
@@ -65,6 +66,7 @@ export default function App() {
             <Route path="/admin/empresas" element={<AdminCompanies />} />
             <Route path="/admin/usuarios" element={<AdminUsers />} />
             <Route path="/admin/catalogos" element={<AdminCatalogs />} />
+            <Route path="/admin/cambios" element={<AdminChangelog />} />
             <Route path="/admin/reportes" element={<AdminReports />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
