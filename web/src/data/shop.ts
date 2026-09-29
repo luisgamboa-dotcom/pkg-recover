@@ -20,7 +20,7 @@ export interface Brand {
   name: string;
 }
 
-export interface Lot {
+export interface Product {
   id: string;
   sku: string;
   title: string;
@@ -86,7 +86,7 @@ export const emptyFilters: Filters = {
   sort: 'relevant',
 };
 
-const LOT_SELECT = `
+const PRODUCT_SELECT = `
   id, sku, title, description, base_price, msrp_reference, currency,
   stock_quantity, status, is_verified, packaging_state, product_state,
   unit_count, total_weight_kg, length_cm, width_cm, height_cm,
@@ -95,17 +95,17 @@ const LOT_SELECT = `
   warehouses (code, name, city),
   brands (name),
   companies (name, is_verified),
-  lot_categories (categories (id, name, slug)),
-  lot_images (storage_path, is_primary, sort_order),
+  product_categories (categories (id, name, slug)),
+  product_images (storage_path, is_primary, sort_order),
   reviews (rating)
 `;
 
-export function toLot(row: Record<string, unknown>): Lot {
+export function toProduct(row: Record<string, unknown>): Product {
   const r = row as Record<string, any>;
-  const cats: Category[] = (r.lot_categories ?? [])
+  const cats: Category[] = (r.product_categories ?? [])
     .map((lc: any) => lc.categories)
     .filter(Boolean);
-  const images: any[] = [...(r.lot_images ?? [])].sort(
+  const images: any[] = [...(r.product_images ?? [])].sort(
     (a, b) =>
       Number(b.is_primary) - Number(a.is_primary) || a.sort_order - b.sort_order,
   );
@@ -150,19 +150,19 @@ export function toLot(row: Record<string, unknown>): Lot {
 export function publicImageUrl(path: string): string {
   if (!isSupabaseConfigured) return '';
   const { data } = requireSupabase()
-    .storage.from('lot-images')
+    .storage.from('product-images')
     .getPublicUrl(path);
   return data.publicUrl;
 }
 
-export function applyFilters(lots: Lot[], f: Filters): Lot[] {
+export function applyFilters(products: Product[], f: Filters): Product[] {
   // La búsqueda se sanitiza aquí (el input conserva el texto en bruto).
   const q = sanitizeText(f.q, LIMITS.search).toLowerCase();
   // NaN/negativos/infinitos se descartan (fail-closed a "sin filtro" solo en vacío).
   const minP = parsePrice(f.minPrice);
   const maxP = parsePrice(f.maxPrice);
   const minD = parseDiscount(f.minDiscount);
-  const out = lots.filter((l) => {
+  const out = products.filter((l) => {
     if (q && !`${l.title} ${l.sku} ${l.description ?? ''}`.toLowerCase().includes(q))
       return false;
     if (f.categoryId && !l.categories.some((c) => c.id === f.categoryId))
@@ -197,7 +197,7 @@ export function applyFilters(lots: Lot[], f: Filters): Lot[] {
 }
 
 export function useCatalog(filters: Filters) {
-  const [lots, setLots] = useState<Lot[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -208,37 +208,37 @@ export function useCatalog(filters: Filters) {
     }
     setLoading(true);
     requireSupabase()
-      .from('lots')
-      .select(LOT_SELECT)
+      .from('products')
+      .select(PRODUCT_SELECT)
       .eq('status', 'published')
       .gt('stock_quantity', 0)
       .order('published_at', { ascending: false })
       .limit(200)
       .then(({ data, error: err }) => {
         if (err) setError(err.message);
-        else setLots(((data ?? []) as Record<string, unknown>[]).map(toLot));
+        else setProducts(((data ?? []) as Record<string, unknown>[]).map(toProduct));
         setLoading(false);
       });
   }, []);
 
   return {
-    lots: applyFilters(lots, filters),
-    total: lots.length,
+    products: applyFilters(products, filters),
+    total: products.length,
     loading,
     error,
     configured: isSupabaseConfigured,
   };
 }
 
-export function useLot(id: string | undefined) {
-  const [lot, setLot] = useState<Lot | null>(null);
+export function useProduct(id: string | undefined) {
+  const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     // El :id viene de la URL (control del usuario): exige UUID antes de consultar.
     if (!id || !isUuid(id)) {
-      if (id) setError('Identificador de lote inválido.');
+      if (id) setError('Identificador de producto inválido.');
       setLoading(false);
       return;
     }
@@ -247,22 +247,22 @@ export function useLot(id: string | undefined) {
       return;
     }
     requireSupabase()
-      .from('lots')
-      .select(LOT_SELECT)
+      .from('products')
+      .select(PRODUCT_SELECT)
       .eq('id', id)
       .single()
       .then(({ data, error: err }) => {
         if (err) setError(err.message);
-        else if (data) setLot(toLot(data as unknown as Record<string, unknown>));
+        else if (data) setProduct(toProduct(data as unknown as Record<string, unknown>));
         setLoading(false);
       });
   }, [id]);
 
-  return { lot, loading, error, configured: isSupabaseConfigured };
+  return { product, loading, error, configured: isSupabaseConfigured };
 }
 
-export function useLotsByIds(ids: string[]) {
-  const [map, setMap] = useState<Record<string, Lot>>({});
+export function useProductsByIds(ids: string[]) {
+  const [map, setMap] = useState<Record<string, Product>>({});
   const [loading, setLoading] = useState(ids.length > 0);
   const key = [...ids].sort().join(',');
 
@@ -278,14 +278,14 @@ export function useLotsByIds(ids: string[]) {
       return;
     }
     requireSupabase()
-      .from('lots')
-      .select(LOT_SELECT)
+      .from('products')
+      .select(PRODUCT_SELECT)
       .in('id', safeIds)
       .then(({ data }) => {
-        const m: Record<string, Lot> = {};
+        const m: Record<string, Product> = {};
         for (const row of (data ?? []) as unknown as Record<string, unknown>[]) {
-          const lot = toLot(row);
-          m[lot.id] = lot;
+          const product = toProduct(row);
+          m[product.id] = product;
         }
         setMap(m);
         setLoading(false);
@@ -329,15 +329,15 @@ export interface PriceTier {
   unit_price: number;
 }
 
-export function usePriceTiers(lotId: string | undefined) {
+export function usePriceTiers(productId: string | undefined) {
   const [tiers, setTiers] = useState<PriceTier[]>([]);
   useEffect(() => {
-    if (!lotId) return;
+    if (!productId) return;
     if (!isSupabaseConfigured) return;
     requireSupabase()
-      .from('lot_price_tiers')
+      .from('product_price_tiers')
       .select('id, min_quantity, unit_price')
-      .eq('lot_id', lotId)
+      .eq('product_id', productId)
       .order('min_quantity')
       .then(({ data }) =>
         setTiers(
@@ -347,20 +347,20 @@ export function usePriceTiers(lotId: string | undefined) {
           })),
         ),
       );
-  }, [lotId]);
+  }, [productId]);
   return tiers;
 }
 
-export async function fetchTiers(lotIds: string[]): Promise<Record<string, PriceTier[]>> {
-  if (lotIds.length === 0) return {};
+export async function fetchTiers(productIds: string[]): Promise<Record<string, PriceTier[]>> {
+  if (productIds.length === 0) return {};
   if (!isSupabaseConfigured) return {};
   const { data } = await requireSupabase()
-    .from('lot_price_tiers')
-    .select('lot_id, min_quantity, unit_price')
-    .in('lot_id', lotIds.filter(isUuid));
+    .from('product_price_tiers')
+    .select('product_id, min_quantity, unit_price')
+    .in('product_id', productIds.filter(isUuid));
   const map: Record<string, PriceTier[]> = {};
   for (const t of (data ?? []) as any[]) {
-    (map[t.lot_id] ??= []).push({ id: '', min_quantity: t.min_quantity, unit_price: Number(t.unit_price) });
+    (map[t.product_id] ??= []).push({ id: '', min_quantity: t.min_quantity, unit_price: Number(t.unit_price) });
   }
   return map;
 }
@@ -374,27 +374,27 @@ export function tierPrice(tiers: PriceTier[], qty: number, base: number): number
   return best;
 }
 
-export function useSimilarLots(lot: Lot | null) {
-  const [items, setItems] = useState<Lot[]>([]);
+export function useSimilarProducts(product: Product | null) {
+  const [items, setItems] = useState<Product[]>([]);
   useEffect(() => {
-    if (!lot) return;
-    const catIds = lot.categories.map((c) => c.id);
+    if (!product) return;
+    const catIds = product.categories.map((c) => c.id);
     if (catIds.length === 0) return;
     if (!isSupabaseConfigured) return;
     requireSupabase()
-      .from('lots')
-      .select(LOT_SELECT)
+      .from('products')
+      .select(PRODUCT_SELECT)
       .eq('status', 'published')
       .gt('stock_quantity', 0)
-      .neq('id', lot.id)
+      .neq('id', product.id)
       .limit(20)
       .then(({ data }) => {
-        const all = ((data ?? []) as Record<string, unknown>[]).map(toLot);
+        const all = ((data ?? []) as Record<string, unknown>[]).map(toProduct);
         setItems(
           all.filter((l) => l.categories.some((c) => catIds.includes(c.id))).slice(0, 4),
         );
       });
-  }, [lot]);
+  }, [product]);
   return items;
 }
 
@@ -413,9 +413,9 @@ export function useFavorites(userId: string | undefined) {
     }
     const { data } = await requireSupabase()
       .from('favorites')
-      .select('lot_id')
+      .select('product_id')
       .eq('profile_id', userId);
-    setIds(new Set(((data ?? []) as { lot_id: string }[]).map((r) => r.lot_id)));
+    setIds(new Set(((data ?? []) as { product_id: string }[]).map((r) => r.product_id)));
     setLoading(false);
   }, [userId]);
 
@@ -424,17 +424,17 @@ export function useFavorites(userId: string | undefined) {
   }, [refresh]);
 
   const toggle = useCallback(
-    async (lotId: string) => {
+    async (productId: string) => {
       if (!userId) return;
       const sb = requireSupabase();
-      if (ids.has(lotId)) {
+      if (ids.has(productId)) {
         await sb
           .from('favorites')
           .delete()
           .eq('profile_id', userId)
-          .eq('lot_id', lotId);
+          .eq('product_id', productId);
       } else {
-        await sb.from('favorites').insert({ profile_id: userId, lot_id: lotId });
+        await sb.from('favorites').insert({ profile_id: userId, product_id: productId });
       }
       await refresh();
     },
@@ -444,19 +444,19 @@ export function useFavorites(userId: string | undefined) {
   return { ids, loading, toggle, refresh };
 }
 
-export function useFavoriteLots(userId: string | undefined) {
+export function useFavoriteProducts(userId: string | undefined) {
   const { ids, loading, toggle } = useFavorites(userId);
-  const { map, loading: lotsLoading } = useLotsByIds([...ids]);
-  const lots = [...ids].map((id) => map[id]).filter(Boolean);
-  return { lots, loading: loading || lotsLoading, toggle };
+  const { map, loading: productsLoading } = useProductsByIds([...ids]);
+  const products = [...ids].map((id) => map[id]).filter(Boolean);
+  return { products, loading: loading || productsLoading, toggle };
 }
 
-export function useReviews(lotId: string | undefined) {
+export function useReviews(productId: string | undefined) {
   const [items, setItems] = useState<Review[]>([]);
-  const [loading, setLoading] = useState(Boolean(lotId));
+  const [loading, setLoading] = useState(Boolean(productId));
 
   useEffect(() => {
-    if (!lotId) {
+    if (!productId) {
       setLoading(false);
       return;
     }
@@ -467,7 +467,7 @@ export function useReviews(lotId: string | undefined) {
     requireSupabase()
       .from('reviews')
       .select('id, rating, title, comment, is_verified_purchase, created_at, profiles (first_name)')
-      .eq('lot_id', lotId)
+      .eq('product_id', productId)
       .eq('is_visible', true)
       .order('created_at', { ascending: false })
       .then(({ data }) => {
@@ -484,13 +484,13 @@ export function useReviews(lotId: string | undefined) {
         );
         setLoading(false);
       });
-  }, [lotId]);
+  }, [productId]);
 
   return { items, loading };
 }
 
 export async function addReview(input: {
-  lotId: string;
+  productId: string;
   profileId: string;
   orderId: string | null;
   rating: number;
@@ -499,7 +499,7 @@ export async function addReview(input: {
   verified: boolean;
 }) {
   const { error } = await requireSupabase().from('reviews').insert({
-    lot_id: input.lotId,
+    product_id: input.productId,
     profile_id: input.profileId,
     order_id: input.orderId,
     rating: input.rating,

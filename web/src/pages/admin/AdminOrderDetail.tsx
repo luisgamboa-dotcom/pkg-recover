@@ -119,7 +119,7 @@ function Detail() {
           <ul className="mt-2 text-sm space-y-1">
             {order.items.map((i) => (
               <li key={i.id} className="flex justify-between gap-2">
-                <span>{i.lot?.title ?? 'Lote'} × {i.quantity}</span>
+                <span>{i.product?.title ?? 'Producto'} × {i.quantity}</span>
                 <span className="font-semibold">{clp(i.line_total)}</span>
               </li>
             ))}

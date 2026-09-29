@@ -4,7 +4,7 @@ import { RequireCompany } from '../components/RequireRole';
 import { EmptyState, PageHeader } from '../components/ui';
 import { useAuth } from '../auth/AuthContext';
 import {
-  fetchCompanyLots,
+  fetchCompanyProducts,
   fetchCompanyPackages,
   fetchCompanySales,
   fetchMyCompanies,
@@ -29,7 +29,7 @@ function Panel() {
   const [companies, setCompanies] = useState<any[]>([]);
   const [activeId, setActiveId] = useState('');
   const [packages, setPackages] = useState<any[]>([]);
-  const [lots, setLots] = useState<any[]>([]);
+  const [products, setProducts] = useState<any[]>([]);
   const [sales, setSales] = useState<any[]>([]);
   const [msg, setMsg] = useState<string | null>(null);
 
@@ -57,12 +57,12 @@ function Panel() {
     if (!activeId) return;
     Promise.all([
       fetchCompanyPackages(activeId),
-      fetchCompanyLots(activeId),
+      fetchCompanyProducts(activeId),
       fetchCompanySales(activeId),
     ])
       .then(([p, l, s]) => {
         setPackages(p);
-        setLots(l);
+        setProducts(l);
         setSales(s);
       })
       .catch((err) => setMsg(errorMessage(err)));
@@ -114,8 +114,8 @@ function Panel() {
           <div className="grid gap-4 md:grid-cols-4">
             {[
               ['Paquetes entregados', active.stats?.packages_received ?? packages.length],
-              ['Lotes publicados', active.stats?.lots_published ?? '—'],
-              ['Lotes vendidos', active.stats?.lots_sold ?? '—'],
+              ['Productos publicados', active.stats?.lots_published ?? '—'],
+              ['Productos vendidos', active.stats?.lots_sold ?? '—'],
               ['Recuperado', clp(revenue)],
             ].map(([label, value]) => (
               <div key={label as string} className="bg-white rounded-2xl border p-5">
@@ -157,22 +157,22 @@ function Panel() {
             </section>
 
             <section className="bg-white rounded-2xl border p-5">
-              <h2 className="font-bold text-brand-950">Lotes derivados</h2>
+              <h2 className="font-bold text-brand-950">Productos derivados</h2>
               <ul className="mt-2 space-y-1.5 text-sm max-h-64 overflow-auto">
-                {lots.map((l) => (
+                {products.map((l) => (
                   <li key={l.id} className="flex justify-between gap-2 border-b border-slate-100 pb-1.5">
                     <span className="font-mono text-slate-500">{l.sku}</span>
                     <span className="flex-1 truncate">{l.title}</span>
                     <span className="whitespace-nowrap">{l.status} · {clp(Number(l.base_price))}</span>
                   </li>
                 ))}
-                {lots.length === 0 && <li className="text-slate-500">Aún no hay lotes de tus paquetes.</li>}
+                {products.length === 0 && <li className="text-slate-500">Aún no hay productos de tus paquetes.</li>}
               </ul>
-              <h2 className="mt-5 font-bold text-brand-950">Ventas de tus lotes</h2>
+              <h2 className="mt-5 font-bold text-brand-950">Ventas de tus productos</h2>
               <ul className="mt-2 space-y-1.5 text-sm max-h-64 overflow-auto">
                 {sales.map((s, i) => (
                   <li key={i} className="flex justify-between gap-2 border-b border-slate-100 pb-1.5">
-                    <span>{s.orders?.order_number} · {s.lots?.title} × {s.quantity}</span>
+                    <span>{s.orders?.order_number} · {s.products?.title ?? 'Producto'} × {s.quantity}</span>
                     <span className="whitespace-nowrap">{orderStatusLabel(s.orders?.status ?? '')} · {clp(Number(s.line_total))}</span>
                   </li>
                 ))}

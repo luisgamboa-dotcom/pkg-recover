@@ -22,7 +22,7 @@ export async function fetchCompanyRecovery() {
 
 export async function fetchBestSellers() {
   const { data, error } = await requireSupabase()
-    .from('v_best_selling_lots')
+    .from('v_best_selling_products')
     .select('*')
     .limit(10);
   if (error) throw error;
@@ -31,8 +31,8 @@ export async function fetchBestSellers() {
 
 export async function fetchCounts() {
   const sb = requireSupabase();
-  const [lots, orders, packages, tickets] = await Promise.all([
-    sb.from('lots').select('id, status', { count: 'exact' }),
+  const [products, orders, packages, tickets] = await Promise.all([
+    sb.from('products').select('id, status', { count: 'exact' }),
     sb.from('orders').select('id, status', { count: 'exact' }),
     sb.from('packages').select('id, status', { count: 'exact' }),
     sb.from('support_tickets').select('id, status', { count: 'exact' }).neq('status', 'closed'),
@@ -43,17 +43,17 @@ export async function fetchCounts() {
     return m;
   };
   return {
-    lots: tally(lots.data, 'status'),
+    products: tally(products.data, 'status'),
     orders: tally(orders.data, 'status'),
     packages: tally(packages.data, 'status'),
     openTickets: tickets.count ?? 0,
   };
 }
 
-/* Lotes (admin ve todos los estados). */
-export async function fetchAllLots() {
+/* Productos (admin ve todos los estados). */
+export async function fetchAllProducts() {
   const { data, error } = await requireSupabase()
-    .from('lots')
+    .from('products')
     .select('id, sku, title, status, stock_quantity, base_price, is_featured, companies (name)')
     .order('updated_at', { ascending: false })
     .limit(200);
@@ -61,7 +61,7 @@ export async function fetchAllLots() {
   return (data ?? []) as any[];
 }
 
-export interface LotInput {
+export interface ProductInput {
   title: string;
   description: string;
   company_id: string | null;
@@ -88,96 +88,96 @@ export interface LotInput {
   category_ids: string[];
 }
 
-export async function saveLot(id: string | null, input: LotInput): Promise<string> {
+export async function saveProduct(id: string | null, input: ProductInput): Promise<string> {
   const sb = requireSupabase();
   const { category_ids, ...row } = input;
-  let lotId = id;
+  let productId = id;
   if (id) {
-    const { error } = await sb.from('lots').update(row).eq('id', id);
+    const { error } = await sb.from('products').update(row).eq('id', id);
     if (error) throw error;
-    await sb.from('lot_categories').delete().eq('lot_id', id);
+    await sb.from('product_categories').delete().eq('product_id', id);
   } else {
-    const { data, error } = await sb.from('lots').insert(row).select('id').single();
-    if (error || !data) throw error ?? new Error('No se creó el lote');
-    lotId = (data as { id: string }).id;
+    const { data, error } = await sb.from('products').insert(row).select('id').single();
+    if (error || !data) throw error ?? new Error('No se creó el producto');
+    productId = (data as { id: string }).id;
   }
   if (category_ids.length > 0) {
     const { error } = await sb
-      .from('lot_categories')
-      .insert(category_ids.map((category_id) => ({ lot_id: lotId, category_id })));
+      .from('product_categories')
+      .insert(category_ids.map((category_id) => ({ product_id: productId, category_id })));
     if (error) throw error;
   }
-  return lotId as string;
+  return productId as string;
 }
 
-export async function deleteLot(id: string) {
-  const { error } = await requireSupabase().from('lots').delete().eq('id', id);
+export async function deleteProduct(id: string) {
+  const { error } = await requireSupabase().from('products').delete().eq('id', id);
   if (error) throw error;
 }
 
-/** Sube foto al bucket lot-images y la registra. Valida tipo y 5 MB. */
-export async function uploadLotImage(lotId: string, file: File, makePrimary: boolean) {
+/** Sube foto al bucket product-images y la registra. Valida tipo y 5 MB. */
+export async function uploadProductImage(productId: string, file: File, makePrimary: boolean) {
   const okTypes = ['image/jpeg', 'image/png', 'image/webp'];
   if (!okTypes.includes(file.type)) throw new Error('Solo JPG, PNG o WebP.');
   if (file.size > 5 * 1024 * 1024) throw new Error('Máximo 5 MB por foto.');
   const safe = file.name.toLowerCase().replace(/[^a-z0-9.]+/g, '-').slice(0, 80);
-  const path = `lots/${lotId}/${Date.now()}-${safe}`;
+  const path = `products/${productId}/${Date.now()}-${safe}`;
   const sb = requireSupabase();
-  const { error: upError } = await sb.storage.from('lot-images').upload(path, file);
+  const { error: upError } = await sb.storage.from('product-images').upload(path, file);
   if (upError) throw upError;
   if (makePrimary) {
-    await sb.from('lot_images').update({ is_primary: false }).eq('lot_id', lotId);
+    await sb.from('product_images').update({ is_primary: false }).eq('product_id', productId);
   }
   const { error: rowError } = await sb
-    .from('lot_images')
-    .insert({ lot_id: lotId, storage_path: path, is_primary: makePrimary });
+    .from('product_images')
+    .insert({ product_id: productId, storage_path: path, is_primary: makePrimary });
   if (rowError) throw rowError;
 }
 
-export async function deleteLotImage(id: string, path: string) {
+export async function deleteProductImage(id: string, path: string) {
   const sb = requireSupabase();
-  await sb.storage.from('lot-images').remove([path]);
-  const { error } = await sb.from('lot_images').delete().eq('id', id);
+  await sb.storage.from('product-images').remove([path]);
+  const { error } = await sb.from('product_images').delete().eq('id', id);
   if (error) throw error;
 }
 
-export async function fetchLotAdmin(id: string) {
+export async function fetchProductAdmin(id: string) {
   const { data, error } = await requireSupabase()
-    .from('lots')
-    .select('*, lot_categories (category_id), lot_images (id, storage_path, is_primary), lot_price_tiers (id, min_quantity, unit_price)')
+    .from('products')
+    .select('*, product_categories (category_id), product_images (id, storage_path, is_primary), product_price_tiers (id, min_quantity, unit_price)')
     .eq('id', id)
     .single();
   if (error) throw error;
   return data as any;
 }
 
-export async function saveTier(lotId: string, minQty: number, price: number) {
+export async function saveTier(productId: string, minQty: number, price: number) {
   const { error } = await requireSupabase()
-    .from('lot_price_tiers')
-    .upsert({ lot_id: lotId, min_quantity: minQty, unit_price: price }, { onConflict: 'lot_id,min_quantity' });
+    .from('product_price_tiers')
+    .upsert({ product_id: productId, min_quantity: minQty, unit_price: price }, { onConflict: 'product_id,min_quantity' });
   if (error) throw error;
 }
 
 export async function deleteTier(id: string) {
-  const { error } = await requireSupabase().from('lot_price_tiers').delete().eq('id', id);
+  const { error } = await requireSupabase().from('product_price_tiers').delete().eq('id', id);
   if (error) throw error;
 }
 
 /* Inventario y paquetes. */
-export async function fetchMovements(lotId?: string) {
+export async function fetchMovements(productId?: string) {
   let q = requireSupabase()
     .from('inventory_movements')
-    .select('id, movement_type, quantity, reference, notes, created_at, lots (sku, title)')
+    .select('id, movement_type, quantity, reference, notes, created_at, products (sku, title)')
     .order('created_at', { ascending: false })
     .limit(100);
-  if (lotId) q = q.eq('lot_id', lotId);
+  if (productId) q = q.eq('product_id', productId);
   const { data, error } = await q;
   if (error) throw error;
   return (data ?? []) as any[];
 }
 
 export async function addMovement(input: {
-  lot_id: string;
+  product_id: string;
   movement_type: string;
   quantity: number;
   reference: string;
@@ -186,22 +186,22 @@ export async function addMovement(input: {
   const sb = requireSupabase();
   const { error } = await sb.from('inventory_movements').insert(input);
   if (error) throw error;
-  // Ajusta stock del lote según el tipo (la venta la descuenta el trigger).
+  // Ajusta stock del producto según el tipo (la venta la descuenta el trigger).
   const delta =
     input.movement_type === 'inbound' || input.movement_type === 'return'
       ? input.quantity
       : -input.quantity;
-  const { data: lot } = await sb
-    .from('lots')
+  const { data: product } = await sb
+    .from('products')
     .select('stock_quantity')
-    .eq('id', input.lot_id)
+    .eq('id', input.product_id)
     .single();
-  const current = (lot as any)?.stock_quantity ?? 0;
+  const current = (product as any)?.stock_quantity ?? 0;
   if (current + delta < 0) throw new Error('Stock insuficiente para ese movimiento.');
   const { error: stockError } = await sb
-    .from('lots')
+    .from('products')
     .update({ stock_quantity: current + delta })
-    .eq('id', input.lot_id);
+    .eq('id', input.product_id);
   if (stockError) throw stockError;
 }
 
@@ -341,9 +341,9 @@ export async function deleteRow(table: string, id: string) {
   if (error) throw error;
 }
 
-export async function linkPromotionLot(promotionId: string, lotId: string) {
+export async function linkPromotionProduct(promotionId: string, productId: string) {
   const { error } = await requireSupabase()
-    .from('promotion_lots')
-    .insert({ promotion_id: promotionId, lot_id: lotId });
+    .from('promotion_products')
+    .insert({ promotion_id: promotionId, product_id: productId });
   if (error) throw error;
 }

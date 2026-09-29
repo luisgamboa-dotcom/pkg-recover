@@ -33,9 +33,9 @@ export async function fetchCompanyPackages(companyId: string) {
   return (data ?? []) as any[];
 }
 
-export async function fetchCompanyLots(companyId: string) {
+export async function fetchCompanyProducts(companyId: string) {
   const { data, error } = await requireSupabase()
-    .from('lots')
+    .from('products')
     .select('id, sku, title, status, stock_quantity, base_price, unit_count')
     .eq('company_id', companyId)
     .order('updated_at', { ascending: false });
@@ -46,8 +46,8 @@ export async function fetchCompanyLots(companyId: string) {
 export async function fetchCompanySales(companyId: string) {
   const { data, error } = await requireSupabase()
     .from('order_items')
-    .select('quantity, line_total, orders!inner (order_number, status, created_at), lots!inner (sku, title, company_id)')
-    .eq('lots.company_id', companyId)
+    .select('quantity, line_total, orders!inner (order_number, status, created_at), products!inner (sku, title, company_id)')
+    .eq('products.company_id', companyId)
     .order('created_at', { ascending: false })
     .limit(100);
   if (error) throw error;

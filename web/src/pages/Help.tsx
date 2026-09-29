@@ -17,7 +17,7 @@ const TICKET_CATEGORIES = [
   ['order', 'Pedido'],
   ['payment', 'Pago'],
   ['shipping', 'Despacho'],
-  ['product', 'Lote / producto'],
+  ['product', 'Producto'],
   ['account', 'Mi cuenta'],
   ['other', 'Otro'],
 ];

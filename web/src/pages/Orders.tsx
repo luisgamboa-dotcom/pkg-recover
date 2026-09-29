@@ -31,7 +31,7 @@ function OrdersList() {
       {!loading && orders.length === 0 && (
         <EmptyState
           title="Aún no tienes pedidos"
-          text="Cuando compres un lote, aparecerá aquí con su seguimiento."
+          text="Cuando compres un producto, aparecerá aquí con su seguimiento."
         />
       )}
       <div className="space-y-3">
@@ -45,7 +45,7 @@ function OrdersList() {
               <div>
                 <p className="font-mono font-bold text-brand-950">{o.order_number}</p>
                 <p className="text-xs text-slate-500">
-                  {formatDate(o.created_at)} · {o.items.length} lote(s) ·{' '}
+                  {formatDate(o.created_at)} · {o.items.length} producto(s) ·{' '}
                   {o.payment_method?.name ?? '—'}
                 </p>
               </div>

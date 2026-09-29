@@ -1,23 +1,23 @@
 import { Link } from 'react-router-dom';
 import Layout from '../components/Layout';
-import { ConfigNotice, EmptyState, LotImage, PageHeader } from '../components/ui';
+import { ConfigNotice, EmptyState, ProductImage, PageHeader } from '../components/ui';
 import { useCart } from '../lib/cart';
 import { isSupabaseConfigured } from '../lib/supabase';
-import { useLotsByIds } from '../data/shop';
+import { useProductsByIds } from '../data/shop';
 import { clp, totals } from '../lib/format';
 import { parseQty } from '../lib/validation';
 
 export default function Cart() {
   const { items, setQty, remove } = useCart();
   const configured = isSupabaseConfigured;
-  const ids = items.map((i) => i.lotId);
-  const { map, loading } = useLotsByIds(ids);
+  const ids = items.map((i) => i.productId);
+  const { map, loading } = useProductsByIds(ids);
 
   const lines = items
-    .map((i) => ({ item: i, lot: map[i.lotId] }))
-    .filter((l) => l.lot);
-  const missing = items.filter((i) => !map[i.lotId] && !loading);
-  const subtotal = lines.reduce((a, l) => a + l.lot!.base_price * l.item.qty, 0);
+    .map((i) => ({ item: i, product: map[i.productId] }))
+    .filter((l) => l.product);
+  const missing = items.filter((i) => !map[i.productId] && !loading);
+  const subtotal = lines.reduce((a, l) => a + l.product!.base_price * l.item.qty, 0);
   const t = totals(subtotal);
 
   return (
@@ -31,46 +31,46 @@ export default function Cart() {
       {items.length === 0 && (
         <EmptyState
           title="Carrito vacío"
-          text="Explora el catálogo y agrega lotes verificados."
+          text="Explora el catálogo y agrega productos verificados."
         />
       )}
       {items.length > 0 && (
         <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
           <div className="space-y-3">
             {loading && <p className="text-sm text-slate-500">Cargando…</p>}
-            {lines.map(({ item, lot }) => (
+            {lines.map(({ item, product }) => (
               <article
-                key={item.lotId}
+                key={item.productId}
                 className="bg-white rounded-2xl border border-slate-200 p-4 flex gap-4"
               >
-                <LotImage lot={lot!} className="w-24 h-24 rounded-xl shrink-0" />
+                <ProductImage product={product!} className="w-24 h-24 rounded-xl shrink-0" />
                 <div className="flex-1">
                   <Link
-                    to={`/lotes/${lot!.id}`}
+                    to={`/productos/${product!.id}`}
                     className="font-bold text-brand-950 hover:underline"
                   >
-                    {lot!.title}
+                    {product!.title}
                   </Link>
-                  <p className="text-xs text-slate-500 font-mono">{lot!.sku}</p>
+                  <p className="text-xs text-slate-500 font-mono">{product!.sku}</p>
                   <div className="mt-2 flex items-center gap-3">
                     <label className="text-sm text-slate-600">
                       Cant.{' '}
                       <input
                         type="number"
                         min={0}
-                        max={Math.max(lot!.stock_quantity, 1)}
+                        max={Math.max(product!.stock_quantity, 1)}
                         value={item.qty}
                         onChange={(e) =>
                           setQty(
-                            item.lotId,
-                            parseQty(e.target.value, Math.max(lot!.stock_quantity, 1)),
+                            item.productId,
+                            parseQty(e.target.value, Math.max(product!.stock_quantity, 1)),
                           )
                         }
                         className="field-input w-20! inline-block"
                       />
                     </label>
                     <button
-                      onClick={() => remove(item.lotId)}
+                      onClick={() => remove(item.productId)}
                       className="text-sm text-red-700 hover:underline"
                     >
                       Quitar
@@ -78,13 +78,13 @@ export default function Cart() {
                   </div>
                 </div>
                 <p className="font-extrabold text-brand-950">
-                  {clp(lot!.base_price * item.qty)}
+                  {clp(product!.base_price * item.qty)}
                 </p>
               </article>
             ))}
             {missing.length > 0 && (
               <p className="text-sm text-amber-700">
-                {missing.length} lote(s) ya no están disponibles y se excluirán
+                {missing.length} producto(s) ya no están disponibles y se excluirán
                 de la compra.
               </p>
             )}

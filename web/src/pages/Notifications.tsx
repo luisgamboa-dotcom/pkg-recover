@@ -8,7 +8,7 @@ import { formatDate } from '../lib/format';
 
 const TYPE_LABEL: Record<string, string> = {
   offer: 'Oferta',
-  new_lot: 'Nuevo lote',
+  new_lot: 'Nuevo producto',
   order_update: 'Pedido',
   shipping_update: 'Despacho',
   availability: 'Disponibilidad',
@@ -27,8 +27,8 @@ function List() {
   const { user } = useAuth();
   const { items, loading, markRead, markAllRead, unread } = useNotifications(user?.id);
 
-  const target = (n: { lot_id: string | null; order_id: string | null }) =>
-    n.order_id ? `/pedidos/${n.order_id}` : n.lot_id ? `/lotes/${n.lot_id}` : null;
+  const target = (n: { product_id: string | null; order_id: string | null }) =>
+    n.order_id ? `/pedidos/${n.order_id}` : n.product_id ? `/productos/${n.product_id}` : null;
 
   return (
     <Layout>
@@ -42,7 +42,7 @@ function List() {
       </div>
       {loading && <p className="text-sm text-slate-500">Cargando…</p>}
       {!loading && items.length === 0 && (
-        <EmptyState title="Sin avisos" text="Aquí verás ofertas, nuevos lotes y cambios en tus pedidos." />
+        <EmptyState title="Sin avisos" text="Aquí verás ofertas, nuevos productos y cambios en tus pedidos." />
       )}
       <div className="space-y-4">
         {items.map((n) => {

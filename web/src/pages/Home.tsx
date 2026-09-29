@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import Footer from '../components/Footer';
 import MobileNav from '../components/MobileNav';
-import { LotCard } from '../components/ui';
+import { ProductCard } from '../components/ui';
 import { emptyFilters, useCatalog, useCategories } from '../data/shop';
 
 const STEPS = [
@@ -14,20 +14,20 @@ const STEPS = [
   {
     n: '2',
     title: 'Verificamos',
-    text: 'Clasificamos, evaluamos el estado y publicamos cada lote con fotos, SKU y descuento frente al precio de referencia.',
+    text: 'Clasificamos, evaluamos el estado y publicamos cada producto con fotos, SKU y descuento frente al precio de referencia.',
   },
   {
     n: '3',
     title: 'Tú ahorras',
-    text: 'Compras lotes verificados con garantía, seguimiento total y precios hasta 45% bajo la referencia.',
+    text: 'Compras productos verificados con garantía, seguimiento total y precios hasta 45% bajo la referencia.',
   },
 ];
 
 export default function Home() {
   const { user, profile, signOut } = useAuth();
   const categories = useCategories();
-  const { lots } = useCatalog(emptyFilters);
-  const featured = lots.filter((l) => l.is_featured).slice(0, 4);
+  const { products } = useCatalog(emptyFilters);
+  const featured = products.filter((p) => p.is_featured).slice(0, 4);
 
   return (
     <div className="min-h-dvh bg-brand-50">
@@ -98,7 +98,7 @@ export default function Home() {
           </h1>
           <p className="mt-4 max-w-2xl text-brand-100/90 text-lg">
             Recuperamos paquetes extraviados y objetos que las personas ya no
-            quieren usar, los verificamos y los convertimos en lotes con
+            quieren usar, los verificamos y los convertimos en productos con
             descuento. Menos desecho, más ahorro.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
@@ -172,7 +172,7 @@ export default function Home() {
             <h3 className="text-xl font-bold">🏢 Empresas proveedoras</h3>
             <p className="mt-2 text-brand-100/90">
               Entregan paquetes no reclamados y recuperan su valor económico
-              con reportes de trazabilidad por lote vendido.
+              con reportes de trazabilidad por producto vendido.
             </p>
             <Link
               to="/registro"
@@ -229,15 +229,15 @@ export default function Home() {
         <section className="max-w-6xl mx-auto px-6 py-14">
           <div className="flex items-end justify-between">
             <h2 className="text-2xl font-extrabold tracking-tight text-brand-950">
-              Lotes destacados
+              Productos destacados
             </h2>
             <Link to="/catalogo" className="text-sm font-semibold text-accent-600 hover:underline">
               Ver catálogo →
             </Link>
           </div>
           <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {featured.map((lot) => (
-              <LotCard key={lot.id} lot={lot} />
+            {featured.map((product) => (
+              <ProductCard key={product.id} product={product} />
             ))}
           </div>
         </section>
@@ -251,7 +251,7 @@ export default function Home() {
           </h2>
           <p className="mt-2 text-brand-100/85 max-w-xl mx-auto">
             Únete a la vitrina circular: compra verificado o entrega lo que ya
-            no uses. Garantía Recupera en cada lote.
+            no uses. Garantía Recupera en cada producto.
           </p>
           <div className="mt-6 flex flex-wrap justify-center gap-3">
             {!user && (
@@ -266,7 +266,7 @@ export default function Home() {
               to="/catalogo"
               className="rounded-xl border border-white/30 px-6 py-3 font-semibold hover:bg-white/10"
             >
-              Ver lotes
+              Ver productos
             </Link>
           </div>
         </div>

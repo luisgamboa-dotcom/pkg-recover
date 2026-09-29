@@ -4,7 +4,7 @@ import Footer from './Footer';
 
 const links = [
   ['/admin', 'Tablero', true],
-  ['/admin/lotes', 'Lotes'],
+  ['/admin/productos', 'Productos'],
   ['/admin/inventario', 'Inventario'],
   ['/admin/paquetes', 'Paquetes'],
   ['/admin/pedidos', 'Pedidos'],

@@ -2,7 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import AdminLayout from '../../components/AdminLayout';
 import { RequireAdmin } from '../../components/RequireRole';
 import { PageHeader } from '../../components/ui';
-import { deleteRow, fetchTable, linkPromotionLot, saveRow } from '../../data/admin';
+import { deleteRow, fetchTable, linkPromotionProduct, saveRow } from '../../data/admin';
 import { errorMessage,  sanitizeText } from '../../lib/validation';
 
 /** Editor genérico: lista + formulario simple por tabla catálogo. */
@@ -138,7 +138,7 @@ function CatalogEditor({
 
 export default function AdminCatalogs() {
   const [promoId, setPromoId] = useState('');
-  const [lotSku, setLotSku] = useState('');
+  const [productSku, setProductSku] = useState('');
   const [promos, setPromos] = useState<any[]>([]);
   const [promoMsg, setPromoMsg] = useState<string | null>(null);
 
@@ -149,15 +149,15 @@ export default function AdminCatalogs() {
   async function onLink(e: FormEvent) {
     e.preventDefault();
     setPromoMsg(null);
-    const sku = sanitizeText(lotSku, 20).toUpperCase();
+    const sku = sanitizeText(productSku, 20).toUpperCase();
     if (!promoId || !sku) { setPromoMsg('Elige promoción y SKU.'); return; }
     try {
-      const lots = await fetchTable('lots', 'sku');
-      const lot = (lots as any[]).find((l) => String(l.sku).toUpperCase() === sku);
-      if (!lot) { setPromoMsg(`No existe lote con SKU ${sku}.`); return; }
-      await linkPromotionLot(promoId, lot.id);
-      setLotSku('');
-      setPromoMsg(`Lote ${sku} vinculado.`);
+      const products = await fetchTable('products', 'sku');
+      const product = (products as any[]).find((l) => String(l.sku).toUpperCase() === sku);
+      if (!product) { setPromoMsg(`No existe producto con SKU ${sku}.`); return; }
+      await linkPromotionProduct(promoId, product.id);
+      setProductSku('');
+      setPromoMsg(`Producto ${sku} vinculado.`);
     } catch (err) {
       setPromoMsg(errorMessage(err));
     }
@@ -243,13 +243,13 @@ export default function AdminCatalogs() {
         </div>
 
         <section className="mt-4 bg-white rounded-2xl border p-4">
-          <h2 className="font-bold text-brand-950">Vincular lote a promoción (por SKU)</h2>
+          <h2 className="font-bold text-brand-950">Vincular producto a promoción (por SKU)</h2>
           <form onSubmit={onLink} className="mt-2 flex flex-wrap gap-2">
             <select className="field-input w-auto!" value={promoId} onChange={(e) => setPromoId(e.target.value)} aria-label="Promoción">
               <option value="">Promoción…</option>
               {promos.map((p) => <option key={p.id} value={p.id}>{p.title}</option>)}
             </select>
-            <input className="field-input w-40!" maxLength={20} placeholder="RP-00001" value={lotSku} onChange={(e) => setLotSku(e.target.value)} aria-label="SKU" />
+            <input className="field-input w-40!" maxLength={20} placeholder="RP-00001" value={productSku} onChange={(e) => setProductSku(e.target.value)} aria-label="SKU" />
             <button className="rounded-lg bg-brand-900 text-white px-4 font-semibold">Vincular</button>
           </form>
           {promoMsg && <p className="mt-2 text-sm text-slate-600">{promoMsg}</p>}

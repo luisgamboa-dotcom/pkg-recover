@@ -8,20 +8,20 @@ import {
 } from 'react';
 
 export interface CartItem {
-  lotId: string;
+  productId: string;
   qty: number;
 }
 
 interface CartState {
   items: CartItem[];
   count: number;
-  add: (lotId: string, qty?: number) => void;
-  setQty: (lotId: string, qty: number) => void;
-  remove: (lotId: string) => void;
+  add: (productId: string, qty?: number) => void;
+  setQty: (productId: string, qty: number) => void;
+  remove: (productId: string) => void;
   clear: () => void;
 }
 
-const KEY = 'rp-cart-v1';
+const KEY = 'rp-cart-v2';
 const CartContext = createContext<CartState | null>(null);
 
 function load(): CartItem[] {
@@ -29,7 +29,7 @@ function load(): CartItem[] {
     const raw = localStorage.getItem(KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw) as CartItem[];
-    return parsed.filter((i) => i.lotId && i.qty > 0);
+    return parsed.filter((i) => i.productId && i.qty > 0);
   } catch {
     return [];
   }
@@ -47,22 +47,22 @@ export function CartProvider({ children }: { children: ReactNode }) {
     return {
       items,
       count,
-      add: (lotId, qty = 1) =>
+      add: (productId, qty = 1) =>
         setItems((prev) => {
-          const found = prev.find((i) => i.lotId === lotId);
+          const found = prev.find((i) => i.productId === productId);
           if (found)
             return prev.map((i) =>
-              i.lotId === lotId ? { ...i, qty: i.qty + qty } : i,
+              i.productId === productId ? { ...i, qty: i.qty + qty } : i,
             );
-          return [...prev, { lotId, qty }];
+          return [...prev, { productId, qty }];
         }),
-      setQty: (lotId, qty) =>
+      setQty: (productId, qty) =>
         setItems((prev) =>
           qty <= 0
-            ? prev.filter((i) => i.lotId !== lotId)
-            : prev.map((i) => (i.lotId === lotId ? { ...i, qty } : i)),
+            ? prev.filter((i) => i.productId !== productId)
+            : prev.map((i) => (i.productId === productId ? { ...i, qty } : i)),
         ),
-      remove: (lotId) => setItems((prev) => prev.filter((i) => i.lotId !== lotId)),
+      remove: (productId) => setItems((prev) => prev.filter((i) => i.productId !== productId)),
       clear: () => setItems([]),
     };
   }, [items]);

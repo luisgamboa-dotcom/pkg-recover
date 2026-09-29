@@ -23,7 +23,7 @@ export default function Footer() {
             RecuperaPack
           </p>
           <p className="mt-2 text-sm text-white/70">
-            Plataforma de recuperación de paquetes: lotes verificados con
+            Plataforma de recuperación de paquetes: productos verificados con
             descuento y trazabilidad total.
           </p>
         </div>
@@ -94,7 +94,7 @@ export default function Footer() {
       <div className="border-t border-white/10">
         <div className="max-w-6xl mx-auto px-6 py-4 text-xs text-white/50 flex flex-wrap gap-2 justify-between">
           <span>© 2026 RecuperaPack · Términos · Privacidad</span>
-          <span>Garantía Recupera en lotes verificados</span>
+          <span>Garantía Recupera en productos verificados</span>
         </div>
       </div>
     </footer>

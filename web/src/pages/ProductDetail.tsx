@@ -4,21 +4,21 @@ import Layout from '../components/Layout';
 import {
   ConfigNotice,
   EmptyState,
-  LotBadges,
-  LotCard,
-  LotImage,
+  ProductBadges,
+  ProductCard,
+  ProductImage,
 } from '../components/ui';
 import { useAuth } from '../auth/AuthContext';
 import { useCart } from '../lib/cart';
 import {
   addReview,
   useFavorites,
-  useLot,
+  useProduct,
   usePriceTiers,
   useReviews,
-  useSimilarLots,
+  useSimilarProducts,
 } from '../data/shop';
-import { findSellerForLot, sendMessage, useMyOrders } from '../data/account';
+import { findSellerForProduct, sendMessage, useMyOrders } from '../data/account';
 import {
   clp,
   discountPct,
@@ -47,15 +47,15 @@ function Spec({ label, value }: { label: string; value: string }) {
   );
 }
 
-export default function LotDetail() {
+export default function ProductDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user, profile } = useAuth();
-  const { lot, loading, error, configured } = useLot(id);
-  const similar = useSimilarLots(lot);
-  const tiers = usePriceTiers(lot?.id);
+  const { product, loading, error, configured } = useProduct(id);
+  const similar = useSimilarProducts(product);
+  const tiers = usePriceTiers(product?.id);
   const { ids: favIds, toggle } = useFavorites(user?.id);
-  const { items: reviews } = useReviews(lot?.id);
+  const { items: reviews } = useReviews(product?.id);
   const { orders } = useMyOrders(user?.id);
   const { add } = useCart();
   const [qty, setQty] = useState(1);
@@ -73,7 +73,7 @@ export default function LotDetail() {
   if (loading) {
     return (
       <Layout>
-        <p className="text-sm text-slate-500">Cargando lote…</p>
+        <p className="text-sm text-slate-500">Cargando producto…</p>
       </Layout>
     );
   }
@@ -84,24 +84,24 @@ export default function LotDetail() {
       </Layout>
     );
   }
-  if (error || !lot) {
+  if (error || !product) {
     return (
       <Layout>
-        <EmptyState title="Lote no encontrado" text={error ?? 'Revisa el catálogo.'} />
+        <EmptyState title="Producto no encontrado" text={error ?? 'Revisa el catálogo.'} />
       </Layout>
     );
   }
 
-  const discount = discountPct(lot.base_price, lot.msrp_reference);
-  const isFav = favIds.has(lot.id);
+  const discount = discountPct(product.base_price, product.msrp_reference);
+  const isFav = favIds.has(product.id);
   const boughtOrder = orders.find(
     (o) =>
       !['cancelled', 'returned'].includes(o.status) &&
-      o.items.some((i) => i.lot?.id === lot.id),
+      o.items.some((i) => i.product?.id === product.id),
   );
   const dims =
-    lot.length_cm && lot.width_cm && lot.height_cm
-      ? `${lot.length_cm} × ${lot.width_cm} × ${lot.height_cm} cm`
+    product.length_cm && product.width_cm && product.height_cm
+      ? `${product.length_cm} × ${product.width_cm} × ${product.height_cm} cm`
       : '—';
 
   async function onReview(e: FormEvent) {
@@ -120,7 +120,7 @@ export default function LotDetail() {
     }
     try {
       await addReview({
-        lotId: lot!.id,
+        productId: product!.id,
         profileId: user.id,
         orderId: boughtOrder?.id ?? null,
         rating: safeRating,
@@ -142,16 +142,16 @@ export default function LotDetail() {
         <Link to="/catalogo" className="hover:underline">
           Catálogo
         </Link>{' '}
-        / {lot.categories[0]?.name ?? 'Lotes'} /{' '}
-        <span className="text-brand-950 font-medium">{lot.sku}</span>
+        / {product.categories[0]?.name ?? 'Productos'} /{' '}
+        <span className="text-brand-950 font-medium">{product.sku}</span>
       </p>
 
       <div className="grid gap-8 lg:grid-cols-2">
         <div>
-          <LotImage lot={lot} className="w-full aspect-square rounded-2xl border border-slate-200" />
-          {lot.imageUrls.length > 1 && (
+          <ProductImage product={product} className="w-full aspect-square rounded-2xl border border-slate-200" />
+          {product.imageUrls.length > 1 && (
             <div className="mt-2 grid grid-cols-5 gap-2">
-              {lot.imageUrls.slice(1, 6).map((src) => (
+              {product.imageUrls.slice(1, 6).map((src) => (
                 <img
                   key={src}
                   src={src}
@@ -165,19 +165,19 @@ export default function LotDetail() {
         </div>
 
         <div>
-          <LotBadges lot={lot} />
+          <ProductBadges product={product} />
           <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-brand-950">
-            {lot.title}
+            {product.title}
           </h1>
-          <p className="mt-1 text-sm text-slate-500 font-mono">SKU: {lot.sku}</p>
+          <p className="mt-1 text-sm text-slate-500 font-mono">SKU: {product.sku}</p>
 
           <div className="mt-3 flex items-baseline gap-3">
             <span className="text-3xl font-extrabold text-brand-950">
-              {clp(lot.base_price)}
+              {clp(product.base_price)}
             </span>
-            {lot.msrp_reference != null && (
+            {product.msrp_reference != null && (
               <span className="text-slate-400 line-through">
-                {clp(lot.msrp_reference)}
+                {clp(product.msrp_reference)}
               </span>
             )}
             {discount != null && (
@@ -187,8 +187,8 @@ export default function LotDetail() {
             )}
           </div>
           <p className="text-xs text-slate-400">
-            ≈ {clp(Math.round(lot.base_price / lot.unit_count))} por unidad · Precios
-            sin IVA ni envío · {lot.stock_quantity} lote(s) disponibles
+            ≈ {clp(Math.round(product.base_price / product.unit_count))} por unidad · Precios
+            sin IVA ni envío · {product.stock_quantity} producto(s) disponibles
           </p>
           {isReseller && tiers.length > 0 && (
             <div className="mt-3 rounded-xl bg-brand-50 border border-brand-100 p-3 text-sm">
@@ -196,7 +196,7 @@ export default function LotDetail() {
               <ul className="mt-1 space-y-0.5">
                 {tiers.map((t) => (
                   <li key={t.id} className={qty >= t.min_quantity ? 'font-bold text-success-700' : 'text-slate-600'}>
-                    Desde {t.min_quantity} uds → {clp(t.unit_price)}/lote
+                    Desde {t.min_quantity} uds → {clp(t.unit_price)}/producto
                     {qty >= t.min_quantity && ' ✓ aplicado en caja'}
                   </li>
                 ))}
@@ -204,30 +204,30 @@ export default function LotDetail() {
             </div>
           )}
 
-          {lot.description && (
-            <p className="mt-4 text-slate-600">{lot.description}</p>
+          {product.description && (
+            <p className="mt-4 text-slate-600">{product.description}</p>
           )}
 
           <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-2">
-            <Spec label="Unidades" value={`${lot.unit_count} uds`} />
-            <Spec label="Peso total" value={`${lot.total_weight_kg} kg`} />
+            <Spec label="Unidades" value={`${product.unit_count} uds`} />
+            <Spec label="Peso total" value={`${product.total_weight_kg} kg`} />
             <Spec label="Dimensiones" value={dims} />
-            <Spec label="Empaque" value={packagingLabel(lot.packaging_state)} />
-            <Spec label="Producto" value={productStateLabel(lot.product_state)} />
+            <Spec label="Empaque" value={packagingLabel(product.packaging_state)} />
+            <Spec label="Producto" value={productStateLabel(product.product_state)} />
             <Spec
               label="Ubicación"
               value={
-                lot.warehouse
-                  ? `${lot.warehouse.name}${lot.warehouse_zone ? ` · ${lot.warehouse_zone}` : ''}`
+                product.warehouse
+                  ? `${product.warehouse.name}${product.warehouse_zone ? ` · ${product.warehouse_zone}` : ''}`
                   : '—'
               }
             />
           </div>
 
-          {(lot.circularity_percent != null || lot.waste_avoided_kg != null) && (
+          {(product.circularity_percent != null || product.waste_avoided_kg != null) && (
             <p className="mt-3 text-sm rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 p-3">
-              ♻️ Circularidad {lot.circularity_percent ?? '—'}% · evita{' '}
-              {lot.waste_avoided_kg ?? '—'} kg de desecho.
+              ♻️ Circularidad {product.circularity_percent ?? '—'}% · evita{' '}
+              {product.waste_avoided_kg ?? '—'} kg de desecho.
             </p>
           )}
 
@@ -237,10 +237,10 @@ export default function LotDetail() {
               <input
                 type="number"
                 min={1}
-                max={Math.max(lot.stock_quantity, 1)}
+                max={Math.max(product.stock_quantity, 1)}
                 value={qty}
                 onChange={(e) =>
-                  setQty(parseQty(e.target.value, Math.max(lot.stock_quantity, 1)))
+                  setQty(parseQty(e.target.value, Math.max(product.stock_quantity, 1)))
                 }
                 className="field-input w-20! inline-block ml-1"
               />
@@ -252,7 +252,7 @@ export default function LotDetail() {
                   navigate('/login', { replace: true });
                   return;
                 }
-                add(lot.id, qty);
+                add(product.id, qty);
                 setAdded(true);
               }}
               className="rounded-lg bg-accent-500 text-white font-semibold px-6 py-3 hover:bg-accent-600"
@@ -261,7 +261,7 @@ export default function LotDetail() {
             </button>
             {user && (
               <button
-                onClick={() => void toggle(lot.id)}
+                onClick={() => void toggle(product.id)}
                 aria-pressed={isFav}
                 className={`rounded-lg border px-4 py-3 font-semibold ${
                   isFav
@@ -289,8 +289,8 @@ export default function LotDetail() {
                   return;
                 }
                 setInquiryBusy(true);
-                findSellerForLot(lot.id, user.id)
-                  .then((sellerId) => sendMessage(lot.id, user.id, sellerId, clean))
+                findSellerForProduct(product.id, user.id)
+                  .then((sellerId) => sendMessage(product.id, user.id, sellerId, clean))
                   .then(() => navigate('/mensajes'))
                   .catch((err) => {
                     setInquiryMsg(errorMessage(err));
@@ -323,8 +323,8 @@ export default function LotDetail() {
         <h2 className="text-xl font-bold text-brand-950">
           Reseñas{' '}
           <span className="text-sm font-normal text-slate-500">
-            {lot.avgRating != null
-              ? `★ ${lot.avgRating.toFixed(1)} (${lot.reviewsCount})`
+            {product.avgRating != null
+              ? `★ ${product.avgRating.toFixed(1)} (${product.reviewsCount})`
               : '(sin calificaciones)'}
           </span>
         </h2>
@@ -332,7 +332,7 @@ export default function LotDetail() {
           <div className="space-y-3">
             {reviews.length === 0 && (
               <p className="text-sm text-slate-500">
-                Aún no hay reseñas para este lote.
+                Aún no hay reseñas para este producto.
               </p>
             )}
             {reviews.map((r) => (
@@ -382,7 +382,7 @@ export default function LotDetail() {
                   className="field-input"
                   rows={3}
                   maxLength={LIMITS.comment}
-                  placeholder="Cuéntanos sobre el lote…"
+                  placeholder="Cuéntanos sobre el producto…"
                   value={reviewComment}
                   onChange={(e) => setReviewComment(e.target.value)}
                 />
@@ -406,10 +406,10 @@ export default function LotDetail() {
       {/* Relacionados */}
       {similar.length > 0 && (
         <section className="mt-12">
-          <h2 className="text-xl font-bold text-brand-950">Lotes similares</h2>
+          <h2 className="text-xl font-bold text-brand-950">Productos similares</h2>
           <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {similar.map((l) => (
-              <LotCard key={l.id} lot={l} />
+              <ProductCard key={l.id} product={l} />
             ))}
           </div>
         </section>

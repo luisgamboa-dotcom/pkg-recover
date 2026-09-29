@@ -8,7 +8,7 @@ export interface OrderItem {
   quantity: number;
   unit_price: number;
   line_total: number;
-  lot: { id: string; sku: string; title: string } | null;
+  product: { id: string; sku: string; title: string } | null;
 }
 
 export interface Order {
@@ -75,7 +75,7 @@ const ORDER_SELECT = `
   ship_street_name, ship_street_number, ship_apartment, ship_commune,
   ship_region, ship_postal_code,
   payment_methods (code, name),
-  order_items (id, quantity, unit_price, line_total, lots (id, sku, title))
+  order_items (id, quantity, unit_price, line_total, products (id, sku, title))
 `;
 
 export function toOrder(r: any): Order {
@@ -104,8 +104,8 @@ export function toOrder(r: any): Order {
       quantity: i.quantity,
       unit_price: Number(i.unit_price),
       line_total: Number(i.line_total),
-      lot: i.lots
-        ? { id: i.lots.id, sku: i.lots.sku, title: i.lots.title }
+      product: i.products
+        ? { id: i.products.id, sku: i.products.sku, title: i.products.title }
         : null,
     })),
   };
@@ -228,7 +228,7 @@ export interface NewOrderInput {
     notes: string;
     addressId: string | null;
   };
-  items: { lotId: string; qty: number; unitPrice: number }[];
+  items: { productId: string; qty: number; unitPrice: number }[];
 }
 
 /** Crea pedido + detalle. Los triggers calculan totales y descuentan stock. */
@@ -262,7 +262,7 @@ export async function createOrder(input: NewOrderInput): Promise<string> {
   const { error: itemsError } = await sb.from('order_items').insert(
     input.items.map((i) => ({
       order_id: (order as { id: string }).id,
-      lot_id: i.lotId,
+      product_id: i.productId,
       // Defensa en profundidad: cantidad entera >= 1 aunque el UI falle.
       quantity: Math.max(1, Math.floor(Number(i.qty) || 1)),
       unit_price: i.unitPrice,
@@ -515,7 +515,7 @@ export interface Notification {
   type: string;
   title: string;
   body: string | null;
-  lot_id: string | null;
+  product_id: string | null;
   order_id: string | null;
   is_read: boolean;
   created_at: string;
@@ -570,9 +570,9 @@ export function useNotifications(userId: string | undefined) {
 }
 
 export interface Thread {
-  lotId: string;
-  lotTitle: string;
-  lotSku: string;
+  productId: string;
+  productTitle: string;
+  productSku: string;
   otherName: string;
   lastBody: string;
   lastAt: string;
@@ -583,61 +583,61 @@ export async function fetchThreads(userId: string): Promise<Thread[]> {
   const sb = requireSupabase();
   const { data, error } = await sb
     .from('messages')
-    .select('lot_id, body, created_at, is_read, receiver_id, sender_id, lots (title, sku), sender:profiles!messages_sender_id_fkey (first_name), receiver:profiles!messages_receiver_id_fkey (first_name)')
+    .select('product_id, body, created_at, is_read, receiver_id, sender_id, products (title, sku), sender:profiles!messages_sender_id_fkey (first_name), receiver:profiles!messages_receiver_id_fkey (first_name)')
     .or(`sender_id.eq.${userId},receiver_id.eq.${userId}`)
     .order('created_at', { ascending: false })
     .limit(200);
   if (error) throw error;
   const map = new Map<string, Thread>();
   for (const m of (data ?? []) as any[]) {
-    if (!map.has(m.lot_id)) {
+    if (!map.has(m.product_id)) {
       const mine = m.sender_id === userId;
       const other = mine ? m.receiver?.first_name : m.sender?.first_name;
-      map.set(m.lot_id, {
-        lotId: m.lot_id,
-        lotTitle: m.lots?.title ?? 'Lote',
-        lotSku: m.lots?.sku ?? '',
+      map.set(m.product_id, {
+        productId: m.product_id,
+        productTitle: m.products?.title ?? 'Producto',
+        productSku: m.products?.sku ?? '',
         otherName: other ?? 'Usuario',
         lastBody: m.body,
         lastAt: m.created_at,
         unread: 0,
       });
     }
-    const t = map.get(m.lot_id)!;
+    const t = map.get(m.product_id)!;
     if (m.receiver_id === userId && !m.is_read) t.unread += 1;
   }
   return [...map.values()];
 }
 
-export async function fetchThreadMessages(userId: string, lotId: string) {
+export async function fetchThreadMessages(userId: string, productId: string) {
   const sb = requireSupabase();
   const { data, error } = await sb
     .from('messages')
     .select('id, body, created_at, sender_id, receiver_id')
-    .eq('lot_id', lotId)
+    .eq('product_id', productId)
     .or(`sender_id.eq.${userId},receiver_id.eq.${userId}`)
     .order('created_at');
   if (error) throw error;
   await sb
     .from('messages')
     .update({ is_read: true })
-    .eq('lot_id', lotId)
+    .eq('product_id', productId)
     .eq('receiver_id', userId);
   return (data ?? []) as any[];
 }
 
-export async function sendMessage(lotId: string, senderId: string, receiverId: string, body: string) {
+export async function sendMessage(productId: string, senderId: string, receiverId: string, body: string) {
   const { error } = await requireSupabase()
     .from('messages')
-    .insert({ lot_id: lotId, sender_id: senderId, receiver_id: receiverId, body });
+    .insert({ product_id: productId, sender_id: senderId, receiver_id: receiverId, body });
   if (error) throw error;
 }
 
-/** Receptor de consulta por un lote: dueño de la empresa o admin. */
-export async function findSellerForLot(lotId: string, excludeId: string): Promise<string> {
+/** Receptor de consulta por un producto: dueño de la empresa o admin. */
+export async function findSellerForProduct(productId: string, excludeId: string): Promise<string> {
   const sb = requireSupabase();
-  const { data: lot } = await sb.from('lots').select('company_id').eq('id', lotId).single();
-  const companyId = (lot as any)?.company_id;
+  const { data: product } = await sb.from('products').select('company_id').eq('id', productId).single();
+  const companyId = (product as any)?.company_id;
   if (companyId) {
     const { data: members } = await sb
       .from('company_members')
@@ -654,7 +654,7 @@ export async function findSellerForLot(lotId: string, excludeId: string): Promis
     .eq('roles.code', 'admin')
     .neq('id', excludeId)
     .limit(1);
-  if ((admins ?? []).length === 0) throw new Error('Este lote aún no tiene vendedor asignado.');
+  if ((admins ?? []).length === 0) throw new Error('Este producto aún no tiene vendedor asignado.');
   return (admins as any[])[0].id as string;
 }
 

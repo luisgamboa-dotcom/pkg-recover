@@ -25,7 +25,7 @@ import {
 
 const PREF_LABELS: [keyof import('../data/account').Prefs, string][] = [
   ['offers', 'Nuevas ofertas'],
-  ['new_lots', 'Lotes publicados'],
+  ['new_lots', 'Productos publicados'],
   ['order_updates', 'Cambios en mis pedidos'],
   ['shipping_updates', 'Cambios en despachos'],
   ['availability', 'Disponibilidad de favoritos'],

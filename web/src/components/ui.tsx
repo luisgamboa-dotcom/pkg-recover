@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { clp, discountPct } from '../lib/format';
-import type { Lot } from '../data/shop';
+import type { Product } from '../data/shop';
 
 export function ConfigNotice() {
   return (
@@ -32,31 +32,31 @@ export function PageHeader({ title, subtitle }: { title: string; subtitle: strin
 }
 
 /** Insignias de condición unificadas (Stitch mezclaba Verified/Sealed/Damaged). */
-export function LotBadges({ lot }: { lot: Lot }) {
+export function ProductBadges({ product }: { product: Product }) {
   return (
     <div className="flex flex-wrap gap-1.5">
-      {lot.is_verified && (
+      {product.is_verified && (
         <span className="inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider text-white bg-success-600 rounded-full px-2.5 py-0.5">
           ✓ Verificado
         </span>
       )}
-      {lot.packaging_state === 'original' && (
+      {product.packaging_state === 'original' && (
         <span className="text-[11px] font-bold uppercase tracking-wider text-white bg-brand-900 rounded-full px-2.5 py-0.5">
           Sellado
         </span>
       )}
-      {lot.packaging_state === 'damaged' && (
+      {product.packaging_state === 'damaged' && (
         <span className="text-[11px] font-bold uppercase tracking-wider text-brand-950 bg-slate-200 rounded-full px-2.5 py-0.5">
           Caja dañada
         </span>
       )}
-      {lot.packaging_state === 'no_box' && (
+      {product.packaging_state === 'no_box' && (
         <span className="text-[11px] font-bold uppercase tracking-wider text-brand-950 bg-slate-200 rounded-full px-2.5 py-0.5">
           Sin caja
         </span>
       )}
       {(() => {
-        const d = discountPct(lot.base_price, lot.msrp_reference);
+        const d = discountPct(product.base_price, product.msrp_reference);
         return d != null ? (
           <span className="text-[11px] font-bold uppercase tracking-wider text-white bg-accent-500 rounded-full px-2.5 py-0.5">
             −{d}%
@@ -67,39 +67,39 @@ export function LotBadges({ lot }: { lot: Lot }) {
   );
 }
 
-export function LotImage({
-  lot,
+export function ProductImage({
+  product,
   className,
 }: {
-  lot: Lot;
+  product: Product;
   className?: string;
 }) {
-  const src = lot.imageUrls[0];
+  const src = product.imageUrls[0];
   if (!src) {
     return (
       <div
         className={`grid place-items-center bg-brand-100 text-brand-900 font-extrabold ${className ?? ''}`}
-        aria-label={`Sin foto: ${lot.title}`}
+        aria-label={`Sin foto: ${product.title}`}
       >
         <span className="text-center px-2">
           <span className="block text-2xl">📦</span>
-          <span className="block text-xs mt-1">{lot.sku}</span>
+          <span className="block text-xs mt-1">{product.sku}</span>
         </span>
       </div>
     );
   }
-  return <img src={src} alt={lot.title} className={`object-cover ${className ?? ''}`} loading="lazy" />;
+  return <img src={src} alt={product.title} className={`object-cover ${className ?? ''}`} loading="lazy" />;
 }
 
-export function LotCard({ lot }: { lot: Lot }) {
-  const d = discountPct(lot.base_price, lot.msrp_reference);
+export function ProductCard({ product }: { product: Product }) {
+  const d = discountPct(product.base_price, product.msrp_reference);
   return (
     <Link
-      to={`/lotes/${lot.id}`}
+      to={`/productos/${product.id}`}
       className="group bg-white rounded-2xl border border-slate-200 overflow-hidden hover:shadow-[0_10px_30px_rgba(26,54,93,0.12)] transition"
     >
       <div className="relative">
-        <LotImage lot={lot} className="w-full aspect-square group-hover:scale-[1.02] transition" />
+        <ProductImage product={product} className="w-full aspect-square group-hover:scale-[1.02] transition" />
         {d != null && (
           <span className="absolute top-2 left-2 text-xs font-bold text-white bg-accent-500 rounded-full px-2.5 py-1">
             −{d}%
@@ -107,24 +107,24 @@ export function LotCard({ lot }: { lot: Lot }) {
         )}
       </div>
       <div className="p-4">
-        <p className="text-xs text-slate-400 font-mono">{lot.sku}</p>
+        <p className="text-xs text-slate-400 font-mono">{product.sku}</p>
         <h3 className="mt-0.5 font-bold text-brand-950 leading-snug line-clamp-2 min-h-[2.6em]">
-          {lot.title}
+          {product.title}
         </h3>
         <p className="mt-1 text-xs text-slate-500">
-          {lot.unit_count} uds · {lot.total_weight_kg} kg
-          {lot.company ? ` · ${lot.company.name}` : ''}
+          {product.unit_count} uds · {product.total_weight_kg} kg
+          {product.company ? ` · ${product.company.name}` : ''}
         </p>
         <div className="mt-2">
-          <LotBadges lot={lot} />
+          <ProductBadges product={product} />
         </div>
         <div className="mt-3 flex items-baseline gap-2">
           <span className="text-lg font-extrabold text-brand-950">
-            {clp(lot.base_price)}
+            {clp(product.base_price)}
           </span>
-          {lot.msrp_reference != null && (
+          {product.msrp_reference != null && (
             <span className="text-sm text-slate-400 line-through">
-              {clp(lot.msrp_reference)}
+              {clp(product.msrp_reference)}
             </span>
           )}
         </div>

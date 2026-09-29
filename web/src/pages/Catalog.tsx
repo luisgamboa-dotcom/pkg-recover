@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import Layout from '../components/Layout';
-import { ConfigNotice, EmptyState, LotCard, PageHeader } from '../components/ui';
+import { ConfigNotice, EmptyState, ProductCard, PageHeader } from '../components/ui';
 import { emptyFilters, useBrands, useCatalog, useCategories, type Filters } from '../data/shop';
 import { LIMITS } from '../lib/validation';
 
 export default function Catalog() {
   const [f, setF] = useState<Filters>(emptyFilters);
-  const { lots, total, loading, error, configured } = useCatalog(f);
+  const { products, total, loading, error, configured } = useCatalog(f);
   const categories = useCategories();
   const brands = useBrands();
 
@@ -16,8 +16,8 @@ export default function Catalog() {
   return (
     <Layout>
       <PageHeader
-        title="Catálogo de lotes"
-        subtitle={`${total} lotes publicados · precios en CLP con IVA calculado en caja`}
+        title="Catálogo de productos"
+        subtitle={`${total} productos publicados · precios en CLP con IVA calculado en caja`}
       />
       {!configured && (
         <div className="mb-4">
@@ -33,7 +33,7 @@ export default function Catalog() {
           placeholder="Buscar por nombre o SKU…"
           value={f.q}
           onChange={(e) => set('q', e.target.value)}
-          aria-label="Buscar lotes"
+          aria-label="Buscar productos"
         />
         <select
           className="field-input"
@@ -126,21 +126,21 @@ export default function Catalog() {
         </div>
       </div>
 
-      {loading && <p className="text-sm text-slate-500">Cargando lotes…</p>}
+      {loading && <p className="text-sm text-slate-500">Cargando productos…</p>}
       {error && (
         <p role="alert" className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg p-3">
           {error}
         </p>
       )}
-      {!loading && !error && lots.length === 0 && (
+      {!loading && !error && products.length === 0 && (
         <EmptyState
           title="Sin resultados"
-          text="Ajusta los filtros o vuelve cuando se publiquen nuevos lotes."
+          text="Ajusta los filtros o vuelve cuando se publiquen nuevos productos."
         />
       )}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {lots.map((lot) => (
-          <LotCard key={lot.id} lot={lot} />
+        {products.map((product) => (
+          <ProductCard key={product.id} product={product} />
         ))}
       </div>
     </Layout>

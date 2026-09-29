@@ -22,7 +22,7 @@ export default function About() {
           Miles de paquetes se extravían o nunca son reclamados, y toneladas de
           objetos en buen estado terminan en la basura porque sus dueños ya no
           los quieren. RecuperaPack nace para darle una segunda vida a todo
-          eso: rescatamos, verificamos y publicamos lotes con descuento para
+          eso: rescatamos, verificamos y publicamos productos con descuento para
           que comprar barato también sea comprar responsable.
         </p>
       </section>
@@ -57,9 +57,9 @@ export default function About() {
             <span className="text-3xl" aria-hidden="true">🌎</span>
             <h3 className="mt-3 font-bold text-brand-950">Al planeta</h3>
             <p className="mt-1.5 text-slate-600">
-              Cada lote vendido evita kilos de desecho electrónico, textil y
+              Cada producto vendido evita kilos de desecho electrónico, textil y
               domiciliario. Medimos la circularidad y el material recuperado
-              lote por lote.
+              producto por producto.
             </p>
           </article>
           <article className="rounded-2xl bg-white border border-slate-200 p-6 shadow-[0_10px_30px_rgba(26,54,93,0.08)]">
@@ -77,7 +77,7 @@ export default function About() {
             <h3 className="mt-3 font-bold text-brand-950">A las empresas</h3>
             <p className="mt-1.5 text-slate-600">
               Las proveedoras convierten paquetes no reclamados en valor
-              económico recuperado, con reportes de trazabilidad por lote,
+              económico recuperado, con reportes de trazabilidad por producto,
               paquete y venta.
             </p>
           </article>
@@ -93,7 +93,7 @@ export default function About() {
           {[
             ['Recepción', 'Nuestro personal recibe paquetes de empresas y objetos de personas, registrando origen, unidades y peso.'],
             ['Clasificación', 'Evaluamos empaque y producto (original/dañada, intacto/funcional/repuestos) y asignamos bodega y zona.'],
-            ['Publicación', 'Cada lote sale con SKU, fotos, precio, referencia MSRP y descuento calculado. Nada se vende sin verificar.'],
+            ['Publicación', 'Cada producto sale con SKU, fotos, precio, referencia MSRP y descuento calculado. Nada se vende sin verificar.'],
             ['Venta y despacho', 'Compras con IVA incluido, número de pedido y seguimiento por transportadora hasta tu puerta.'],
           ].map(([title, text], i) => (
             <li key={title} className="flex gap-4">
@@ -112,7 +112,7 @@ export default function About() {
             to="/catalogo"
             className="rounded-xl bg-brand-900 text-white font-semibold px-5 py-3 hover:bg-brand-700"
           >
-            Ver lotes
+            Ver productos
           </Link>
           <Link
             to="/ayuda"

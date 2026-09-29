@@ -10,7 +10,7 @@ import Favorites from './pages/Favorites';
 import Help from './pages/Help';
 import Home from './pages/Home';
 import Login from './pages/Login';
-import LotDetail from './pages/LotDetail';
+import ProductDetail from './pages/ProductDetail';
 import Messages from './pages/Messages';
 import About from './pages/About';
 import Notifications from './pages/Notifications';
@@ -22,8 +22,8 @@ import AdminCatalogs from './pages/admin/AdminCatalogs';
 import AdminCompanies from './pages/admin/AdminCompanies';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminInventory from './pages/admin/AdminInventory';
-import AdminLotForm from './pages/admin/AdminLotForm';
-import AdminLots from './pages/admin/AdminLots';
+import AdminProductForm from './pages/admin/AdminProductForm';
+import AdminProducts from './pages/admin/AdminProducts';
 import AdminOrderDetail from './pages/admin/AdminOrderDetail';
 import AdminOrders from './pages/admin/AdminOrders';
 import AdminPackages from './pages/admin/AdminPackages';
@@ -42,7 +42,7 @@ export default function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/registro" element={<Register />} />
             <Route path="/catalogo" element={<Catalog />} />
-            <Route path="/lotes/:id" element={<LotDetail />} />
+            <Route path="/productos/:id" element={<ProductDetail />} />
             <Route path="/carrito" element={<Cart />} />
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/pedidos" element={<Orders />} />
@@ -55,9 +55,9 @@ export default function App() {
             <Route path="/mensajes" element={<Messages />} />
             <Route path="/empresa" element={<CompanyPanel />} />
             <Route path="/admin" element={<AdminDashboard />} />
-            <Route path="/admin/lotes" element={<AdminLots />} />
-            <Route path="/admin/lotes/nuevo" element={<AdminLotForm />} />
-            <Route path="/admin/lotes/:id" element={<AdminLotForm />} />
+            <Route path="/admin/productos" element={<AdminProducts />} />
+            <Route path="/admin/productos/nuevo" element={<AdminProductForm />} />
+            <Route path="/admin/productos/:id" element={<AdminProductForm />} />
             <Route path="/admin/inventario" element={<AdminInventory />} />
             <Route path="/admin/paquetes" element={<AdminPackages />} />
             <Route path="/admin/pedidos" element={<AdminOrders />} />

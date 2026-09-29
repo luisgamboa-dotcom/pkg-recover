@@ -213,12 +213,12 @@ function Detail() {
               {order.items.map((i) => (
                 <li key={i.id} className="py-2 flex justify-between gap-3 text-sm">
                   <span>
-                    {i.lot ? (
-                      <Link to={`/lotes/${i.lot.id}`} className="font-semibold text-brand-900 hover:underline">
-                        {i.lot.title}
+                    {i.product ? (
+                      <Link to={`/productos/${i.product.id}`} className="font-semibold text-brand-900 hover:underline">
+                        {i.product.title}
                       </Link>
                     ) : (
-                      'Lote'
+                      'Producto'
                     )}{' '}
                     <span className="text-slate-500">× {i.quantity}</span>
                   </span>

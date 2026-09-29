@@ -52,7 +52,7 @@ function Dashboard() {
       )}
       <div className="grid gap-4 md:grid-cols-4">
         {[
-          ['Lotes publicados', counts?.lots?.published ?? '—', '/admin/lotes'],
+          ['Productos publicados', counts?.products?.published ?? '—', '/admin/productos'],
           ['Pedidos pendientes', (counts?.orders?.pending_payment ?? 0) + (counts?.orders?.paid ?? 0), '/admin/pedidos'],
           ['Paquetes por procesar', (counts?.packages?.received ?? 0) + (counts?.packages?.inspecting ?? 0) + (counts?.packages?.classified ?? 0), '/admin/paquetes'],
           ['Tickets abiertos', counts?.openTickets ?? '—', '/ayuda'],
@@ -83,7 +83,7 @@ function Dashboard() {
             {recovery.map((r) => (
               <li key={r.company_id} className="flex justify-between gap-2">
                 <span className="flex-1 truncate font-semibold">{r.company_name}</span>
-                <span className="whitespace-nowrap">{r.lots_sold} lotes · {clp(Number(r.revenue_recovered))}</span>
+                <span className="whitespace-nowrap">{r.lots_sold} productos · {clp(Number(r.revenue_recovered))}</span>
               </li>
             ))}
           </ul>

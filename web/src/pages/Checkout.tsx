@@ -5,7 +5,7 @@ import ProtectedRoute from '../components/ProtectedRoute';
 import { EmptyState, PageHeader } from '../components/ui';
 import { useAuth } from '../auth/AuthContext';
 import { useCart } from '../lib/cart';
-import { fetchTiers, tierPrice, useLotsByIds, type PriceTier } from '../data/shop';
+import { fetchTiers, tierPrice, useProductsByIds, type PriceTier } from '../data/shop';
 import {
   createOrder,
   quoteShipping,
@@ -41,16 +41,16 @@ function CheckoutForm() {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
   const { items, clear } = useCart();
-  const { map, loading: lotsLoading } = useLotsByIds(items.map((i) => i.lotId));
+  const { map, loading: productsLoading } = useProductsByIds(items.map((i) => i.productId));
   const { items: addresses } = useAddresses(user?.id);
   const paymentMethods = usePaymentMethods();
   const [tiersMap, setTiersMap] = useState<Record<string, PriceTier[]>>({});
   const isReseller = profile?.roleCode === 'reseller';
-  const idsKey = items.map((i) => i.lotId).sort().join(',');
+  const idsKey = items.map((i) => i.productId).sort().join(',');
 
   useEffect(() => {
     if (!isReseller) return;
-    fetchTiers(items.map((i) => i.lotId)).then(setTiersMap).catch(() => undefined);
+    fetchTiers(items.map((i) => i.productId)).then(setTiersMap).catch(() => undefined);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [idsKey, isReseller]);
 
@@ -74,16 +74,16 @@ function CheckoutForm() {
   const [addrOpen, setAddrOpen] = useState(false);
 
   const lines = items
-    .map((i) => ({ item: i, lot: map[i.lotId] }))
-    .filter((l) => l.lot);
-  const priceFor = (lotId: string, qty: number, base: number) =>
-    isReseller ? tierPrice(tiersMap[lotId] ?? [], qty, base) : base;
+    .map((i) => ({ item: i, product: map[i.productId] }))
+    .filter((l) => l.product);
+  const priceFor = (productId: string, qty: number, base: number) =>
+    isReseller ? tierPrice(tiersMap[productId] ?? [], qty, base) : base;
   const subtotal = lines.reduce(
-    (a, l) => a + priceFor(l.lot!.id, l.item.qty, l.lot!.base_price) * l.item.qty,
+    (a, l) => a + priceFor(l.product!.id, l.item.qty, l.product!.base_price) * l.item.qty,
     0,
   );
   const totalKg = lines.reduce(
-    (a, l) => a + Number(l.lot!.total_weight_kg ?? 0) * l.item.qty,
+    (a, l) => a + Number(l.product!.total_weight_kg ?? 0) * l.item.qty,
     0,
   );
   // Flete dinámico por ciudad + peso (matriz shipping_rates).
@@ -120,7 +120,7 @@ function CheckoutForm() {
     if (!user) return;
     setError(null);
     if (lines.length === 0) {
-      setError('El carrito está vacío o los lotes ya no están disponibles.');
+      setError('El carrito está vacío o los productos ya no están disponibles.');
       return;
     }
     // Sanitiza primero: lo limpio es lo que se valida y lo que se guarda.
@@ -190,9 +190,9 @@ function CheckoutForm() {
           addressId: addressId || null,
         },
         items: lines.map((l) => ({
-          lotId: l.lot!.id,
+          productId: l.product!.id,
           qty: l.item.qty,
-          unitPrice: priceFor(l.lot!.id, l.item.qty, l.lot!.base_price),
+          unitPrice: priceFor(l.product!.id, l.item.qty, l.product!.base_price),
         })),
       });
       clear();
@@ -214,7 +214,7 @@ function CheckoutForm() {
     }
   }
 
-  if (lotsLoading) {
+  if (productsLoading) {
     return (
       <Layout>
         <p className="text-sm text-slate-500">Cargando…</p>
@@ -367,13 +367,13 @@ function CheckoutForm() {
           <aside className="bg-white rounded-2xl border border-slate-200 p-5 h-fit">
             <h2 className="font-bold text-brand-950">Resumen del pedido</h2>
             <ul className="mt-3 space-y-2 text-sm">
-              {lines.map(({ item, lot }) => {
-                const unit = priceFor(lot!.id, item.qty, lot!.base_price);
+              {lines.map(({ item, product }) => {
+                const unit = priceFor(product!.id, item.qty, product!.base_price);
                 return (
-                  <li key={item.lotId} className="flex justify-between gap-2">
+                  <li key={item.productId} className="flex justify-between gap-2">
                     <span className="text-slate-600">
-                      {lot!.title} × {item.qty}
-                      {unit < lot!.base_price && (
+                      {product!.title} × {item.qty}
+                      {unit < product!.base_price && (
                         <span className="block text-xs text-emerald-700">Precio revendedor aplicado</span>
                       )}
                     </span>

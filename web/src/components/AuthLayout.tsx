@@ -4,8 +4,8 @@ import Footer from './Footer';
 
 const bullets = [
   {
-    title: 'Lotes verificados',
-    text: 'Cada lote trae SKU, condición de empaque y reporte de estado.',
+    title: 'Productos verificados',
+    text: 'Cada producto trae SKU, condición de empaque y reporte de estado.',
   },
   {
     title: 'Hasta −45% vs MSRP',

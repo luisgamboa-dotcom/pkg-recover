@@ -17,7 +17,7 @@ const accountOptions: { value: AccountType; title: string; text: string }[] = [
   {
     value: 'customer',
     title: 'Cliente particular',
-    text: 'Compra lotes, sigue pedidos y guarda favoritos.',
+    text: 'Compra productos, sigue pedidos y guarda favoritos.',
   },
   {
     value: 'reseller',
@@ -150,7 +150,7 @@ export default function Register() {
             ? '. Como empresa proveedora, un administrador verificará tu cuenta antes de habilitar el panel.'
             : accountType === 'reseller'
               ? ' de revendedor y empezar a comprar por volumen.'
-              : ' y empezar a explorar lotes.'}
+              : ' y empezar a explorar productos.'}
         </p>
         <Link
           to="/login"
@@ -169,7 +169,7 @@ export default function Register() {
   return (
     <AuthLayout
       title="Crear cuenta"
-      subtitle="Regístrate para comprar lotes verificados."
+      subtitle="Regístrate para comprar productos verificados."
     >
       {!configured && (
         <p className="mb-4 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-sm p-3">

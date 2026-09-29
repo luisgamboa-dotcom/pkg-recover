@@ -19,7 +19,7 @@ export default function Messages() {
 function Inbox() {
   const { user } = useAuth();
   const [threads, setThreads] = useState<Thread[]>([]);
-  const [activeLot, setActiveLot] = useState<string | null>(null);
+  const [activeProduct, setActiveProduct] = useState<string | null>(null);
   const [messages, setMessages] = useState<any[]>([]);
   const [draft, setDraft] = useState('');
   const [msg, setMsg] = useState<string | null>(null);
@@ -35,15 +35,15 @@ function Inbox() {
 
   async function openThread(t: Thread) {
     if (!user) return;
-    setActiveLot(t.lotId);
-    const msgs = await fetchThreadMessages(user.id, t.lotId).catch(() => []);
+    setActiveProduct(t.productId);
+    const msgs = await fetchThreadMessages(user.id, t.productId).catch(() => []);
     setMessages(msgs);
     loadThreads();
   }
 
   async function onSend(e: FormEvent) {
     e.preventDefault();
-    if (!user || !activeLot) return;
+    if (!user || !activeProduct) return;
     const clean = sanitizeMultiline(draft, LIMITS.message);
     const errLen = checkRequired(clean, 'Mensaje', 1, LIMITS.message);
     if (errLen) { setMsg(errLen); return; }
@@ -54,9 +54,9 @@ function Inbox() {
     const receiver = typeof other === 'string' ? other : undefined;
     if (!receiver) { setMsg('No se pudo determinar el destinatario.'); return; }
     try {
-      await sendMessage(activeLot, user.id, receiver, clean);
+      await sendMessage(activeProduct, user.id, receiver, clean);
       setDraft('');
-      const msgs = await fetchThreadMessages(user.id, activeLot);
+      const msgs = await fetchThreadMessages(user.id, activeProduct);
       setMessages(msgs);
       loadThreads();
     } catch (err) {
@@ -66,21 +66,21 @@ function Inbox() {
 
   return (
     <Layout>
-      <PageHeader title="Mensajes" subtitle="Consultas directas por lote con vendedores." />
+      <PageHeader title="Mensajes" subtitle="Consultas directas por producto con vendedores." />
       {msg && <p className="mb-3 text-sm text-slate-700 bg-slate-100 border rounded-lg p-3">{msg}</p>}
       {threads.length === 0 && (
-        <EmptyState title="Sin conversaciones" text="Desde un lote usa «Consultar al vendedor»." />
+        <EmptyState title="Sin conversaciones" text="Desde un producto usa «Consultar al vendedor»." />
       )}
       <div className="grid gap-4 lg:grid-cols-[320px_1fr]">
         <ul className="space-y-2">
           {threads.map((t) => (
-            <li key={t.lotId}>
+            <li key={t.productId}>
               <button
                 onClick={() => void openThread(t)}
-                className={`w-full text-left bg-white rounded-2xl border p-3 hover:shadow ${activeLot === t.lotId ? 'border-brand-900' : ''}`}
+                className={`w-full text-left bg-white rounded-2xl border p-3 hover:shadow ${activeProduct === t.productId ? 'border-brand-900' : ''}`}
               >
                 <p className="text-sm font-bold text-brand-950 truncate">
-                  {t.lotTitle} {t.unread > 0 && <span className="ml-1 text-xs text-white bg-accent-500 rounded-full px-2 py-0.5">{t.unread}</span>}
+                  {t.productTitle} {t.unread > 0 && <span className="ml-1 text-xs text-white bg-accent-500 rounded-full px-2 py-0.5">{t.unread}</span>}
                 </p>
                 <p className="text-xs text-slate-500">{t.otherName} · {formatDate(t.lastAt)}</p>
                 <p className="text-sm text-slate-600 truncate">{t.lastBody}</p>
@@ -89,8 +89,8 @@ function Inbox() {
           ))}
         </ul>
         <section className="bg-white rounded-2xl border p-4 min-h-[320px] flex flex-col">
-          {!activeLot && <p className="text-sm text-slate-500 m-auto">Elige una conversación.</p>}
-          {activeLot && (
+          {!activeProduct && <p className="text-sm text-slate-500 m-auto">Elige una conversación.</p>}
+          {activeProduct && (
             <>
               <div className="flex-1 space-y-2 overflow-auto max-h-[420px]">
                 {messages.map((m) => (

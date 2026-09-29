@@ -68,3 +68,10 @@ PERSONAS QUE DESECHAN (nuevo alcance landing)
 17. [PENDIENTE] Flujo de recepción para personas: formulario "Ofrece tus
     objetos" (fotos, comuna, retiro a domicilio o punto limpio), evaluación
     y conversión a lote. Hoy el CTA lleva a /ayuda (contacto manual).
+
+RENOMBRE LOTES → PRODUCTOS (2026-09-19)
+---------------------------------------
+17. [HECHO] Migración 14: tablas, columnas, constraints, índices, secuencias,
+    triggers, funciones, vistas, políticas y bucket renombrados a products/.
+    Frontend completo en /productos. SKU RP-##### se mantiene.
+    Plan de 20 de testeo queda pendiente de re-emitir como productos.

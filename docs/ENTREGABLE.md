@@ -14,12 +14,12 @@ Economía: **Chile (CLP, IVA 19%)**. Proyecto Supabase: `pkg-recover`.
 **Empresas y bodegas:** `companies` (RUT, código verificación, convenios),
 `company_members` (N usuarios por empresa), `warehouses` (SCL-01, VLP-01).
 
-**Catálogo:** `categories` (8 seed), `brands`, `lot_categories` (N:M).
+**Catálogo:** `categories` (8 seed), `brands`, `product_categories` (N:M).
 
-**Núcleo:** `packages` (físico recibido) → `lots` (publicación, unidad de venta:
+**Núcleo:** `packages` (físico recibido) → `products` (publicación, unidad de venta:
 SKU auto, estados empaque/producto, verificación, unidades, peso, dimensiones,
-precio/MSRP, moneda, stock, estado, destacado, circularidad) → `lot_images`
-(refs Storage), `lot_price_tiers` (volumen), `inventory_movements` (libro).
+precio/MSRP, moneda, stock, estado, destacado, circularidad) → `product_images`
+(refs Storage), `product_price_tiers` (volumen), `inventory_movements` (libro).
 
 **Compra:** `payment_methods` (card/webpay/bank_transfer/cash_on_delivery),
 `addresses` (atómica: calle, número, depto, comuna, ciudad, región, postal,
@@ -30,9 +30,9 @@ generado), `shipments` + `shipment_events`, `payments` (intentos por pasarela),
 
 **Comunidad:** `favorites` (N:M), `reviews` (rating 1–5, compra verificada),
 `notifications` + `notification_preferences` (5 interruptores),
-`support_tickets` + `ticket_messages`, `messages` (por lote).
+`support_tickets` + `ticket_messages`, `messages` (por producto).
 
-**Marketing:** `promotions` + `promotion_lots`, `faqs` (10 seed).
+**Marketing:** `promotions` + `promotion_products`, `faqs` (10 seed).
 
 Normalización 1NF/2NF/3NF: sin multivalores (direcciones atómicas,
 categorías en intermedia), sin dependencias parciales ni transitivas
@@ -63,26 +63,26 @@ Edge Functions: `supabase/functions/create-payment`, `payment-webhook`
 
 - `profiles.role_id → roles`, `profiles.id → auth.users` (cascada).
 - `company_members → companies, profiles` (única la pareja).
-- `packages.company_id → companies`; `lots → companies, packages, warehouses, brands`.
-- `lot_categories → lots, categories`; `lot_images, lot_price_tiers → lots`.
-- `inventory_movements → lots (RESTRICT), warehouses, profiles`.
+- `packages.company_id → companies`; `products → companies, packages, warehouses, brands`.
+- `product_categories → products, categories`; `product_images, product_price_tiers → products`.
+- `inventory_movements → products (RESTRICT), warehouses, profiles`.
 - `addresses → profiles`; `orders → profiles (RESTRICT), payment_methods, addresses (SET NULL)`.
-- `order_items → orders (cascada), lots (RESTRICT)`; `shipments → orders (único), warehouses`.
+- `order_items → orders (cascada), products (RESTRICT)`; `shipments → orders (único), warehouses`.
 - `shipment_events → shipments`; `payments → orders`.
-- `favorites → profiles, lots`; `reviews → lots, profiles, orders (SET NULL)`.
-- `notifications → profiles, orders/lots (SET NULL)`; `notification_preferences → profiles`.
+- `favorites → profiles, products`; `reviews → products, profiles, orders (SET NULL)`.
+- `notifications → profiles, orders/products (SET NULL)`; `notification_preferences → profiles`.
 - `support_tickets → profiles, orders (SET NULL)`; `ticket_messages → tickets, profiles`.
-- `messages → lots, profiles ×2`; `promotion_lots → promotions, lots`.
+- `messages → products, profiles ×2`; `promotion_products → promotions, products`.
 - `shipping_rates → warehouses`.
 
 ## 4. Políticas RLS (71 en public+storage, 31/31 tablas protegidas)
 
 - Públicas: roles, categorías, marcas, pagos, bodegas, FAQs/promociones
-  activas, vitrina (`lots` publicados con stock), imágenes, tramos,
-  `lot_categories`, reseñas visibles, tarifas activas.
+  activas, vitrina (`products` publicados con stock), imágenes, tramos,
+  `product_categories`, reseñas visibles, tarifas activas.
 - Dueño: perfiles (el rol solo lo cambia admin), direcciones, pedidos,
   favoritos, reseñas propias, avisos, tickets/mensajes propios.
-- Empresa: sus paquetes (lee/crea), sus lotes, pedidos con sus lotes,
+- Empresa: sus paquetes (lee/crea), sus productos, pedidos con sus productos,
   despachos asociados.
 - Comprador: crea su pedido; totales/estado solo vía trigger+admin.
 - `payments`: solo lectura propia (escriben las Functions con service_role).
@@ -98,11 +98,11 @@ Edge Functions: `supabase/functions/create-payment`, `payment-webhook`
 |---|---|
 | `set_updated_at` + 18 triggers | Auditoría `updated_at` |
 | `handle_new_user` (DEFINER, en `auth.users`) | Perfil + preferencias al registrarse, rol customer/reseller |
-| `assign_order_number/lot_sku/ticket_number` | Identificadores legibles que exige la UI |
+| `assign_order_number/product_sku/ticket_number` | Identificadores legibles que exige la UI |
 | `recalc_order_totals` (DEFINER) | Total = detalle + envío + IVA, imposible de falsear |
-| `apply_stock_delta/adjust_lot_stock` (DEFINER + guard RPC) | Sin stock negativo, `sold_out` automático |
+| `apply_stock_delta/adjust_product_stock` (DEFINER + guard RPC) | Sin stock negativo, `sold_out` automático |
 | `log_sale_movement` (DEFINER) | Historial de inventario por venta |
 | `notify_order_status/shipment/new_lot/promotion/back_in_stock` (DEFINER) | Avisos respetando preferencias |
 | `status_es` | Etiquetas ES en avisos |
-| Vistas `v_inventory_summary, v_company_recovery, v_best_selling_lots` | Reporter�\
+| Vistas `v_inventory_summary, v_company_recovery, v_best_selling_products` | Reporter�\
 ...[truncated 3075 chars]

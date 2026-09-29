@@ -132,7 +132,7 @@ function View() {
             </BarChart>
           </ResponsiveContainer>
         </ChartCard>
-        <ChartCard title="Top lotes por ingresos (CLP)">
+        <ChartCard title="Top productos por ingresos (CLP)">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={bestChart} margin={{ top: 8, right: 8, left: 8, bottom: 40 }}>
               <CartesianGrid strokeDasharray="3 3" />

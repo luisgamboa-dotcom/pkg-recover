@@ -4,13 +4,13 @@ import AdminLayout from '../../components/AdminLayout';
 import { RequireAdmin } from '../../components/RequireRole';
 import { PageHeader } from '../../components/ui';
 import {
-  deleteLotImage,
+  deleteProductImage,
   deleteTier,
-  fetchLotAdmin,
+  fetchProductAdmin,
   fetchTable,
-  saveLot,
+  saveProduct,
   saveTier,
-  uploadLotImage,
+  uploadProductImage,
 } from '../../data/admin';
 import { publicImageUrl } from '../../data/shop';
 import {
@@ -29,7 +29,7 @@ const num = (v: string, fallback = 0) => {
   return Number.isFinite(n) ? n : fallback;
 };
 
-export default function AdminLotForm() {
+export default function AdminProductForm() {
   return (
     <RequireAdmin>
       <AdminLayout>
@@ -75,23 +75,23 @@ function Form() {
       setCompanies(c); setWarehouses(w); setBrands(b); setCategories(cat); setPackages(p);
     }).catch((err) => setMsg(errorMessage(err)));
     if (!isNew && id) {
-      fetchLotAdmin(id).then((lot) => {
+      fetchProductAdmin(id).then((product) => {
         setF({
-          title: lot.title ?? '', description: lot.description ?? '',
-          company_id: lot.company_id ?? '', package_id: lot.package_id ?? '',
-          warehouse_id: lot.warehouse_id ?? '', warehouse_zone: lot.warehouse_zone ?? '',
-          brand_id: lot.brand_id ?? '', packaging_state: lot.packaging_state,
-          product_state: lot.product_state, is_verified: lot.is_verified,
-          unit_count: String(lot.unit_count), total_weight_kg: String(lot.total_weight_kg),
-          length_cm: lot.length_cm ?? '', width_cm: lot.width_cm ?? '', height_cm: lot.height_cm ?? '',
-          base_price: String(lot.base_price), msrp_reference: lot.msrp_reference ?? '',
-          currency: lot.currency, stock_quantity: String(lot.stock_quantity),
-          status: lot.status, is_featured: lot.is_featured,
-          circularity_percent: lot.circularity_percent ?? '', waste_avoided_kg: lot.waste_avoided_kg ?? '',
+          title: product.title ?? '', description: product.description ?? '',
+          company_id: product.company_id ?? '', package_id: product.package_id ?? '',
+          warehouse_id: product.warehouse_id ?? '', warehouse_zone: product.warehouse_zone ?? '',
+          brand_id: product.brand_id ?? '', packaging_state: product.packaging_state,
+          product_state: product.product_state, is_verified: product.is_verified,
+          unit_count: String(product.unit_count), total_weight_kg: String(product.total_weight_kg),
+          length_cm: product.length_cm ?? '', width_cm: product.width_cm ?? '', height_cm: product.height_cm ?? '',
+          base_price: String(product.base_price), msrp_reference: product.msrp_reference ?? '',
+          currency: product.currency, stock_quantity: String(product.stock_quantity),
+          status: product.status, is_featured: product.is_featured,
+          circularity_percent: product.circularity_percent ?? '', waste_avoided_kg: product.waste_avoided_kg ?? '',
         });
-        setCatIds((lot.lot_categories ?? []).map((c: any) => c.category_id));
-        setImages(lot.lot_images ?? []);
-        setTiers(lot.lot_price_tiers ?? []);
+        setCatIds((product.product_categories ?? []).map((c: any) => c.category_id));
+        setImages(product.product_images ?? []);
+        setTiers(product.product_price_tiers ?? []);
       }).catch((err) => setMsg(errorMessage(err)));
     }
   }, [id, isNew]);
@@ -110,7 +110,7 @@ function Form() {
     const units = Math.max(1, Math.floor(num(f.unit_count, 1)));
     setBusy(true);
     try {
-      const savedId = await saveLot(isNew ? null : (id as string), {
+      const savedId = await saveProduct(isNew ? null : (id as string), {
         title,
         description: sanitizeText(f.description, 5000) || '',
         company_id: f.company_id || null,
@@ -136,7 +136,7 @@ function Form() {
         waste_avoided_kg: f.waste_avoided_kg === '' ? null : Math.max(0, num(f.waste_avoided_kg)),
         category_ids: catIds,
       });
-      navigate(`/admin/lotes/${savedId}`, { replace: true });
+      navigate(`/admin/productos/${savedId}`, { replace: true });
     } catch (err) {
       setMsg(errorMessage(err));
     } finally {
@@ -149,9 +149,9 @@ function Form() {
     if (!file || !id || isNew) return;
     setMsg(null);
     try {
-      await uploadLotImage(id, file, images.length === 0);
-      const lot = await fetchLotAdmin(id);
-      setImages(lot.lot_images ?? []);
+      await uploadProductImage(id, file, images.length === 0);
+      const product = await fetchProductAdmin(id);
+      setImages(product.product_images ?? []);
     } catch (err) {
       setMsg(errorMessage(err));
     }
@@ -165,8 +165,8 @@ function Form() {
     if (!q || p == null) { setMsg('Tramo inválido: cantidad ≥ 2 y precio ≥ 0.'); return; }
     try {
       await saveTier(id, q, p);
-      const lot = await fetchLotAdmin(id);
-      setTiers(lot.lot_price_tiers ?? []);
+      const product = await fetchProductAdmin(id);
+      setTiers(product.product_price_tiers ?? []);
       setTierQty(''); setTierPrice('');
     } catch (err) {
       setMsg(errorMessage(err));
@@ -176,13 +176,13 @@ function Form() {
   const input = 'field-input';
   return (
     <>
-      <PageHeader title={isNew ? 'Nuevo lote' : 'Editar lote'} subtitle="Carga de productos (Gestión Circular)." />
+      <PageHeader title={isNew ? 'Nuevo producto' : 'Editar producto'} subtitle="Carga de productos (Gestión Circular)." />
       {msg && <p className="mb-3 text-sm text-slate-700 bg-slate-100 border rounded-lg p-3">{msg}</p>}
-      <form id="lot-form" onSubmit={onSubmit} className="grid gap-4 lg:grid-cols-2">
+      <form id="product-form" onSubmit={onSubmit} className="grid gap-4 lg:grid-cols-2">
         <section className="bg-white rounded-2xl border p-5 space-y-3">
           <h2 className="font-bold text-brand-950">Información general</h2>
           <div>
-            <label className="field-label" htmlFor="lt-title">Nombre del lote</label>
+            <label className="field-label" htmlFor="lt-title">Nombre del producto</label>
             <input id="lt-title" className={input} maxLength={200} value={f.title} onChange={(e) => set('title', e.target.value)} />
           </div>
           <div>
@@ -222,7 +222,7 @@ function Form() {
           </div>
           <label className="flex items-center gap-2 text-sm">
             <input type="checkbox" className="accent-[#1a365d]" checked={f.is_verified} onChange={(e) => set('is_verified', e.target.checked)} />
-            Empresa/lote verificado
+            Empresa/producto verificado
           </label>
         </section>
 
@@ -303,7 +303,7 @@ function Form() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="field-label" htmlFor="lt-stock">Stock (lotes)</label>
+              <label className="field-label" htmlFor="lt-stock">Stock (productos)</label>
               <input id="lt-stock" type="number" min={0} className={input} value={f.stock_quantity} onChange={(e) => set('stock_quantity', e.target.value)} />
             </div>
             <div>
@@ -331,14 +331,14 @@ function Form() {
 
         <section className="bg-white rounded-2xl border p-5 space-y-3">
           <h2 className="font-bold text-brand-950">Precios por volumen</h2>
-          {isNew && <p className="text-sm text-slate-500">Guarda el lote para agregar tramos.</p>}
+          {isNew && <p className="text-sm text-slate-500">Guarda el producto para agregar tramos.</p>}
           {!isNew && (
             <>
               <ul className="space-y-1 text-sm">
                 {tiers.map((t) => (
                   <li key={t.id} className="flex justify-between border-b border-slate-100 py-1">
                     <span>Desde {t.min_quantity} uds → {t.unit_price}</span>
-                    <button type="button" className="text-red-700 underline" onClick={() => { void deleteTier(t.id).then(() => fetchLotAdmin(id as string).then((l) => setTiers(l.lot_price_tiers ?? []))); }}>
+                    <button type="button" className="text-red-700 underline" onClick={() => { void deleteTier(t.id).then(() => fetchProductAdmin(id as string).then((l) => setTiers(l.product_price_tiers ?? []))); }}>
                       Quitar
                     </button>
                   </li>
@@ -353,7 +353,7 @@ function Form() {
             </>
           )}
           <h2 className="font-bold text-brand-950 pt-2">Evidencia fotográfica</h2>
-          {isNew && <p className="text-sm text-slate-500">Guarda el lote para subir fotos.</p>}
+          {isNew && <p className="text-sm text-slate-500">Guarda el producto para subir fotos.</p>}
           {!isNew && (
             <>
               <div className="grid grid-cols-4 gap-2">
@@ -361,7 +361,7 @@ function Form() {
                   <div key={im.id} className="relative">
                     <img src={publicImageUrl(im.storage_path)} alt="" className="aspect-square object-cover rounded-lg border" />
                     {im.is_primary && <span className="absolute top-1 left-1 text-[10px] font-bold bg-brand-900 text-white rounded px-1.5 py-0.5">PRINCIPAL</span>}
-                    <button type="button" className="absolute top-1 right-1 text-[10px] font-bold bg-white border rounded px-1.5 py-0.5" onClick={() => { void deleteLotImage(im.id, im.storage_path).then(() => fetchLotAdmin(id as string).then((l) => setImages(l.lot_images ?? []))); }}>
+                    <button type="button" className="absolute top-1 right-1 text-[10px] font-bold bg-white border rounded px-1.5 py-0.5" onClick={() => { void deleteProductImage(im.id, im.storage_path).then(() => fetchProductAdmin(id as string).then((l) => setImages(l.product_images ?? []))); }}>
                       ✕
                     </button>
                   </div>
@@ -376,10 +376,10 @@ function Form() {
         </section>
       </form>
       <div className="mt-4 flex gap-3">
-        <button onClick={() => void (document.getElementById('lot-form') as HTMLFormElement | null)?.requestSubmit()} disabled={busy} className="rounded-lg bg-brand-900 text-white font-semibold px-6 py-3 hover:bg-brand-700 disabled:opacity-50">
-          {busy ? 'Guardando…' : isNew ? 'Crear lote' : 'Guardar cambios'}
+        <button onClick={() => void (document.getElementById('product-form') as HTMLFormElement | null)?.requestSubmit()} disabled={busy} className="rounded-lg bg-brand-900 text-white font-semibold px-6 py-3 hover:bg-brand-700 disabled:opacity-50">
+          {busy ? 'Guardando…' : isNew ? 'Crear producto' : 'Guardar cambios'}
         </button>
-        <Link to="/admin/lotes" className="rounded-lg border px-6 py-3 font-semibold">Volver</Link>
+        <Link to="/admin/productos" className="rounded-lg border px-6 py-3 font-semibold">Volver</Link>
       </div>
     </>
   );
