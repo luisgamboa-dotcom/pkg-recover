@@ -38,7 +38,7 @@ import {
 
 function Spec({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl bg-brand-50 border border-slate-200 p-3">
+    <div className="rounded-xl bg-white border border-slate-200 p-3 shadow-sm">
       <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
         {label}
       </p>
@@ -191,7 +191,7 @@ export default function ProductDetail() {
             sin IVA ni envío · {product.stock_quantity} producto(s) disponibles
           </p>
           {isReseller && tiers.length > 0 && (
-            <div className="mt-3 rounded-xl bg-brand-50 border border-brand-100 p-3 text-sm">
+            <div className="mt-3 rounded-xl bg-white border border-brand-100 p-3 text-sm shadow-sm">
               <p className="font-bold text-brand-950">Precio revendedor por volumen</p>
               <ul className="mt-1 space-y-0.5">
                 {tiers.map((t) => (
@@ -290,8 +290,16 @@ export default function ProductDetail() {
                 }
                 setInquiryBusy(true);
                 findSellerForProduct(product.id, user.id)
-                  .then((sellerId) => sendMessage(product.id, user.id, sellerId, clean))
-                  .then(() => navigate('/mensajes'))
+                  .then((sellerId) => sendMessage(product.id, user.id, sellerId, clean).then(() => sellerId))
+                  .then((sellerId) => {
+                    setInquiryBusy(false);
+                    if (sellerId == null) {
+                      setInquiry('');
+                      setInquiryMsg('Este producto está sin proveedor: tu consulta quedó en administración como “Sin destinatario”.');
+                      return;
+                    }
+                    navigate('/mensajes');
+                  })
                   .catch((err) => {
                     setInquiryMsg(errorMessage(err));
                     setInquiryBusy(false);
@@ -299,10 +307,15 @@ export default function ProductDetail() {
               }}
             >
               <label className="field-label" htmlFor="inquiry">Consultar al vendedor</label>
+              {product.company == null && (
+                <p className="mb-2 text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-lg p-2">
+                  Producto temporalmente sin proveedor: tu consulta irá a administración con la etiqueta “Sin destinatario”.
+                </p>
+              )}
               <div className="flex gap-2">
                 <input
                   id="inquiry"
-                  className="field-input"
+                  className="field-input min-w-0 flex-1"
                   maxLength={LIMITS.message}
                   placeholder="¿El precio incluye el envío a mi ciudad?"
                   value={inquiry}

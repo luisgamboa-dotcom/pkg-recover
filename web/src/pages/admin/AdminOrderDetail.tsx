@@ -95,9 +95,9 @@ function Detail() {
       {msg && <p className="mb-3 text-sm text-slate-700 bg-slate-100 border rounded-lg p-3">{msg}</p>}
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <section className="bg-white rounded-2xl border p-5">
+        <section className="bg-white rounded-2xl border border-slate-200 p-5">
           <h2 className="font-bold text-brand-950">Estado del pedido</h2>
-          <form onSubmit={onStatus} className="mt-2 flex gap-2">
+          <form onSubmit={onStatus} className="mt-2 flex flex-col sm:flex-row gap-2">
             <select className="field-input" defaultValue={order.status} aria-label="Estado del pedido">
               {ORDER_STATUS.map((s) => <option key={s} value={s}>{orderStatusLabel(s)}</option>)}
             </select>
@@ -116,9 +116,9 @@ function Detail() {
             )}
           </p>
           <h2 className="mt-5 font-bold text-brand-950">Detalle ({clp(order.total)})</h2>
-          <ul className="mt-2 text-sm space-y-1">
+          <ul className="mt-2 text-sm space-y-1.5 divide-y divide-slate-100">
             {order.items.map((i) => (
-              <li key={i.id} className="flex justify-between gap-2">
+              <li key={i.id} className="flex justify-between gap-2 pt-1.5">
                 <span>{i.product?.title ?? 'Producto'} × {i.quantity}</span>
                 <span className="font-semibold">{clp(i.line_total)}</span>
               </li>
@@ -126,7 +126,7 @@ function Detail() {
           </ul>
         </section>
 
-        <section className="bg-white rounded-2xl border p-5">
+        <section className="bg-white rounded-2xl border border-slate-200 p-5">
           <h2 className="font-bold text-brand-950">Despacho</h2>
           <form onSubmit={onShipment} className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2">
             <input className="field-input" maxLength={100} placeholder="Transportadora" value={carrier} onChange={(e) => setCarrier(e.target.value)} aria-label="Transportadora" />
@@ -137,7 +137,7 @@ function Detail() {
             <button className="rounded-lg bg-brand-900 text-white px-4 py-2.5 font-semibold col-span-2">Guardar despacho</button>
           </form>
           <h2 className="mt-4 font-bold text-brand-950 text-sm">Agregar evento de seguimiento</h2>
-          <form onSubmit={onEvent} className="mt-2 flex gap-2">
+          <form onSubmit={onEvent} className="mt-2 flex flex-col sm:flex-row gap-2">
             <select className="field-input" value={evStatus} onChange={(e) => setEvStatus(e.target.value)} aria-label="Evento">
               {SHIP_STATUS.map((s) => <option key={s} value={s}>{s}</option>)}
             </select>

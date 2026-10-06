@@ -615,7 +615,7 @@ export async function fetchThreads(userId: string): Promise<Thread[]> {
         productId: m.product_id,
         productTitle: m.products?.title ?? 'Producto',
         productSku: m.products?.sku ?? '',
-        otherName: other ?? 'Usuario',
+        otherName: other ?? (m.receiver_id == null ? 'Sin destinatario' : 'Usuario'),
         lastBody: m.body,
         lastAt: m.created_at,
         unread: 0,
@@ -644,28 +644,31 @@ export async function fetchThreadMessages(userId: string, productId: string) {
   return (data ?? []) as any[];
 }
 
-export async function sendMessage(productId: string, senderId: string, receiverId: string, body: string) {
+export async function sendMessage(productId: string, senderId: string, receiverId: string | null, body: string) {
   const { error } = await requireSupabase()
     .from('messages')
     .insert({ product_id: productId, sender_id: senderId, receiver_id: receiverId, body });
   if (error) throw error;
 }
 
-/** Receptor de consulta por un producto: dueño de la empresa o admin. */
-export async function findSellerForProduct(productId: string, excludeId: string): Promise<string> {
+/** Receptor de consulta por un producto.
+ *  - Con proveedor y miembros: el dueño de la empresa.
+ *  - Con proveedor pero sin miembros: un admin (mensaje dirigido, no huérfano).
+ *  - Sin proveedor (empresa eliminada): NULL → mensaje huérfano que solo
+ *    administración ve con la etiqueta "Sin destinatario". */
+export async function findSellerForProduct(productId: string, excludeId: string): Promise<string | null> {
   const sb = requireSupabase();
   const { data: product } = await sb.from('products').select('company_id').eq('id', productId).single();
   const companyId = (product as any)?.company_id;
-  if (companyId) {
-    const { data: members } = await sb
-      .from('company_members')
-      .select('profile_id, company_role')
-      .eq('company_id', companyId)
-      .neq('profile_id', excludeId)
-      .order('company_role');
-    const owner = (members ?? []) as any[];
-    if (owner.length > 0) return owner[0].profile_id as string;
-  }
+  if (!companyId) return null;
+  const { data: members } = await sb
+    .from('company_members')
+    .select('profile_id, company_role')
+    .eq('company_id', companyId)
+    .neq('profile_id', excludeId)
+    .order('company_role');
+  const owner = (members ?? []) as any[];
+  if (owner.length > 0) return owner[0].profile_id as string;
   const { data: admins } = await sb
     .from('profiles')
     .select('id, roles!inner (code)')
@@ -674,6 +677,20 @@ export async function findSellerForProduct(productId: string, excludeId: string)
     .limit(1);
   if ((admins ?? []).length === 0) throw new Error('Este producto aún no tiene vendedor asignado.');
   return (admins as any[])[0].id as string;
+}
+
+/** Bandeja de mensajes huérfanos (receiver_id NULL): solo admin.
+ *  Son consultas a productos cuyo proveedor fue eliminado. */
+export async function fetchOrphanMessages() {
+  const sb = requireSupabase();
+  const { data, error } = await sb
+    .from('messages')
+    .select('id, product_id, body, created_at, sender_id, products (title, sku), sender:profiles!messages_sender_id_fkey (first_name)')
+    .is('receiver_id', null)
+    .order('created_at', { ascending: false })
+    .limit(200);
+  if (error) throw error;
+  return (data ?? []) as any[];
 }
 
 export function usePrefs(userId: string | undefined) {

@@ -165,8 +165,8 @@ export default function AddressModal({
         className="absolute inset-0 bg-brand-950/60 cursor-default"
       />
       <div className="relative bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold text-brand-950">{title}</h2>
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-xl font-bold text-brand-950 min-w-0">{title}</h2>
           <button
             onClick={onClose}
             aria-label="Cerrar ventana"

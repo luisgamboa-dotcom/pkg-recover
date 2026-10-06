@@ -87,7 +87,7 @@ function View() {
     <>
       <PageHeader title="Paquetes" subtitle="Recepción, clasificación y procesamiento." />
       {msg && <p className="mb-3 text-sm text-slate-700 bg-slate-100 border rounded-lg p-3">{msg}</p>}
-      <form onSubmit={onSubmit} className="bg-white rounded-2xl border p-4 grid gap-3 md:grid-cols-6 mb-6">
+      <form onSubmit={onSubmit} className="bg-white rounded-2xl border border-slate-200 p-4 grid gap-3 md:grid-cols-6 mb-6">
         <select className="field-input" value={companyId} onChange={(e) => setCompanyId(e.target.value)} aria-label="Empresa origen">
           <option value="">Empresa…</option>
           {companies.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
@@ -100,13 +100,13 @@ function View() {
         <input className="field-input" type="number" min={0} placeholder="Unidades" value={units} onChange={(e) => setUnits(e.target.value)} aria-label="Unidades" />
         <input className="field-input" type="number" min={0} step="0.01" placeholder="Peso kg" value={weight} onChange={(e) => setWeight(e.target.value)} aria-label="Peso" />
         <input className="field-input" maxLength={2000} placeholder="Notas" value={notes} onChange={(e) => setNotes(e.target.value)} aria-label="Notas" />
-        <button className="rounded-lg bg-brand-900 text-white font-semibold px-4 hover:bg-brand-700 md:col-start-5">Registrar</button>
+        <button className="rounded-lg bg-brand-900 text-white font-semibold px-4 py-2.5 hover:bg-brand-700 md:col-span-2 md:col-start-5">Registrar</button>
       </form>
       {items.length === 0 && <EmptyState title="Sin paquetes" text="Registra la recepción de paquetes de empresas." />}
-      <div className="bg-white rounded-2xl border overflow-x-auto">
+      <div className="bg-white rounded-2xl border border-slate-200 overflow-x-auto">
         <table className="w-full text-sm min-w-[720px]">
           <thead>
-              <tr className="text-left text-xs uppercase tracking-wider text-slate-500 border-b">
+              <tr className="text-left text-xs uppercase tracking-wider text-slate-500 border-b bg-slate-50/60">
               <th className="p-3">Recepción</th><th className="p-3">Empresa</th><th className="p-3">Método</th><th className="p-3">Origen</th>
               <th className="p-3">Uds</th><th className="p-3">Kg</th><th className="p-3">Estado</th>
             </tr>

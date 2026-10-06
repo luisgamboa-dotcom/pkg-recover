@@ -247,7 +247,7 @@ function CheckoutForm() {
                   ))}
                 </select>
               )}
-              <div className="mt-3 rounded-xl border border-slate-200 bg-brand-50 p-4">
+              <div className="mt-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
                 {recipient || streetName ? (
                   <>
                     <p className="font-bold text-brand-950">{recipient}</p>
@@ -305,7 +305,7 @@ function CheckoutForm() {
 
             <section className="bg-white rounded-2xl border border-slate-200 p-5">
               <h2 className="font-bold text-brand-950">💳 Método de pago</h2>
-              <div className="mt-3 space-y-2">
+              <div className="mt-3 space-y-3">
                 {paymentMethods.map((m) => (
                   <label
                     key={m.id}
@@ -385,17 +385,17 @@ function CheckoutForm() {
               })}
             </ul>
             <dl className="mt-3 space-y-1.5 text-sm border-t border-slate-200 pt-3">
-              <div className="flex justify-between">
+              <div className="flex justify-between gap-2">
                 <dt className="text-slate-500">Subtotal</dt>
-                <dd className="font-semibold">{clp(t.subtotal)}</dd>
+                <dd className="font-semibold whitespace-nowrap">{clp(t.subtotal)}</dd>
               </div>
-              <div className="flex justify-between">
+              <div className="flex justify-between gap-2">
                 <dt className="text-slate-500">Envío <span className="text-xs">({city} · {Math.round(totalKg)} kg)</span></dt>
-                <dd className="font-semibold">{clp(t.shipping)}</dd>
+                <dd className="font-semibold whitespace-nowrap">{clp(t.shipping)}</dd>
               </div>
-              <div className="flex justify-between">
+              <div className="flex justify-between gap-2">
                 <dt className="text-slate-500">IVA 19%</dt>
-                <dd className="font-semibold">{clp(t.tax)}</dd>
+                <dd className="font-semibold whitespace-nowrap">{clp(t.tax)}</dd>
               </div>
               <div className="flex justify-between text-base font-extrabold text-brand-950 border-t border-slate-200 pt-2">
                 <dt>Total</dt>

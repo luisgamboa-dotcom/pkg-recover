@@ -44,10 +44,10 @@ export default function Cart() {
                 className="bg-white rounded-2xl border border-slate-200 p-4 flex gap-4"
               >
                 <ProductImage product={product!} className="w-24 h-24 rounded-xl shrink-0" />
-                <div className="flex-1">
+                <div className="min-w-0 flex-1">
                   <Link
                     to={`/productos/${product!.id}`}
-                    className="font-bold text-brand-950 hover:underline"
+                    className="font-bold text-brand-950 hover:underline break-words"
                   >
                     {product!.title}
                   </Link>
@@ -92,17 +92,17 @@ export default function Cart() {
           <aside className="bg-white rounded-2xl border border-slate-200 p-5 h-fit">
             <h2 className="font-bold text-brand-950">Resumen</h2>
             <dl className="mt-3 space-y-1.5 text-sm">
-              <div className="flex justify-between">
+              <div className="flex justify-between gap-2">
                 <dt className="text-slate-500">Subtotal</dt>
-                <dd className="font-semibold">{clp(t.subtotal)}</dd>
+                <dd className="font-semibold whitespace-nowrap">{clp(t.subtotal)}</dd>
               </div>
-              <div className="flex justify-between">
+              <div className="flex justify-between gap-2">
                 <dt className="text-slate-500">Envío estimado</dt>
-                <dd className="font-semibold">{clp(t.shipping)}</dd>
+                <dd className="font-semibold whitespace-nowrap">{clp(t.shipping)}</dd>
               </div>
-              <div className="flex justify-between">
+              <div className="flex justify-between gap-2">
                 <dt className="text-slate-500">IVA 19%</dt>
-                <dd className="font-semibold">{clp(t.tax)}</dd>
+                <dd className="font-semibold whitespace-nowrap">{clp(t.tax)}</dd>
               </div>
               <div className="flex justify-between text-base font-extrabold text-brand-950 border-t border-slate-200 pt-2">
                 <dt>Total</dt>

@@ -118,13 +118,13 @@ function Panel() {
               ['Productos vendidos', active.stats?.lots_sold ?? '—'],
               ['Recuperado', clp(revenue)],
             ].map(([label, value]) => (
-              <div key={label as string} className="bg-white rounded-2xl border p-5">
+              <div key={label as string} className="bg-white rounded-2xl border border-slate-200 p-5">
                 <p className="text-2xl font-extrabold text-brand-950">{value}</p>
                 <p className="text-sm text-slate-500">{label}</p>
               </div>
             ))}
           </div>
-          <p className="mt-2 text-xs text-slate-500 flex items-center gap-2">
+          <p className="mt-3 text-xs text-slate-500 flex items-center gap-2 flex-wrap">
             <span>{active.name} · {active.verification_code ?? 'sin código'}</span>
             <span className={`font-bold uppercase tracking-wider rounded-full px-2.5 py-0.5 ${active.is_verified ? 'text-emerald-800 bg-emerald-100' : 'text-amber-800 bg-amber-100'}`}>
               {active.is_verified ? 'Verificada' : 'Pendiente de verificación'}
@@ -132,7 +132,7 @@ function Panel() {
           </p>
 
           <div className="mt-6 grid gap-4 lg:grid-cols-2">
-            <section className="bg-white rounded-2xl border p-5">
+            <section className="bg-white rounded-2xl border border-slate-200 p-5">
               <h2 className="font-bold text-brand-950">Registrar entrega de paquetes</h2>
               <form onSubmit={onPackage} className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-2">
                 <input className="field-input col-span-3" maxLength={200} placeholder="Origen (transportadora, ciudad…)" value={origin} onChange={(e) => setOrigin(e.target.value)} aria-label="Origen" />
@@ -142,12 +142,12 @@ function Panel() {
                 </select>
                 <input className="field-input" type="number" min={0} placeholder="Unidades" value={units} onChange={(e) => setUnits(e.target.value)} aria-label="Unidades" />
                 <input className="field-input" type="number" min={0} step="0.01" placeholder="Peso kg" value={weight} onChange={(e) => setWeight(e.target.value)} aria-label="Peso" />
-                <button className="rounded-lg bg-brand-900 text-white font-semibold hover:bg-brand-700">Registrar</button>
+                <button className="rounded-lg bg-brand-900 text-white font-semibold px-4 py-2.5 hover:bg-brand-700">Registrar</button>
               </form>
               <h2 className="mt-5 font-bold text-brand-950">Historial de entregas</h2>
               <ul className="mt-2 space-y-1.5 text-sm max-h-64 overflow-auto">
                 {packages.map((p) => (
-                  <li key={p.id} className="flex justify-between gap-2 border-b border-slate-100 pb-1.5">
+                  <li key={p.id} className="flex justify-between gap-2 border-b border-slate-100 pb-1.5 last:border-0">
                     <span>{formatDate(p.received_at)} · {p.origin ?? '—'}</span>
                     <span className="whitespace-nowrap">{p.total_units} uds · {p.status}</span>
                   </li>
@@ -156,11 +156,11 @@ function Panel() {
               </ul>
             </section>
 
-            <section className="bg-white rounded-2xl border p-5">
+            <section className="bg-white rounded-2xl border border-slate-200 p-5">
               <h2 className="font-bold text-brand-950">Productos derivados</h2>
               <ul className="mt-2 space-y-1.5 text-sm max-h-64 overflow-auto">
                 {products.map((l) => (
-                  <li key={l.id} className="flex justify-between gap-2 border-b border-slate-100 pb-1.5">
+                  <li key={l.id} className="flex justify-between gap-2 border-b border-slate-100 pb-1.5 last:border-0">
                     <span className="font-mono text-slate-500">{l.sku}</span>
                     <span className="flex-1 truncate">{l.title}</span>
                     <span className="whitespace-nowrap">{l.status} · {clp(Number(l.base_price))}</span>
@@ -171,7 +171,7 @@ function Panel() {
               <h2 className="mt-5 font-bold text-brand-950">Ventas de tus productos</h2>
               <ul className="mt-2 space-y-1.5 text-sm max-h-64 overflow-auto">
                 {sales.map((s, i) => (
-                  <li key={i} className="flex justify-between gap-2 border-b border-slate-100 pb-1.5">
+                  <li key={i} className="flex justify-between gap-2 border-b border-slate-100 pb-1.5 last:border-0">
                     <span>{s.orders?.order_number} · {s.products?.title ?? 'Producto'} × {s.quantity}</span>
                     <span className="whitespace-nowrap">{orderStatusLabel(s.orders?.status ?? '')} · {clp(Number(s.line_total))}</span>
                   </li>

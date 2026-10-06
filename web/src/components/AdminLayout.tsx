@@ -10,6 +10,7 @@ const links = [
   ['/admin/pedidos', 'Pedidos'],
   ['/admin/empresas', 'Empresas'],
   ['/admin/usuarios', 'Usuarios'],
+  ['/admin/mensajes', 'Mensajes'],
   ['/admin/catalogos', 'Catálogos'],
   ['/admin/reportes', 'Reportes'],
   ['/admin/cambios', 'Cambios'],
@@ -18,21 +19,21 @@ const links = [
 export default function AdminLayout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-dvh bg-brand-50 flex flex-col lg:flex-row">
-      <aside className="lg:w-60 shrink-0 bg-brand-900 text-white p-4 lg:min-h-dvh">
+      <aside className="lg:w-60 shrink-0 bg-brand-900 text-white p-4 lg:min-h-dvh border-b border-white/10 lg:border-b-0">
         <Link to="/" className="flex items-center gap-2 px-2 py-2">
           <span className="grid place-items-center w-8 h-8 rounded-lg bg-accent-500 font-extrabold">
             R
           </span>
           <span className="font-extrabold text-sm">ADMIN PANEL</span>
         </Link>
-        <nav className="mt-2 flex lg:flex-col gap-1 overflow-x-auto">
+        <nav className="mt-2 flex lg:flex-col gap-2 overflow-x-auto pb-1">
           {links.map(([to, label, exact]) => (
             <NavLink
               key={to}
               to={to}
               end={Boolean(exact)}
               className={({ isActive }) =>
-                `whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium ${
+                `whitespace-nowrap shrink-0 rounded-lg px-3 py-2 text-sm font-medium ${
                   isActive ? 'bg-white/15 text-white' : 'text-white/75 hover:bg-white/10'
                 }`
               }

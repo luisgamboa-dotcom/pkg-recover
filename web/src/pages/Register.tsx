@@ -180,7 +180,7 @@ export default function Register() {
       <form onSubmit={onSubmit} noValidate className="space-y-4">
         <div>
           <span className="field-label">Tipo de cuenta</span>
-          <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Tipo de cuenta">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2" role="radiogroup" aria-label="Tipo de cuenta">
             {accountOptions.map((o) => (
               <button
                 key={o.value}

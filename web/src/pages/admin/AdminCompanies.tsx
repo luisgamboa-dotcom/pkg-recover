@@ -88,10 +88,10 @@ function View() {
       <PageHeader title="Empresas" subtitle="Registro, verificación y convenios." />
       {msg && <p className="mb-3 text-sm text-slate-700 bg-slate-100 border rounded-lg p-3">{msg}</p>}
       <div className="grid gap-4 lg:grid-cols-[1fr_360px]">
-        <div className="bg-white rounded-2xl border overflow-x-auto h-fit">
+        <div className="bg-white rounded-2xl border border-slate-200 overflow-x-auto h-fit">
           <table className="w-full text-sm min-w-[560px]">
             <thead>
-              <tr className="text-left text-xs uppercase tracking-wider text-slate-500 border-b">
+              <tr className="text-left text-xs uppercase tracking-wider text-slate-500 border-b bg-slate-50/60">
                 <th className="p-3">Empresa</th><th className="p-3">RUT</th><th className="p-3">Código</th><th className="p-3">Estado</th><th className="p-3"></th>
               </tr>
             </thead>
@@ -111,9 +111,9 @@ function View() {
               ))}
             </tbody>
           </table>
-          {items.length === 0 && <EmptyState title="Sin empresas" text="Registra la primera empresa proveedora." />}
-        </div>
-        <form onSubmit={onSubmit} className="bg-white rounded-2xl border p-4 space-y-2.5 h-fit">
+                  </div>
+        {items.length === 0 && <EmptyState title="Sin empresas" text="Registra la primera empresa proveedora." />}
+        <form onSubmit={onSubmit} className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3 h-fit">
           <h2 className="font-bold text-brand-950">{editing ? 'Editar empresa' : 'Nueva empresa'}</h2>
           <input className="field-input" maxLength={200} placeholder="Nombre *" value={name} onChange={(e) => setName(e.target.value)} aria-label="Nombre" />
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">

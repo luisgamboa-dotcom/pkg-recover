@@ -146,7 +146,8 @@ function Editor() {
         title="Mi cuenta"
         subtitle={`${user?.email ?? ''} · ${profile?.roleName ?? ''}`}
       />
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-6 lg:grid-cols-2 items-start">
+        <div className="space-y-6 min-w-0">
         <section className="bg-white rounded-2xl border border-slate-200 p-5">
           <h2 className="font-bold text-brand-950">Datos personales</h2>
           <form onSubmit={onProfile} className="mt-3 space-y-3">
@@ -169,12 +170,14 @@ function Editor() {
               Guardar
             </button>
           </form>
+          </section>
 
-          <h2 className="mt-6 font-bold text-brand-950">Cambiar contraseña</h2>
+          <section className="bg-white rounded-2xl border border-slate-200 p-5">
+          <h2 className="font-bold text-brand-950">Cambiar contraseña</h2>
           <form onSubmit={onPassword} className="mt-3 flex gap-2">
             <input
               type="password"
-              className="field-input"
+              className="field-input min-w-0 flex-1"
               maxLength={LIMITS.password}
               placeholder="Nueva contraseña"
               value={newPass}
@@ -186,8 +189,10 @@ function Editor() {
             </button>
           </form>
           {passMsg && <p className="mt-1 text-sm text-slate-600">{passMsg}</p>}
+          </section>
 
-          <h2 className="mt-6 font-bold text-brand-950">Notificaciones</h2>
+          <section className="bg-white rounded-2xl border border-slate-200 p-5">
+          <h2 className="font-bold text-brand-950">Notificaciones</h2>
           <div className="mt-2 space-y-1.5 text-sm">
             {PREF_LABELS.map(([key, labelText]) => (
               <label key={key} className="flex items-center gap-2">
@@ -211,6 +216,7 @@ function Editor() {
             Cerrar sesión
           </button>
         </section>
+        </div>
 
         <section className="bg-white rounded-2xl border border-slate-200 p-5">
           <h2 className="font-bold text-brand-950">Direcciones de despacho</h2>

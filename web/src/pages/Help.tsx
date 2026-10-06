@@ -95,7 +95,7 @@ export default function Help() {
                   {f.question}
                 </button>
                 {open === f.id && (
-                  <p className="px-4 pb-4 text-sm text-slate-600">{f.answer}</p>
+                  <p className="px-4 pb-4 pt-2 border-t border-slate-100 text-sm text-slate-600">{f.answer}</p>
                 )}
               </div>
             ))}
@@ -105,7 +105,7 @@ export default function Help() {
               </p>
             )}
           </div>
-          <div className="mt-4 text-sm text-slate-600 bg-white rounded-xl border border-slate-200 p-4">
+          <div className="mt-4 text-sm text-slate-600 bg-white rounded-xl border border-slate-200 p-5">
             <p className="font-bold text-brand-950">Contacto</p>
             <p>soporte@recuperapack.com · Lun–Vie 9:00–18:00 (Santiago)</p>
           </div>
@@ -118,7 +118,7 @@ export default function Help() {
               Debes iniciar sesión para abrir un ticket.
             </p>
           ) : (
-            <form onSubmit={onTicket} className="mt-3 bg-white rounded-xl border border-slate-200 p-4 space-y-3">
+            <form onSubmit={onTicket} className="mt-3 bg-white rounded-xl border border-slate-200 p-5 space-y-3">
               <div>
                 <label className="field-label" htmlFor="tk-subject">Asunto</label>
                 <input id="tk-subject" className="field-input" maxLength={LIMITS.subject} value={subject} onChange={(e) => setSubject(e.target.value)} />

@@ -72,12 +72,12 @@ function CatalogEditor({
   }
 
   return (
-    <section className="bg-white rounded-2xl border p-4">
+    <section className="bg-white rounded-2xl border border-slate-200 p-5">
       <h2 className="font-bold text-brand-950">{title}</h2>
       {msg && <p className="my-2 text-xs text-slate-700 bg-slate-100 rounded p-2">{msg}</p>}
-      <ul className="mt-2 space-y-1 text-sm max-h-56 overflow-auto">
+      <ul className="mt-2 space-y-1.5 text-sm max-h-56 overflow-auto divide-y divide-slate-100">
         {rows.map((r) => (
-          <li key={r.id} className="flex justify-between gap-2 border-b border-slate-100 py-1">
+          <li key={r.id} className="flex justify-between gap-2 py-1.5">
             <span className="truncate">{renderRow(r)}</span>
             <span className="flex gap-2 shrink-0">
               <button onClick={() => startEdit(r)} className="text-brand-900 underline">Editar</button>
@@ -96,7 +96,7 @@ function CatalogEditor({
         ))}
         {rows.length === 0 && <li className="text-slate-400">Vacío.</li>}
       </ul>
-      <form onSubmit={onSubmit} className="mt-3 space-y-2">
+      <form onSubmit={onSubmit} className="mt-3 space-y-2.5">
         {fields.map((f) => {
           const v = values[f.key];
           return f.type === 'checkbox' ? (
@@ -242,7 +242,7 @@ export default function AdminCatalogs() {
           />
         </div>
 
-        <section className="mt-4 bg-white rounded-2xl border p-4">
+        <section className="mt-4 bg-white rounded-2xl border border-slate-200 p-5">
           <h2 className="font-bold text-brand-950">Vincular producto a promoción (por SKU)</h2>
           <form onSubmit={onLink} className="mt-2 flex flex-wrap gap-2">
             <select className="field-input w-auto!" value={promoId} onChange={(e) => setPromoId(e.target.value)} aria-label="Promoción">

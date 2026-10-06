@@ -138,8 +138,8 @@ export default function AdminChangelog() {
                     {e.area}
                   </span>
                 </div>
-                <h2 className="mt-1.5 font-bold text-brand-950">{e.title}</h2>
-                <p className="mt-0.5 text-sm text-slate-600">{e.detail}</p>
+                <h2 className="mt-2 font-bold text-brand-950">{e.title}</h2>
+                <p className="mt-1 text-sm text-slate-600">{e.detail}</p>
               </div>
             </li>
           ))}

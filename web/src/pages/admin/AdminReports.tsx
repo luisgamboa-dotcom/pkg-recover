@@ -23,7 +23,7 @@ const PIE_COLORS = ['#1a365d', '#ed8936', '#2f855a', '#718096', '#9f7aea', '#e53
 
 function ChartCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="bg-white rounded-2xl border p-5">
+    <section className="bg-white rounded-2xl border border-slate-200 p-5">
       <h2 className="font-bold text-brand-950">{title}</h2>
       <div className="mt-2 h-64">{children}</div>
     </section>
@@ -146,11 +146,11 @@ function View() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
-        <section className="bg-white rounded-2xl border p-5">
+        <section className="bg-white rounded-2xl border border-slate-200 p-5">
           <h2 className="font-bold text-brand-950">Valor económico recuperado: {clp(totalRecovered)}</h2>
           <ul className="mt-3 space-y-1.5 text-sm max-h-72 overflow-auto">
             {recovery.map((r) => (
-              <li key={r.company_id} className="flex justify-between gap-2 border-b border-slate-100 pb-1.5">
+              <li key={r.company_id} className="flex justify-between gap-2 border-b border-slate-100 pb-1.5 last:border-0">
                 <span>{r.company_name} <span className="text-slate-400">({r.packages_received} paq. · {r.lots_sold} vendidos)</span></span>
                 <span className="font-bold whitespace-nowrap">{clp(Number(r.revenue_recovered))}</span>
               </li>
@@ -167,11 +167,11 @@ function View() {
           </button>
         </section>
 
-        <section className="bg-white rounded-2xl border p-5">
+        <section className="bg-white rounded-2xl border border-slate-200 p-5">
           <h2 className="font-bold text-brand-950">Inventario valorizado: {clp(totalStockValue)}</h2>
           <ul className="mt-3 space-y-1.5 text-sm max-h-72 overflow-auto">
             {inventory.slice(0, 30).map((r) => (
-              <li key={r.id} className="flex justify-between gap-2 border-b border-slate-100 pb-1.5">
+              <li key={r.id} className="flex justify-between gap-2 border-b border-slate-100 pb-1.5 last:border-0">
                 <span className="font-mono text-slate-500">{r.sku}</span>
                 <span className="flex-1 truncate">{r.title}</span>
                 <span className="font-bold whitespace-nowrap">{clp(Number(r.stock_value))}</span>
@@ -190,11 +190,11 @@ function View() {
         </section>
       </div>
 
-      <section className="mt-4 bg-white rounded-2xl border p-5">
+      <section className="mt-4 bg-white rounded-2xl border border-slate-200 p-5">
         <h2 className="font-bold text-brand-950">Productos más vendidos</h2>
         <ul className="mt-3 space-y-1.5 text-sm">
           {best.map((b, i) => (
-            <li key={b.id} className="flex justify-between gap-2 border-b border-slate-100 pb-1.5">
+            <li key={b.id} className="flex justify-between gap-2 border-b border-slate-100 pb-1.5 last:border-0">
               <span>#{i + 1} {b.title} <span className="text-slate-400">({b.units_sold} uds · {b.orders_count} pedidos)</span></span>
               <span className="font-bold whitespace-nowrap">{clp(Number(b.revenue))}</span>
             </li>

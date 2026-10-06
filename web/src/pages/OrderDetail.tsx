@@ -116,7 +116,7 @@ function PayPanel({
           Método: {methodName}. Si tienes dudas, contáctanos por <Link to="/ayuda" className="underline font-semibold">soporte</Link>.
         </p>
       )}
-      {msg && <p role="status" className="mt-2 text-sm text-slate-700 bg-white border rounded-lg p-3">{msg}</p>}
+      {msg && <p role="status" className="mt-2 text-sm text-slate-700 bg-white border border-slate-200 rounded-lg p-3">{msg}</p>}
     </div>
   );
 }
@@ -226,7 +226,7 @@ function Detail() {
                 </li>
               ))}
             </ul>
-            <dl className="mt-2 space-y-1 text-sm border-t border-slate-200 pt-3">
+            <dl className="mt-2 space-y-1.5 text-sm border-t border-slate-200 pt-3">
               <div className="flex justify-between"><dt className="text-slate-500">Subtotal</dt><dd>{clp(order.subtotal)}</dd></div>
               <div className="flex justify-between"><dt className="text-slate-500">Envío</dt><dd>{clp(order.shipping_cost)}</dd></div>
               <div className="flex justify-between"><dt className="text-slate-500">IVA</dt><dd>{clp(order.tax_amount)}</dd></div>
@@ -276,7 +276,7 @@ function Detail() {
                 {shipment.events.length > 0 && (
                   <ul className="mt-4 space-y-2 text-sm">
                     {shipment.events.map((ev, i) => (
-                      <li key={i} className="flex justify-between gap-2 border-b border-slate-100 pb-2">
+                      <li key={i} className="flex justify-between gap-2 border-b border-slate-100 pb-2 last:border-0">
                         <span>
                           <span className="font-semibold">{shipmentStatusLabel(ev.status)}</span>
                           {ev.location_text && <span className="text-slate-500"> · {ev.location_text}</span>}
@@ -303,7 +303,7 @@ function Detail() {
             region: order.ship_region,
             postal_code: order.ship_postal_code,
           })}</p>
-          <h2 className="mt-4 font-bold text-brand-950">¿Necesitas ayuda?</h2>
+          <h2 className="mt-6 pt-4 border-t border-slate-100 font-bold text-brand-950">¿Necesitas ayuda?</h2>
           <Link to="/ayuda" className="text-brand-900 font-semibold underline">
             Abrir un ticket de soporte
           </Link>

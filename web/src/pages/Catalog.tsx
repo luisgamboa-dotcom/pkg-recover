@@ -126,7 +126,7 @@ export default function Catalog() {
         </div>
       </div>
 
-      {loading && <p className="text-sm text-slate-500">Cargando productos…</p>}
+      {loading && <p className="mb-3 text-sm text-slate-500">Cargando productos…</p>}
       {error && (
         <p role="alert" className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg p-3">
           {error}
@@ -138,7 +138,7 @@ export default function Catalog() {
           text="Ajusta los filtros o vuelve cuando se publiquen nuevos productos."
         />
       )}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {products.map((product) => (
           <ProductCard key={product.id} product={product} />
         ))}

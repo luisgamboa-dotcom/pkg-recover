@@ -32,7 +32,7 @@ function List() {
 
   return (
     <Layout>
-      <div className="flex items-center justify-between flex-wrap gap-3">
+      <div className="flex items-center justify-between flex-wrap gap-3 [&>div:first-child]:mb-0">
         <PageHeader title="Avisos" subtitle={`${unread} sin leer · ofertas, pedidos y despachos.`} />
         {unread > 0 && (
           <button onClick={() => void markAllRead()} className="rounded-lg border px-4 py-2 text-sm font-semibold">
@@ -48,7 +48,7 @@ function List() {
         {items.map((n) => {
           const to = target(n);
           const body = (
-            <div className={`bg-white rounded-2xl border p-5 ${n.is_read ? '' : 'border-brand-900 shadow'}`}>
+            <div className={`bg-white rounded-2xl border border-slate-200 p-5 ${n.is_read ? 'border-slate-200' : 'border-brand-900 shadow'}`}>
               <div className="flex items-center gap-2">
                 <span className="text-[11px] font-bold uppercase tracking-wider text-white bg-brand-900 rounded-full px-2.5 py-0.5">
                   {TYPE_LABEL[n.type] ?? n.type}
@@ -57,7 +57,7 @@ function List() {
                 <span className="ml-auto text-xs text-slate-400">{formatDate(n.created_at)}</span>
               </div>
               <p className="mt-1.5 font-bold text-brand-950">{n.title}</p>
-              {n.body && <p className="text-sm text-slate-600">{n.body}</p>}
+              {n.body && <p className="mt-1 text-sm text-slate-600">{n.body}</p>}
             </div>
           );
           return to ? (

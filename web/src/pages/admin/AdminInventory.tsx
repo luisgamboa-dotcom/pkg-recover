@@ -62,7 +62,7 @@ function View() {
     <>
       <PageHeader title="Inventario" subtitle="Movimientos y existencias por producto." />
       {msg && <p className="mb-3 text-sm text-slate-700 bg-slate-100 border rounded-lg p-3">{msg}</p>}
-      <form onSubmit={onSubmit} className="bg-white rounded-2xl border p-4 grid gap-3 md:grid-cols-5 mb-6">
+      <form onSubmit={onSubmit} className="bg-white rounded-2xl border border-slate-200 p-5 grid gap-3 md:grid-cols-5 mb-6">
         <select className="field-input" value={productId} onChange={(e) => setProductId(e.target.value)} aria-label="Producto">
           <option value="">Producto…</option>
           {products.map((l) => <option key={l.id} value={l.id}>{l.sku} · {l.title} (stock {l.stock_quantity})</option>)}
@@ -76,10 +76,10 @@ function View() {
         <input className="field-input md:col-span-4" maxLength={1000} placeholder="Notas (opcional)" value={notes} onChange={(e) => setNotes(e.target.value)} aria-label="Notas" />
       </form>
       {movs.length === 0 && <EmptyState title="Sin movimientos" text="Registra entradas, ajustes o retiros." />}
-      <div className="bg-white rounded-2xl border overflow-x-auto">
+      <div className="bg-white rounded-2xl border border-slate-200 overflow-x-auto">
         <table className="w-full text-sm min-w-[680px]">
           <thead>
-            <tr className="text-left text-xs uppercase tracking-wider text-slate-500 border-b">
+            <tr className="text-left text-xs uppercase tracking-wider text-slate-500 border-b bg-slate-50/60">
               <th className="p-3">Fecha</th><th className="p-3">Producto</th><th className="p-3">Tipo</th>
               <th className="p-3">Cant.</th><th className="p-3">Ref.</th><th className="p-3">Notas</th>
             </tr>

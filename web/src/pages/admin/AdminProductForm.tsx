@@ -106,6 +106,7 @@ function Form() {
     const errTitle = checkRequired(title, 'Título', 3, 200);
     const base = parsePrice(f.base_price);
     if (errTitle) { setMsg(errTitle); return; }
+    if (!f.company_id) { setMsg('Selecciona la empresa proveedora (todo producto debe tener proveedor).'); return; }
     if (base == null) { setMsg('Precio base inválido.'); return; }
     const units = Math.max(1, Math.floor(num(f.unit_count, 1)));
     setBusy(true);
@@ -179,7 +180,7 @@ function Form() {
       <PageHeader title={isNew ? 'Nuevo producto' : 'Editar producto'} subtitle="Carga de productos (Gestión Circular)." />
       {msg && <p className="mb-3 text-sm text-slate-700 bg-slate-100 border rounded-lg p-3">{msg}</p>}
       <form id="product-form" onSubmit={onSubmit} className="grid gap-4 lg:grid-cols-2">
-        <section className="bg-white rounded-2xl border p-5 space-y-3">
+        <section className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
           <h2 className="font-bold text-brand-950">Información general</h2>
           <div>
             <label className="field-label" htmlFor="lt-title">Nombre del producto</label>
@@ -206,9 +207,9 @@ function Form() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="field-label" htmlFor="lt-company">Empresa origen</label>
-              <select id="lt-company" className={input} value={f.company_id} onChange={(e) => set('company_id', e.target.value)}>
-                <option value="">—</option>
+              <label className="field-label" htmlFor="lt-company">Empresa origen *</label>
+              <select id="lt-company" className={input} value={f.company_id} onChange={(e) => set('company_id', e.target.value)} required>
+                <option value="">Selecciona…</option>
                 {companies.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
             </div>
@@ -226,7 +227,7 @@ function Form() {
           </label>
         </section>
 
-        <section className="bg-white rounded-2xl border p-5 space-y-3">
+        <section className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
           <h2 className="font-bold text-brand-950">Estado y logística</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
@@ -282,7 +283,7 @@ function Form() {
           </div>
         </section>
 
-        <section className="bg-white rounded-2xl border p-5 space-y-3">
+        <section className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
           <h2 className="font-bold text-brand-950">Comercial</h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
@@ -329,14 +330,14 @@ function Form() {
           </label>
         </section>
 
-        <section className="bg-white rounded-2xl border p-5 space-y-3">
+        <section className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
           <h2 className="font-bold text-brand-950">Precios por volumen</h2>
           {isNew && <p className="text-sm text-slate-500">Guarda el producto para agregar tramos.</p>}
           {!isNew && (
             <>
-              <ul className="space-y-1 text-sm">
+              <ul className="space-y-1.5 text-sm divide-y divide-slate-100">
                 {tiers.map((t) => (
-                  <li key={t.id} className="flex justify-between border-b border-slate-100 py-1">
+                  <li key={t.id} className="flex justify-between gap-2 py-1.5">
                     <span>Desde {t.min_quantity} uds → {t.unit_price}</span>
                     <button type="button" className="text-red-700 underline" onClick={() => { void deleteTier(t.id).then(() => fetchProductAdmin(id as string).then((l) => setTiers(l.product_price_tiers ?? []))); }}>
                       Quitar
@@ -345,8 +346,8 @@ function Form() {
                 ))}
                 {tiers.length === 0 && <li className="text-slate-500">Sin tramos.</li>}
               </ul>
-              <div className="flex gap-2">
-                <input className={input} type="number" min={2} placeholder="Cant. mín." value={tierQty} onChange={(e) => setTierQty(e.target.value)} aria-label="Cantidad mínima" />
+              <div className="flex flex-col sm:flex-row gap-2">
+                <input className={`${input} min-w-0 flex-1`} type="number" min={2} placeholder="Cant. mín." value={tierQty} onChange={(e) => setTierQty(e.target.value)} aria-label="Cantidad mínima" />
                 <input className={input} type="number" min={0} placeholder="Precio" value={tierPrice} onChange={(e) => setTierPrice(e.target.value)} aria-label="Precio por volumen" />
                 <button type="button" onClick={() => void onAddTier()} className="rounded-lg border px-4 font-semibold shrink-0">Agregar</button>
               </div>
@@ -356,7 +357,7 @@ function Form() {
           {isNew && <p className="text-sm text-slate-500">Guarda el producto para subir fotos.</p>}
           {!isNew && (
             <>
-              <div className="grid grid-cols-4 gap-2">
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
                 {images.map((im) => (
                   <div key={im.id} className="relative">
                     <img src={publicImageUrl(im.storage_path)} alt="" className="aspect-square object-cover rounded-lg border" />
@@ -375,7 +376,7 @@ function Form() {
           )}
         </section>
       </form>
-      <div className="mt-4 flex gap-3">
+      <div className="mt-4 flex flex-wrap gap-3">
         <button onClick={() => void (document.getElementById('product-form') as HTMLFormElement | null)?.requestSubmit()} disabled={busy} className="rounded-lg bg-brand-900 text-white font-semibold px-6 py-3 hover:bg-brand-700 disabled:opacity-50">
           {busy ? 'Guardando…' : isNew ? 'Crear producto' : 'Guardar cambios'}
         </button>

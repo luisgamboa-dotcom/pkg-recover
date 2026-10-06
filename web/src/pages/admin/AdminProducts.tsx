@@ -58,7 +58,7 @@ function List() {
 
   return (
     <>
-      <div className="flex items-center justify-between flex-wrap gap-3">
+      <div className="flex items-center justify-between flex-wrap gap-3 [&>div:first-child]:mb-0">
         <PageHeader title="Productos" subtitle="Publicaciones del catálogo." />
         <Link to="/admin/productos/nuevo" className="rounded-lg bg-accent-500 text-white font-semibold px-4 py-2.5 hover:bg-accent-600">
           + Nuevo producto
@@ -78,7 +78,7 @@ function List() {
       <div className="bg-white rounded-2xl border border-slate-200 overflow-x-auto">
         <table className="w-full text-sm min-w-[720px]">
           <thead>
-            <tr className="text-left text-xs uppercase tracking-wider text-slate-500 border-b">
+            <tr className="text-left text-xs uppercase tracking-wider text-slate-500 border-b bg-slate-50/60">
               <th className="p-3">SKU</th>
               <th className="p-3">Título</th>
               <th className="p-3">Estado</th>
@@ -97,13 +97,13 @@ function List() {
                 <td className="p-3">{l.stock_quantity}</td>
                 <td className="p-3">{clp(Number(l.base_price))}</td>
                 <td className="p-3">{l.companies?.name ?? '—'}</td>
-                <td className="p-3 flex gap-2">
+                <td className="p-3"><div className="flex gap-2 whitespace-nowrap">
                   <Link to={`/admin/productos/${l.id}`} className="text-brand-900 underline">Editar</Link>
                   <button onClick={() => void togglePublish(l)} className="text-brand-900 underline">
                     {l.status === 'published' ? 'Pausar' : 'Publicar'}
                   </button>
                   <button onClick={() => void onDelete(l)} className="text-red-700 underline">Borrar</button>
-                </td>
+                </div></td>
               </tr>
             ))}
           </tbody>

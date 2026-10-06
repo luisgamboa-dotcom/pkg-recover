@@ -45,10 +45,10 @@ function List() {
       <PageHeader title="Usuarios" subtitle="Roles, permisos y activación." />
       {msg && <p className="mb-3 text-sm text-slate-700 bg-slate-100 border rounded-lg p-3">{msg}</p>}
       {users.length === 0 && <EmptyState title="Sin usuarios" text="Aparecen al registrarse." />}
-      <div className="bg-white rounded-2xl border overflow-x-auto">
+      <div className="bg-white rounded-2xl border border-slate-200 overflow-x-auto">
         <table className="w-full text-sm min-w-[680px]">
           <thead>
-            <tr className="text-left text-xs uppercase tracking-wider text-slate-500 border-b">
+            <tr className="text-left text-xs uppercase tracking-wider text-slate-500 border-b bg-slate-50/60">
               <th className="p-3">Usuario</th><th className="p-3">Teléfono</th><th className="p-3">Rol</th>
               <th className="p-3">Estado</th><th className="p-3">Registro</th>
             </tr>

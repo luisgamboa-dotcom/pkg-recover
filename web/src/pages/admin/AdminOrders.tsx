@@ -43,10 +43,10 @@ function List() {
         </select>
       </div>
       {shown.length === 0 && <EmptyState title="Sin pedidos" text="Aún no hay ventas registradas." />}
-      <div className="bg-white rounded-2xl border overflow-x-auto">
+      <div className="bg-white rounded-2xl border border-slate-200 overflow-x-auto">
         <table className="w-full text-sm min-w-[720px]">
           <thead>
-            <tr className="text-left text-xs uppercase tracking-wider text-slate-500 border-b">
+            <tr className="text-left text-xs uppercase tracking-wider text-slate-500 border-b bg-slate-50/60">
               <th className="p-3">Pedido</th><th className="p-3">Fecha</th><th className="p-3">Comprador</th>
               <th className="p-3">Ciudad</th><th className="p-3">Pago</th><th className="p-3">Estado</th><th className="p-3">Total</th><th className="p-3"></th>
             </tr>

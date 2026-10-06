@@ -33,7 +33,7 @@ export default function Home() {
     <div className="min-h-dvh bg-brand-50">
       {/* Header */}
       <header className="bg-brand-900 text-white">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between gap-3 flex-wrap">
           <Link to="/" className="flex items-center gap-3">
             <span className="grid place-items-center w-9 h-9 rounded-lg bg-gradient-to-br from-accent-500 to-accent-600 font-extrabold text-lg shadow">
               R
@@ -115,7 +115,7 @@ export default function Home() {
               Vende lo que ya no usas
             </Link>
           </div>
-          <dl className="mt-10 grid grid-cols-3 max-w-lg gap-4">
+          <dl className="mt-10 grid grid-cols-1 sm:grid-cols-3 max-w-lg gap-3 sm:gap-4">
             {[
               ['−45%', 'vs precio de referencia'],
               ['8', 'categorías'],
@@ -272,8 +272,9 @@ export default function Home() {
         </div>
       </section>
 
+      <div className="pb-16 md:pb-0">
       <Footer />
-      <div className="h-16 md:hidden" aria-hidden="true" />
+      </div>
       <MobileNav />
     </div>
   );

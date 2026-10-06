@@ -51,8 +51,8 @@ function Inbox() {
     const other =
       messages.filter((m) => m.sender_id !== user.id).slice(-1)[0]?.sender_id ??
       messages.filter((m) => m.receiver_id !== user.id).slice(-1)[0]?.receiver_id;
-    const receiver = typeof other === 'string' ? other : undefined;
-    if (!receiver) { setMsg('No se pudo determinar el destinatario.'); return; }
+    const receiver = typeof other === 'string' ? other : null;
+    if (receiver == null && messages.some((m) => m.receiver_id != null)) { setMsg('No se pudo determinar el destinatario.'); return; }
     try {
       await sendMessage(activeProduct, user.id, receiver, clean);
       setDraft('');
@@ -77,10 +77,11 @@ function Inbox() {
             <li key={t.productId}>
               <button
                 onClick={() => void openThread(t)}
-                className={`w-full text-left bg-white rounded-2xl border p-3 hover:shadow ${activeProduct === t.productId ? 'border-brand-900' : ''}`}
+                className={`w-full text-left bg-white rounded-2xl border border-slate-200 p-3 hover:shadow ${activeProduct === t.productId ? 'border-brand-900' : ''}`}
               >
                 <p className="text-sm font-bold text-brand-950 truncate">
                   {t.productTitle} {t.unread > 0 && <span className="ml-1 text-xs text-white bg-accent-500 rounded-full px-2 py-0.5">{t.unread}</span>}
+                  {t.otherName === 'Sin destinatario' && <span className="ml-1 text-[11px] font-bold uppercase tracking-wider text-amber-800 bg-amber-100 rounded-full px-2 py-0.5">Sin destinatario</span>}
                 </p>
                 <p className="text-xs text-slate-500">{t.otherName} · {formatDate(t.lastAt)}</p>
                 <p className="text-sm text-slate-600 truncate">{t.lastBody}</p>
@@ -88,7 +89,7 @@ function Inbox() {
             </li>
           ))}
         </ul>
-        <section className="bg-white rounded-2xl border p-4 min-h-[320px] flex flex-col">
+        <section className="bg-white rounded-2xl border border-slate-200 p-5 min-h-[320px] flex flex-col">
           {!activeProduct && <p className="text-sm text-slate-500 m-auto">Elige una conversación.</p>}
           {activeProduct && (
             <>
@@ -108,7 +109,7 @@ function Inbox() {
               </div>
               <form onSubmit={onSend} className="mt-3 flex gap-2">
                 <input
-                  className="field-input"
+                  className="field-input min-w-0 flex-1"
                   maxLength={LIMITS.message}
                   placeholder="Escribe tu mensaje…"
                   value={draft}
