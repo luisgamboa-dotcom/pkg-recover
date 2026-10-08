@@ -1,7 +1,11 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import Layout from '../components/Layout';
 import { ConfigNotice, EmptyState, ProductCard, ProductCardSkeleton, PageHeader } from '../components/ui';
 import { emptyFilters, useBrands, useCatalog, useCategories, type Filters } from '../data/shop';
+import { useActiveAuctions, useSavedFilters } from '../data/buying';
+import { useAuth } from '../auth/AuthContext';
+import { clp } from '../lib/format';
 import { LIMITS } from '../lib/validation';
 
 export default function Catalog() {
@@ -9,9 +13,23 @@ export default function Catalog() {
   const { products, total, loading, error, configured } = useCatalog(f);
   const categories = useCategories();
   const brands = useBrands();
+  const auctions = useActiveAuctions();
+  const { user } = useAuth();
+  const { items: saved, save: saveFilter, remove: removeFilter } = useSavedFilters(user?.id);
+  const [filterName, setFilterName] = useState('');
+  const [showSuggest, setShowSuggest] = useState(false);
 
   const set = <K extends keyof Filters>(k: K, v: Filters[K]) =>
     setF((prev) => ({ ...prev, [k]: v }));
+
+  const suggestions =
+    f.q.trim().length >= 2
+      ? products.filter(
+          (p) =>
+            p.title.toLowerCase().includes(f.q.trim().toLowerCase()) ||
+            p.sku.toLowerCase().includes(f.q.trim().toLowerCase()),
+        ).slice(0, 6)
+      : [];
 
   return (
     <Layout>
@@ -27,14 +45,35 @@ export default function Catalog() {
 
       {/* Búsqueda y filtros (prompt §4) */}
       <div className="bg-white rounded-2xl border border-slate-200 p-4 mb-6 grid gap-3 md:grid-cols-4">
-        <input
-          className="field-input md:col-span-2"
-          maxLength={LIMITS.search}
-          placeholder="Buscar por nombre o SKU…"
-          value={f.q}
-          onChange={(e) => set('q', e.target.value)}
-          aria-label="Buscar productos"
-        />
+        <div className="relative md:col-span-2">
+          <input
+            className="field-input"
+            maxLength={LIMITS.search}
+            placeholder="Buscar por nombre o SKU…"
+            value={f.q}
+            onChange={(e) => {
+              set('q', e.target.value);
+              setShowSuggest(true);
+            }}
+            onBlur={() => setTimeout(() => setShowSuggest(false), 150)}
+            aria-label="Buscar productos"
+          />
+          {showSuggest && suggestions.length > 0 && (
+            <ul className="absolute z-20 left-0 right-0 mt-1 bg-white rounded-xl border border-slate-200 shadow-xl overflow-hidden">
+              {suggestions.map((p) => (
+                <li key={p.id}>
+                  <Link
+                    to={`/productos/${p.id}`}
+                    className="flex justify-between gap-2 px-4 py-2.5 text-sm hover:bg-brand-50"
+                  >
+                    <span className="font-semibold text-brand-950 truncate">{p.title}</span>
+                    <span className="text-slate-500 whitespace-nowrap">{clp(p.base_price)}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
         <select
           className="field-input"
           value={f.categoryId}
@@ -126,6 +165,61 @@ export default function Catalog() {
         </div>
       </div>
 
+      {auctions.length > 0 && (
+        <section className="mb-6 rounded-2xl border-2 border-accent-500 bg-accent-500/5 p-4">
+          <h2 className="font-extrabold text-brand-950">🔨 Subastas de liquidación</h2>
+          <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {auctions.map((a) => (
+              <Link
+                key={a.id}
+                to={`/productos/${a.product_id}`}
+                className="block bg-white rounded-xl border border-slate-200 p-3 hover:shadow transition"
+              >
+                <p className="font-bold text-brand-950 text-sm truncate">{a.products?.title ?? 'Producto'}</p>
+                <p className="mt-1 text-sm">
+                  <span className="font-extrabold">{clp(a.current_bid ?? a.starting_price)}</span>{' '}
+                  <span className="text-slate-500">· cierra {new Date(a.ends_at).toLocaleDateString('es-CL', { day: 'numeric', month: 'short' })}</span>
+                </p>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {user && (
+        <div className="mb-6 flex flex-wrap items-center gap-2">
+          {saved.map((s) => (
+            <span key={s.id} className="inline-flex items-center gap-1 rounded-full border border-slate-300 bg-white pl-3 pr-1 py-1 text-sm">
+              <button onClick={() => setF({ ...emptyFilters, ...s.filters })} className="font-semibold text-brand-900 hover:underline">
+                {s.name}
+              </button>
+              <button onClick={() => void removeFilter(s.id)} aria-label={`Borrar filtro ${s.name}`} className="rounded-full px-2 text-slate-400 hover:text-red-700">
+                ×
+              </button>
+            </span>
+          ))}
+          <span className="inline-flex items-center gap-1">
+            <input
+              className="field-input w-40! py-1.5!"
+              maxLength={40}
+              placeholder="Guardar filtros como…"
+              value={filterName}
+              onChange={(e) => setFilterName(e.target.value)}
+              aria-label="Nombre del filtro"
+            />
+            <button
+              onClick={() => {
+                const n = filterName.trim();
+                if (n.length < 2) return;
+                void saveFilter(n, f).then(() => setFilterName(''));
+              }}
+              className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-semibold"
+            >
+              Guardar
+            </button>
+          </span>
+        </div>
+      )}
       {loading && (
         <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" aria-hidden>
           {Array.from({ length: 8 }).map((_, i) => (

@@ -10,6 +10,7 @@ import {
   fetchMyCompanies,
   registerCompanyPackage,
 } from '../data/company';
+import { useCompanyOffers } from '../data/buying';
 import { fetchTable } from '../data/admin';
 import { clp, formatDate, orderStatusLabel } from '../lib/format';
 import { errorMessage,  sanitizeText } from '../lib/validation';
@@ -32,6 +33,7 @@ function Panel() {
   const [products, setProducts] = useState<any[]>([]);
   const [sales, setSales] = useState<any[]>([]);
   const [msg, setMsg] = useState<string | null>(null);
+  const { items: offers, respond } = useCompanyOffers(activeId || undefined);
 
   const [origin, setOrigin] = useState('');
   const [units, setUnits] = useState('');
@@ -180,6 +182,38 @@ function Panel() {
               </ul>
             </section>
           </div>
+
+          <section className="mt-4 bg-white rounded-2xl border border-slate-200 p-5">
+            <h2 className="font-bold text-brand-950">Ofertas recibidas</h2>
+            {offers.filter((o) => o.status === 'pending').length === 0 ? (
+              <p className="mt-2 text-sm text-slate-500">Sin ofertas pendientes.</p>
+            ) : (
+              <ul className="mt-2 space-y-2 text-sm">
+                {offers.filter((o) => o.status === 'pending').map((o) => (
+                  <li key={o.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200 p-3">
+                    <span>
+                      <span className="font-semibold">{o.products?.title ?? 'Producto'}</span>{' '}
+                      <span className="text-slate-500">· {o.quantity} ud. × {clp(Number(o.amount))}</span>
+                    </span>
+                    <span className="flex gap-2">
+                      <button
+                        onClick={() => void respond(o.id, true).catch((err) => setMsg(errorMessage(err)))}
+                        className="rounded-lg bg-emerald-700 text-white px-4 py-1.5 font-semibold hover:bg-emerald-800"
+                      >
+                        Aceptar
+                      </button>
+                      <button
+                        onClick={() => void respond(o.id, false).catch((err) => setMsg(errorMessage(err)))}
+                        className="rounded-lg border border-slate-300 px-4 py-1.5 font-semibold"
+                      >
+                        Rechazar
+                      </button>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
         </>
       )}
     </>

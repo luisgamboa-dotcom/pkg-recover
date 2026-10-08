@@ -128,3 +128,17 @@ BASE ESTÉTICA (2026-10-08, sin commitear)
     héroe con blobs animados, stats con contador, reveals con stagger en
     Home, hover lift en ProductCard y tarjetas, skeletons en catálogo,
     keyframes en index.css.
+
+FASE B — COMPRA AVANZADA (2026-10-08, sin commitear)
+---------------------------------------------------
+29. [PENDIENTE APLICAR BD] Migración 18
+    (supabase/migrations/2026090818_advanced_buying.sql):
+    price_alerts + trigger one-shot, offers + avisos + convert_offer_to_order,
+    auctions + auction_bids + place_bid + aviso cierre, saved_filters.
+    Aplicar en Supabase ANTES de probar.
+30. [HECHO código] data/buying.ts; alertas y ofertas en ficha; pujas en
+    ficha + tira de subastas en catálogo; autocompletado y filtros
+    guardados en catálogo; Mis ofertas en /pedidos (convertir a pedido);
+    ofertas recibidas en /empresa; crear/cerrar subasta en admin.
+31. [SIGUIENTE] Fase C (tracking público, retiro en bodega, devoluciones),
+    Fase D (auditoría, PWA/push), confetti + dark-mode admin.

@@ -13,6 +13,8 @@ import {
   uploadProductImage,
 } from '../../data/admin';
 import { publicImageUrl } from '../../data/shop';
+import { closeAuction, createAuction, useActiveAuction } from '../../data/buying';
+import { clp, formatDate } from '../../lib/format';
 import {
   errorMessage,
   checkRequired,
@@ -353,6 +355,11 @@ function Form() {
               </div>
             </>
           )}
+          <h2 className="font-bold text-brand-950 pt-2">Subasta de liquidación</h2>
+          {isNew && <p className="text-sm text-slate-500">Guarda el producto para crear una subasta.</p>}
+          {!isNew && id && (
+            <AuctionManager productId={id as string} basePrice={parsePrice(f.base_price) ?? 0} />
+          )}
           <h2 className="font-bold text-brand-950 pt-2">Evidencia fotográfica</h2>
           {isNew && <p className="text-sm text-slate-500">Guarda el producto para subir fotos.</p>}
           {!isNew && (
@@ -383,5 +390,81 @@ function Form() {
         <Link to="/admin/productos" className="rounded-lg border px-6 py-3 font-semibold">Volver</Link>
       </div>
     </>
+  );
+}
+
+function AuctionManager({ productId, basePrice }: { productId: string; basePrice: number }) {
+  const { auction, refresh } = useActiveAuction(productId);
+  const [price, setPrice] = useState('');
+  const [ends, setEnds] = useState('');
+  const [msg, setMsg] = useState<string | null>(null);
+
+  return (
+    <div className="rounded-xl border border-slate-200 p-3 text-sm">
+      {auction ? (
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p>
+            Activa hasta {formatDate(auction.ends_at)} · puja actual{' '}
+            <span className="font-extrabold">{clp(auction.current_bid ?? auction.starting_price)}</span>
+          </p>
+          <button
+            type="button"
+            onClick={() => {
+              closeAuction(auction.id)
+                .then(() => refresh())
+                .catch((err) => setMsg(errorMessage(err)));
+            }}
+            className="rounded-lg border border-slate-300 px-4 py-1.5 font-semibold"
+          >
+            Cerrar
+          </button>
+        </div>
+      ) : (
+        <form
+          className="flex flex-col sm:flex-row gap-2"
+          onSubmit={(e) => {
+            e.preventDefault();
+            const p = Math.floor(Number(price));
+            if (!Number.isFinite(p) || p <= 0) {
+              setMsg('Precio inicial inválido.');
+              return;
+            }
+            if (!ends) {
+              setMsg('Elige fecha y hora de cierre.');
+              return;
+            }
+            createAuction(productId, p, new Date(ends).toISOString())
+              .then(() => {
+                setPrice('');
+                setEnds('');
+                setMsg('Subasta creada.');
+                refresh();
+              })
+              .catch((err) => setMsg(errorMessage(err)));
+          }}
+        >
+          <input
+            type="number"
+            min={1}
+            className="field-input min-w-0 flex-1"
+            placeholder={`Precio inicial (ref. ${clp(basePrice)})`}
+            value={price}
+            onChange={(e) => setPrice(e.target.value)}
+            aria-label="Precio inicial"
+          />
+          <input
+            type="datetime-local"
+            className="field-input min-w-0 flex-1"
+            value={ends}
+            onChange={(e) => setEnds(e.target.value)}
+            aria-label="Cierre de subasta"
+          />
+          <button type="submit" className="rounded-lg border px-4 font-semibold shrink-0">
+            Subastar
+          </button>
+        </form>
+      )}
+      {msg && <p className="mt-1 text-xs text-slate-500">{msg}</p>}
+    </div>
   );
 }

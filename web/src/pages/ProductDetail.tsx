@@ -18,6 +18,7 @@ import {
   useProductTimeline,
   useReviews,
   useSimilarProducts,
+  type Product,
 } from '../data/shop';
 import { findSellerForProduct, sendMessage, useMyOrders } from '../data/account';
 import {
@@ -36,6 +37,12 @@ import {
   sanitizeMultiline,
   sanitizeText,
 } from '../lib/validation';
+import {
+  createOffer,
+  placeBid,
+  useActiveAuction,
+  usePriceAlert,
+} from '../data/buying';
 
 const STAGE_LABEL: Record<string, string> = {
   registrado: 'Registrado',
@@ -311,6 +318,14 @@ export default function ProductDetail() {
               Agregado. <Link to="/carrito" className="font-semibold underline">Ir al carrito</Link>
             </p>
           )}
+          <AuctionBox productId={product.id} userId={user?.id} />
+          {user && product.stock_quantity > 0 && (
+            <AdvancedBuying
+              product={product}
+              userId={user.id}
+              qty={qty}
+            />
+          )}
           {user && (
             <form
               className="mt-4 rounded-xl border border-slate-200 bg-white p-3"
@@ -489,3 +504,146 @@ export default function ProductDetail() {
 }
 
 
+
+function timeLeft(endsAt: string) {
+  const ms = new Date(endsAt).getTime() - Date.now();
+  if (ms <= 0) return 'cerrada';
+  const d = Math.floor(ms / 86400000);
+  const h = Math.floor((ms % 86400000) / 3600000);
+  const m = Math.floor((ms % 3600000) / 60000);
+  return `${d > 0 ? `${d}d ` : ''}${h}h ${m}m`;
+}
+
+function AuctionBox({ productId, userId }: { productId: string; userId: string | undefined }) {
+  const { auction, refresh } = useActiveAuction(productId);
+  const [bid, setBid] = useState('');
+  const [msg, setMsg] = useState<string | null>(null);
+  if (!auction) return null;
+  const min = (auction.current_bid ?? auction.starting_price - 1) + 1;
+  return (
+    <div className="mt-4 rounded-xl border-2 border-accent-500 bg-accent-500/5 p-4">
+      <p className="font-bold text-brand-950">🔨 Subasta · cierra en {timeLeft(auction.ends_at)}</p>
+      <p className="mt-1 text-sm text-slate-600">
+        Puja actual: <span className="font-extrabold text-brand-950">{clp(auction.current_bid ?? auction.starting_price)}</span>
+        {auction.current_bid == null && ' (precio inicial)'}
+      </p>
+      {userId ? (
+        <form
+          className="mt-2 flex gap-2"
+          onSubmit={(e) => {
+            e.preventDefault();
+            const amount = Math.floor(Number(bid));
+            if (!Number.isFinite(amount) || amount < min) {
+              setMsg(`La puja mínima es ${clp(min)}.`);
+              return;
+            }
+            placeBid(auction.id, userId, amount)
+              .then(() => {
+                setBid('');
+                setMsg('¡Puja registrada! Te avisaremos si te superan.');
+                refresh();
+              })
+              .catch((err) => setMsg(errorMessage(err)));
+          }}
+        >
+          <input
+            type="number"
+            min={min}
+            className="field-input min-w-0 flex-1"
+            placeholder={`Mínimo ${clp(min)}`}
+            value={bid}
+            onChange={(e) => setBid(e.target.value)}
+            aria-label="Tu puja en CLP"
+          />
+          <button className="rounded-lg bg-accent-500 text-white font-semibold px-5 shrink-0 hover:bg-accent-600">
+            Pujar
+          </button>
+        </form>
+      ) : (
+        <p className="mt-2 text-sm text-slate-600">
+          <Link to="/login" className="font-semibold text-brand-900 underline">Inicia sesión</Link> para pujar.
+        </p>
+      )}
+      {msg && <p className="mt-1 text-sm text-slate-600">{msg}</p>}
+    </div>
+  );
+}
+
+function AdvancedBuying({ product, userId, qty }: { product: Product; userId: string; qty: number }) {
+  const { alert, save: saveAlert } = usePriceAlert(product.id, userId);
+  const [target, setTarget] = useState('');
+  const [alertMsg, setAlertMsg] = useState<string | null>(null);
+  const [offerAmount, setOfferAmount] = useState('');
+  const [offerMsg, setOfferMsg] = useState<string | null>(null);
+
+  return (
+    <div className="mt-4 grid gap-3 sm:grid-cols-2">
+      <form
+        className="rounded-xl border border-slate-200 bg-white p-3"
+        onSubmit={(e) => {
+          e.preventDefault();
+          const t = Math.floor(Number(target));
+          if (!Number.isFinite(t) || t <= 0 || t >= product.base_price) {
+            setAlertMsg(`Ingresa un valor menor a ${clp(product.base_price)}.`);
+            return;
+          }
+          saveAlert(t)
+            .then(() => setAlertMsg(`Te avisaremos si baja de ${clp(t)}. (Aviso único)`))
+            .catch((err) => setAlertMsg(errorMessage(err)));
+        }}
+      >
+        <p className="font-bold text-brand-950 text-sm">🔔 Alerta de precio</p>
+        {alert?.is_active ? (
+          <p className="mt-1 text-sm text-emerald-700">Activa: te avisaremos si baja de {clp(alert.target_price)}.</p>
+        ) : (
+          <div className="mt-2 flex gap-2">
+            <input
+              type="number"
+              min={1}
+              className="field-input min-w-0 flex-1"
+              placeholder="Ej. 800000"
+              value={target}
+              onChange={(e) => setTarget(e.target.value)}
+              aria-label="Precio objetivo en CLP"
+            />
+            <button className="rounded-lg border border-slate-300 px-4 font-semibold shrink-0">Crear</button>
+          </div>
+        )}
+        {alertMsg && <p className="mt-1 text-xs text-slate-500">{alertMsg}</p>}
+      </form>
+
+      <form
+        className="rounded-xl border border-slate-200 bg-white p-3"
+        onSubmit={(e) => {
+          e.preventDefault();
+          const amount = Math.floor(Number(offerAmount));
+          if (!Number.isFinite(amount) || amount <= 0) {
+            setOfferMsg('Ingresa un monto válido.');
+            return;
+          }
+          createOffer(product.id, userId, amount, qty, null)
+            .then(() => {
+              setOfferAmount('');
+              setOfferMsg('Oferta enviada. La verás en Mis pedidos → Mis ofertas.');
+            })
+            .catch((err) => setOfferMsg(errorMessage(err)));
+        }}
+      >
+        <p className="font-bold text-brand-950 text-sm">🤝 Hacer oferta ({qty} ud.)</p>
+        <div className="mt-2 flex gap-2">
+          <input
+            type="number"
+            min={1}
+            className="field-input min-w-0 flex-1"
+            placeholder="Precio por producto"
+            value={offerAmount}
+            onChange={(e) => setOfferAmount(e.target.value)}
+            aria-label="Oferta por producto en CLP"
+          />
+          <button className="rounded-lg border border-slate-300 px-4 font-semibold shrink-0">Enviar</button>
+        </div>
+        {offerMsg && <p className="mt-1 text-xs text-slate-500">{offerMsg}</p>}
+      </form>
+    </div>
+  );
+}
