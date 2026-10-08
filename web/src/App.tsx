@@ -30,6 +30,8 @@ import AdminOrders from './pages/admin/AdminOrders';
 import AdminPackages from './pages/admin/AdminPackages';
 import AdminUsers from './pages/admin/AdminUsers';
 import AdminMessages from './pages/admin/AdminMessages';
+import CompanyPage from './pages/CompanyPage';
+import Certificate from './pages/Certificate';
 
 const AdminReports = lazy(() => import('./pages/admin/AdminReports'));
 
@@ -49,6 +51,8 @@ export default function App() {
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/pedidos" element={<Orders />} />
             <Route path="/pedidos/:id" element={<OrderDetail />} />
+            <Route path="/pedidos/:id/certificado" element={<Certificate />} />
+            <Route path="/empresas/:id" element={<CompanyPage />} />
             <Route path="/favoritos" element={<Favorites />} />
             <Route path="/cuenta" element={<Profile />} />
             <Route path="/ayuda" element={<Help />} />

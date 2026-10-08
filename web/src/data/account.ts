@@ -723,3 +723,37 @@ export function usePrefs(userId: string | undefined) {
 
   return { prefs, save };
 }
+
+/** Impacto circular acumulado del comprador: kg evitados + CO2e estimado. */
+export function useMyImpact(userId: string | undefined) {
+  const [impact, setImpact] = useState({ wasteKg: 0, co2Kg: 0, orders: 0 });
+  const [loading, setLoading] = useState(Boolean(userId));
+  useEffect(() => {
+    if (!userId || !isSupabaseConfigured) {
+      setLoading(false);
+      return;
+    }
+    (async () => {
+      const sb = requireSupabase();
+      const [{ data: factor }, { data: items }] = await Promise.all([
+        sb.from('impact_factors').select('value').eq('key', 'co2_kg_per_waste_kg').maybeSingle(),
+        sb
+          .from('order_items')
+          .select('quantity, order_id, products (waste_avoided_kg), orders!inner (buyer_id, status)')
+          .eq('orders.buyer_id', userId)
+          .not('orders.status', 'in', '(cancelled,returned)'),
+      ]);
+      let waste = 0;
+      const orderIds = new Set<string>();
+      for (const it of ((items ?? []) as any[])) {
+        const w = Number(it.products?.waste_avoided_kg ?? 0);
+        if (Number.isFinite(w)) waste += w * Number(it.quantity ?? 0);
+        if (it.order_id) orderIds.add(it.order_id as string);
+      }
+      const co2 = waste * Number((factor as any)?.value ?? 2);
+      setImpact({ wasteKg: Math.round(waste), co2Kg: Math.round(co2 * 10) / 10, orders: orderIds.size });
+      setLoading(false);
+    })().catch(() => setLoading(false));
+  }, [userId]);
+  return { impact, loading };
+}

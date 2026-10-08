@@ -15,6 +15,7 @@ import {
   useFavorites,
   useProduct,
   usePriceTiers,
+  useProductTimeline,
   useReviews,
   useSimilarProducts,
 } from '../data/shop';
@@ -35,6 +36,24 @@ import {
   sanitizeMultiline,
   sanitizeText,
 } from '../lib/validation';
+
+const STAGE_LABEL: Record<string, string> = {
+  registrado: 'Registrado',
+  recibido: 'Recibido',
+  clasificado: 'Clasificado',
+  verificado: 'Verificado',
+  publicado: 'Publicado',
+  vendido: 'Vendido',
+};
+
+const STAGE_ICON: Record<string, string> = {
+  registrado: '📝',
+  recibido: '📦',
+  clasificado: '🔍',
+  verificado: '✓',
+  publicado: '📢',
+  vendido: '🛒',
+};
 
 function Spec({ label, value }: { label: string; value: string }) {
   return (
@@ -57,6 +76,7 @@ export default function ProductDetail() {
   const { ids: favIds, toggle } = useFavorites(user?.id);
   const { items: reviews } = useReviews(product?.id);
   const { orders } = useMyOrders(user?.id);
+  const timeline = useProductTimeline(product?.id);
   const { add } = useCart();
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
@@ -170,6 +190,19 @@ export default function ProductDetail() {
             {product.title}
           </h1>
           <p className="mt-1 text-sm text-slate-500 font-mono">SKU: {product.sku}</p>
+          {product.company != null ? (
+            <p className="mt-1 text-sm text-slate-500">
+              Proveedor:{' '}
+              <Link to={`/empresas/${product.company.id}`} className="font-semibold text-brand-900 hover:underline">
+                {product.company.name}
+              </Link>{' '}
+              {product.company.is_verified && (
+                <span className="text-xs text-emerald-700 bg-emerald-100 rounded-full px-2 py-0.5">Verificada</span>
+              )}
+            </p>
+          ) : (
+            <p className="mt-1 text-sm text-amber-700">Sin proveedor asignado temporalmente.</p>
+          )}
 
           <div className="mt-3 flex items-baseline gap-3">
             <span className="text-3xl font-extrabold text-brand-950">
@@ -330,6 +363,30 @@ export default function ProductDetail() {
           )}
         </div>
       </div>
+
+      {/* Trazabilidad */}
+      {timeline.length > 0 && (
+        <section className="mt-12">
+          <h2 className="text-xl font-bold text-brand-950">Trazabilidad</h2>
+          <p className="mt-1 text-sm text-slate-500">Del desecho a tus manos: historial verificable de este producto.</p>
+          <ol className="mt-4 relative space-y-4 before:absolute before:left-[13px] before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200">
+            {timeline.map((ev) => (
+              <li key={ev.id} className="relative flex gap-3">
+                <span className="relative z-10 grid place-items-center w-7 h-7 rounded-full bg-brand-900 text-white text-sm shrink-0" aria-hidden>
+                  {STAGE_ICON[ev.stage] ?? '•'}
+                </span>
+                <div className="bg-white rounded-xl border border-slate-200 px-4 py-2.5 flex-1">
+                  <p className="font-bold text-brand-950 text-sm">
+                    {STAGE_LABEL[ev.stage] ?? ev.stage}
+                    <span className="ml-2 font-normal text-xs text-slate-400">{formatDate(ev.created_at)}</span>
+                  </p>
+                  {ev.detail && <p className="text-sm text-slate-600">{ev.detail}</p>}
+                </div>
+              </li>
+            ))}
+          </ol>
+        </section>
+      )}
 
       {/* Reseñas */}
       <section className="mt-12">

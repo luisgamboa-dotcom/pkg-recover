@@ -9,6 +9,7 @@ import {
   saveAddress,
   updateProfile,
   useAddresses,
+  useMyImpact,
   usePrefs,
   type Address,
 } from '../data/account';
@@ -36,6 +37,24 @@ export default function Profile() {
     <ProtectedRoute>
       <Editor />
     </ProtectedRoute>
+  );
+}
+
+function ImpactCard({ userId }: { userId: string | undefined }) {
+  const { impact } = useMyImpact(userId);
+  if (impact.orders === 0) return null;
+  return (
+    <div className="mb-6 rounded-2xl bg-gradient-to-r from-brand-900 to-brand-700 text-white p-5 flex items-center gap-5 flex-wrap shadow-lg">
+      <span className="text-3xl" aria-hidden>♻️</span>
+      <div>
+        <p className="font-extrabold text-lg leading-tight">
+          Llevas {impact.wasteKg} kg de desecho evitados
+        </p>
+        <p className="text-sm text-brand-100/85">
+          ≈ {impact.co2Kg} kg de CO₂e · {impact.orders} compra(s) circular(es)
+        </p>
+      </div>
+    </div>
   );
 }
 
@@ -146,6 +165,7 @@ function Editor() {
         title="Mi cuenta"
         subtitle={`${user?.email ?? ''} · ${profile?.roleName ?? ''}`}
       />
+      <ImpactCard userId={user?.id} />
       <div className="grid gap-6 lg:grid-cols-2 items-start">
         <div className="space-y-6 min-w-0">
         <section className="bg-white rounded-2xl border border-slate-200 p-5">

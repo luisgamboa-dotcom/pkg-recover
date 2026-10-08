@@ -45,7 +45,7 @@ export interface Product {
   waste_avoided_kg: number | null;
   warehouse: { code: string; name: string; city: string } | null;
   brand: { name: string } | null;
-  company: { name: string; is_verified: boolean } | null;
+  company: { id: string; name: string; is_verified: boolean } | null;
   categories: Category[];
   imageUrls: string[];
   avgRating: number | null;
@@ -94,7 +94,7 @@ const PRODUCT_SELECT = `
   circularity_percent, waste_avoided_kg,
   warehouses (code, name, city),
   brands (name),
-  companies (name, is_verified),
+  companies (id, name, is_verified),
   product_categories (categories (id, name, slug)),
   product_images (storage_path, is_primary, sort_order),
   reviews (rating)
@@ -508,4 +508,28 @@ export async function addReview(input: {
     is_verified_purchase: input.verified,
   });
   if (error) throw error;
+}
+
+export interface TimelineEvent {
+  id: string;
+  stage: string;
+  detail: string | null;
+  actor_label: string | null;
+  created_at: string;
+}
+
+export function useProductTimeline(productId: string | undefined) {
+  const [items, setItems] = useState<TimelineEvent[]>([]);
+  useEffect(() => {
+    if (!productId || !isUuid(productId) || !isSupabaseConfigured) return;
+    requireSupabase()
+      .from('product_timeline')
+      .select('id, stage, detail, actor_label, created_at')
+      .eq('product_id', productId)
+      .order('created_at')
+      .then(({ data }) => {
+        if (data) setItems(data as TimelineEvent[]);
+      });
+  }, [productId]);
+  return items;
 }

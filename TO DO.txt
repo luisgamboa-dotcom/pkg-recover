@@ -104,3 +104,20 @@ MENSAJES HUÉRFANOS (2026-10-06, sin commitear)
     /admin/mensajes con etiqueta "Sin destinatario · proveedor eliminado";
     badge también en /mensajes del comprador.
 24. [PENDIENTE] Revisar en local y luego commit dev → merge main.
+
+FASE A — TRAZABILIDAD E IMPACTO (2026-10-08, sin commitear)
+----------------------------------------------------------
+25. [PENDIENTE APLICAR BD] Migración 17
+    (supabase/migrations/2026090817_traceability_impact.sql):
+    product_timeline + trigger auto-registro + backfill, impact_factors
+    (co2_kg_per_waste_kg=2.0 estimativo), v_company_public. Aplicar en
+    Supabase ANTES de probar (la ficha consulta product_timeline y la
+    página de empresa usa v_company_public).
+26. [HECHO código] Timeline en ficha de producto, proveedor enlazado a
+    /empresas/:id (página pública con stats), tarjeta de impacto en
+    /cuenta, certificado circular en /pedidos/:id/certificado (imprimir/
+    PDF) con botón en el detalle del pedido.
+27. [SIGUIENTE] Base estética: héroe animado, reveal on scroll, hover
+    en cards, skeletons. Luego Fase B (alertas, ofertas, subastas,
+    búsqueda), Fase C (tracking público, retiro, devoluciones),
+    Fase D (auditoría, PWA/push).

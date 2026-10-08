@@ -183,6 +183,14 @@ function Detail() {
               {formatDate(order.created_at)} · {order.payment_method?.name} ·{' '}
               {order.carrier ?? 'Transportadora por asignar'}
             </p>
+            {['paid', 'shipped', 'delivered'].includes(order.status) && (
+              <Link
+                to={`/pedidos/${order.id}/certificado`}
+                className="mt-3 inline-block rounded-lg bg-emerald-700 text-white text-sm font-semibold px-4 py-2 hover:bg-emerald-800"
+              >
+                ♻️ Ver certificado circular
+              </Link>
+            )}
             {payments.length > 0 && (
               <p className="mt-1.5 text-sm">
                 <span className="font-semibold">Cobro:</span>{' '}
