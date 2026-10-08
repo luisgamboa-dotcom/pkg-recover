@@ -91,15 +91,28 @@ export function ProductImage({
   return <img src={src} alt={product.title} className={`object-cover ${className ?? ''}`} loading="lazy" />;
 }
 
+export function ProductCardSkeleton() {
+  return (
+    <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden" aria-hidden>
+      <div className="skeleton w-full aspect-square" />
+      <div className="p-4 space-y-2">
+        <div className="skeleton h-3 w-16 rounded" />
+        <div className="skeleton h-4 w-full rounded" />
+        <div className="skeleton h-4 w-2/3 rounded" />
+        <div className="skeleton h-6 w-1/2 rounded" />
+      </div>
+    </div>
+  );
+}
 export function ProductCard({ product }: { product: Product }) {
   const d = discountPct(product.base_price, product.msrp_reference);
   return (
     <Link
       to={`/productos/${product.id}`}
-      className="group bg-white rounded-2xl border border-slate-200 overflow-hidden hover:shadow-[0_10px_30px_rgba(26,54,93,0.12)] transition"
+      className="group bg-white rounded-2xl border border-slate-200 overflow-hidden hover:shadow-[0_16px_40px_rgba(26,54,93,0.16)] hover:-translate-y-1 hover:border-brand-100 transition-all duration-300"
     >
-      <div className="relative">
-        <ProductImage product={product} className="w-full aspect-square group-hover:scale-[1.02] transition" />
+      <div className="relative overflow-hidden">
+        <ProductImage product={product} className="w-full aspect-square group-hover:scale-105 transition-transform duration-500" />
         {d != null && (
           <span className="absolute top-2 left-2 text-xs font-bold text-white bg-accent-500 rounded-full px-2.5 py-1">
             −{d}%

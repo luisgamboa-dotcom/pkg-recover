@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import Layout from '../components/Layout';
-import { ConfigNotice, EmptyState, ProductCard, PageHeader } from '../components/ui';
+import { ConfigNotice, EmptyState, ProductCard, ProductCardSkeleton, PageHeader } from '../components/ui';
 import { emptyFilters, useBrands, useCatalog, useCategories, type Filters } from '../data/shop';
 import { LIMITS } from '../lib/validation';
 
@@ -126,7 +126,13 @@ export default function Catalog() {
         </div>
       </div>
 
-      {loading && <p className="mb-3 text-sm text-slate-500">Cargando productos…</p>}
+      {loading && (
+        <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" aria-hidden>
+          {Array.from({ length: 8 }).map((_, i) => (
+            <ProductCardSkeleton key={i} />
+          ))}
+        </div>
+      )}
       {error && (
         <p role="alert" className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg p-3">
           {error}

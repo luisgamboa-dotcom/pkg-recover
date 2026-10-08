@@ -3,6 +3,7 @@ import { useAuth } from '../auth/AuthContext';
 import Footer from '../components/Footer';
 import MobileNav from '../components/MobileNav';
 import { ProductCard } from '../components/ui';
+import { CountUp, Reveal } from '../lib/reveal';
 import { emptyFilters, useCatalog, useCategories } from '../data/shop';
 
 const STEPS = [
@@ -80,11 +81,11 @@ export default function Home() {
       <section className="relative overflow-hidden bg-gradient-to-br from-brand-950 via-brand-900 to-[#4c2a85] text-white">
         <div
           aria-hidden
-          className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-accent-500/30 blur-3xl"
+          className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-accent-500/30 blur-3xl animate-blob"
         />
         <div
           aria-hidden
-          className="absolute -bottom-32 -left-16 w-96 h-96 rounded-full bg-success-600/20 blur-3xl"
+          className="absolute -bottom-32 -left-16 w-96 h-96 rounded-full bg-success-600/20 blur-3xl animate-blob-slow"
         />
         <div className="relative max-w-6xl mx-auto px-6 py-16 lg:py-20">
           <span className="inline-block text-xs font-bold uppercase tracking-widest bg-white/10 border border-white/15 rounded-full px-3 py-1">
@@ -117,14 +118,16 @@ export default function Home() {
           </div>
           <dl className="mt-10 grid grid-cols-1 sm:grid-cols-3 max-w-lg gap-3 sm:gap-4">
             {[
-              ['−45%', 'vs precio de referencia'],
-              ['8', 'categorías'],
-              ['19%', 'IVA incluido en caja'],
-            ].map(([n, label]) => (
-              <div key={label} className="rounded-2xl bg-white/10 border border-white/15 p-4 backdrop-blur">
-                <dd className="text-2xl font-extrabold">{n}</dd>
+              { n: 45, prefix: '−', suffix: '%', label: 'vs precio de referencia' },
+              { n: 8, prefix: '', suffix: '', label: 'categorías' },
+              { n: 19, prefix: '', suffix: '%', label: 'IVA incluido en caja' },
+            ].map((s) => (
+              <div key={s.label} className="rounded-2xl bg-white/10 border border-white/15 p-4 backdrop-blur">
+                <dd className="text-2xl font-extrabold">
+                  <CountUp value={s.n} prefix={s.prefix} suffix={s.suffix} />
+                </dd>
                 <dd className="text-xs text-brand-100/75 uppercase tracking-wider mt-1">
-                  {label}
+                  {s.label}
                 </dd>
               </div>
             ))}
@@ -142,10 +145,10 @@ export default function Home() {
             Del desecho a tus manos en 3 pasos
           </h2>
           <div className="mt-8 grid gap-5 md:grid-cols-3">
-            {STEPS.map((s) => (
+            {STEPS.map((s, i) => (
+              <Reveal key={s.n} delay={i * 120}>
               <article
-                key={s.n}
-                className="rounded-2xl bg-white border border-slate-200 p-6 shadow-[0_10px_30px_rgba(26,54,93,0.08)]"
+                className="rounded-2xl bg-white border border-slate-200 p-6 shadow-[0_10px_30px_rgba(26,54,93,0.08)] hover:-translate-y-1 hover:shadow-[0_16px_40px_rgba(26,54,93,0.14)] transition-all duration-300"
               >
                 <span className="inline-grid place-items-center w-10 h-10 rounded-full bg-gradient-to-br from-brand-900 to-[#4c2a85] text-white font-extrabold">
                   {s.n}
@@ -153,6 +156,7 @@ export default function Home() {
                 <h3 className="mt-4 text-lg font-bold text-brand-950">{s.title}</h3>
                 <p className="mt-1.5 text-slate-600">{s.text}</p>
               </article>
+              </Reveal>
             ))}
           </div>
         </div>
@@ -168,7 +172,8 @@ export default function Home() {
           también pueden tener una segunda vida aquí.
         </p>
         <div className="mt-8 grid gap-5 md:grid-cols-2">
-          <article className="rounded-2xl p-6 text-white bg-gradient-to-br from-brand-900 to-brand-700 shadow-lg">
+          <Reveal>
+          <article className="rounded-2xl p-6 text-white bg-gradient-to-br from-brand-900 to-brand-700 shadow-lg hover:-translate-y-1 transition-transform duration-300">
             <h3 className="text-xl font-bold">🏢 Empresas proveedoras</h3>
             <p className="mt-2 text-brand-100/90">
               Entregan paquetes no reclamados y recuperan su valor económico
@@ -181,7 +186,9 @@ export default function Home() {
               Registrar empresa
             </Link>
           </article>
-          <article className="rounded-2xl p-6 text-white bg-gradient-to-br from-accent-600 to-accent-500 shadow-lg shadow-accent-500/25">
+          </Reveal>
+          <Reveal delay={120}>
+          <article className="rounded-2xl p-6 text-white bg-gradient-to-br from-accent-600 to-accent-500 shadow-lg shadow-accent-500/25 hover:-translate-y-1 transition-transform duration-300">
             <h3 className="text-xl font-bold">📦 Personas que desechan</h3>
             <p className="mt-2 text-white/90">
               ¿Muebles, ropa, electrónica que ya no quieres? Contáctanos y
@@ -194,6 +201,7 @@ export default function Home() {
               Ofrecer mis objetos
             </Link>
           </article>
+          </Reveal>
         </div>
       </section>
 
@@ -236,8 +244,10 @@ export default function Home() {
             </Link>
           </div>
           <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {featured.map((product) => (
-              <ProductCard key={product.id} product={product} />
+            {featured.map((product, i) => (
+              <Reveal key={product.id} delay={(i % 4) * 100}>
+                <ProductCard product={product} />
+              </Reveal>
             ))}
           </div>
         </section>
@@ -245,6 +255,7 @@ export default function Home() {
 
       {/* CTA final */}
       <section className="max-w-6xl mx-auto px-6 pb-14">
+        <Reveal>
         <div className="rounded-3xl bg-gradient-to-r from-brand-900 via-[#3b2d6e] to-brand-900 text-white p-8 lg:p-12 text-center shadow-xl">
           <h2 className="text-2xl lg:text-3xl font-extrabold tracking-tight">
             Cada compra evita kilos de desecho 🌎
@@ -270,6 +281,7 @@ export default function Home() {
             </Link>
           </div>
         </div>
+        </Reveal>
       </section>
 
       <div className="pb-16 md:pb-0">

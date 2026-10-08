@@ -80,3 +80,63 @@ img {
   font-size: 13px;
   color: #ba1a1a;
 }
+
+/* Reveal on scroll + héroe animado (respeta reduced-motion) */
+.reveal {
+  opacity: 0;
+  transform: translateY(18px);
+  transition:
+    opacity 0.6s ease,
+    transform 0.6s ease;
+}
+
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+@keyframes rp-blob {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(30px, -20px) scale(1.08);
+  }
+}
+
+.animate-blob {
+  animation: rp-blob 9s ease-in-out infinite;
+}
+
+.animate-blob-slow {
+  animation: rp-blob 13s ease-in-out infinite reverse;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .animate-blob,
+  .animate-blob-slow {
+    animation: none;
+  }
+}
+
+/* Skeletons de carga */
+@keyframes rp-shimmer {
+  0% {
+    background-position: -400px 0;
+  }
+  100% {
+    background-position: 400px 0;
+  }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #e8ecf3 25%, #f4f6fb 50%, #e8ecf3 75%);
+  background-size: 800px 100%;
+  animation: rp-shimmer 1.4s ease infinite;
+}

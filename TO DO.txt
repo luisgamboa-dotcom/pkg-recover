@@ -121,3 +121,10 @@ FASE A — TRAZABILIDAD E IMPACTO (2026-10-08, sin commitear)
     en cards, skeletons. Luego Fase B (alertas, ofertas, subastas,
     búsqueda), Fase C (tracking público, retiro, devoluciones),
     Fase D (auditoría, PWA/push).
+
+BASE ESTÉTICA (2026-10-08, sin commitear)
+-----------------------------------------
+28. [HECHO código] lib/reveal.tsx (Reveal + CountUp con reduced-motion),
+    héroe con blobs animados, stats con contador, reveals con stagger en
+    Home, hover lift en ProductCard y tarjetas, skeletons en catálogo,
+    keyframes en index.css.
