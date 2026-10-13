@@ -442,20 +442,26 @@ export default function ProductDetail() {
             {user ? (
               <form onSubmit={onReview} className="bg-white rounded-xl border border-slate-200 p-4 space-y-3">
                 <h3 className="font-bold text-brand-950">Escribe tu reseña</h3>
-                <label className="block text-sm">
-                  <span className="field-label">Calificación</span>
-                  <select
-                    className="field-input"
-                    value={rating}
-                    onChange={(e) => setRating(Number(e.target.value))}
-                  >
-                    {[5, 4, 3, 2, 1].map((n) => (
-                      <option key={n} value={n}>
-                        {n} estrellas
-                      </option>
+                <div>
+                  <span className="field-label" id="rating-label">Calificación</span>
+                  <div role="radiogroup" aria-labelledby="rating-label" className="flex gap-1">
+                    {[1, 2, 3, 4, 5].map((n) => (
+                      <button
+                        key={n}
+                        type="button"
+                        role="radio"
+                        aria-checked={rating === n}
+                        aria-label={`${n} estrella${n > 1 ? 's' : ''}`}
+                        onClick={() => setRating(n)}
+                        className={`text-3xl leading-none min-w-[44px] min-h-[44px] transition ${
+                          n <= rating ? 'text-amber-400' : 'text-slate-300 hover:text-amber-200'
+                        }`}
+                      >
+                        ★
+                      </button>
                     ))}
-                  </select>
-                </label>
+                  </div>
+                </div>
                 <input
                   className="field-input"
                   maxLength={LIMITS.title}
@@ -592,7 +598,8 @@ function AdvancedBuying({ product, userId, qty }: { product: Product; userId: st
             .catch((err) => setAlertMsg(errorMessage(err)));
         }}
       >
-        <p className="font-bold text-brand-950 text-sm">🔔 Alerta de precio</p>
+        <p className="font-bold text-brand-950 text-sm">Alerta de precio</p>
+        <p className="text-xs text-slate-500">Te avisamos una sola vez si el precio baja de tu objetivo o si vuelve el stock.</p>
         {alert?.is_active ? (
           <p className="mt-1 text-sm text-emerald-700">Activa: te avisaremos si baja de {clp(alert.target_price)}.</p>
         ) : (
@@ -629,7 +636,8 @@ function AdvancedBuying({ product, userId, qty }: { product: Product; userId: st
             .catch((err) => setOfferMsg(errorMessage(err)));
         }}
       >
-        <p className="font-bold text-brand-950 text-sm">🤝 Hacer oferta ({qty} ud.)</p>
+        <p className="font-bold text-brand-950 text-sm">Hacer oferta ({qty} ud.)</p>
+        <p className="text-xs text-slate-500">Propón tu precio por producto; la empresa puede aceptarlo o rechazarlo.</p>
         <div className="mt-2 flex gap-2">
           <input
             type="number"
