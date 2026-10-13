@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import Layout from '../components/Layout';
 import ProtectedRoute from '../components/ProtectedRoute';
 import { EmptyState } from '../components/ui';
 import { useAuth } from '../auth/AuthContext';
-import { createTicket, requestPayment, useOrder } from '../data/account';
+import { createReturn, createTicket, fetchReturns, requestPayment, useOrder, RETURN_REASONS, type ReturnRequest } from '../data/account';
 import {
   clp,
   formatAddress,
@@ -297,10 +297,27 @@ function Detail() {
               </>
             )}
           </section>
+
+          <ReturnsSection orderId={order.id} buyerId={user?.id} items={order.items} canReturn={['delivered', 'shipped'].includes(order.status)} />
         </div>
 
         <aside className="bg-white rounded-2xl border border-slate-200 p-5 h-fit text-sm">
           <h2 className="font-bold text-brand-950">Entrega</h2>
+          {order.fulfillment === 'pickup' ? (
+            <>
+              <p className="mt-2 font-semibold">Retiro en bodega</p>
+              <p className="text-slate-600">
+                {order.pickup_warehouse ? `${order.pickup_warehouse.code} · ${order.pickup_warehouse.name} (${order.pickup_warehouse.city})` : 'Bodega por asignar'}
+              </p>
+              {order.pickup_code && (
+                <p className="mt-2 inline-block font-mono font-extrabold text-lg bg-brand-50 border border-slate-200 rounded-lg px-3 py-1.5">
+                  {order.pickup_code}
+                </p>
+              )}
+              <p className="mt-1 text-xs text-slate-500">Presenta este código al retirar. {order.ship_recipient_name}</p>
+            </>
+          ) : (
+          <>
           <p className="mt-2 font-semibold">{order.ship_recipient_name}</p>
           <p className="text-slate-600">{formatAddress({
             street_name: order.ship_street_name,
@@ -311,6 +328,8 @@ function Detail() {
             region: order.ship_region,
             postal_code: order.ship_postal_code,
           })}</p>
+          </>
+          )}
           <h2 className="mt-6 pt-4 border-t border-slate-100 font-bold text-brand-950">¿Necesitas ayuda?</h2>
           <Link to="/ayuda" className="text-brand-900 font-semibold underline">
             Abrir un ticket de soporte
@@ -318,5 +337,92 @@ function Detail() {
         </aside>
       </div>
     </Layout>
+  );
+}
+
+const RETURN_STATUS: Record<string, string> = {
+  requested: 'Solicitada',
+  approved: 'Aprobada',
+  rejected: 'Rechazada',
+  completed: 'Completada',
+};
+
+function ReturnsSection({ orderId, buyerId, items, canReturn }: {
+  orderId: string;
+  buyerId: string | undefined;
+  items: { id: string; product: { title: string } | null; quantity: number }[];
+  canReturn: boolean;
+}) {
+  const [returns, setReturns] = useState<ReturnRequest[]>([]);
+  const [itemId, setItemId] = useState('');
+  const [reason, setReason] = useState('damaged');
+  const [message, setMessage] = useState('');
+  const [msg, setMsg] = useState<string | null>(null);
+
+  const refresh = () => {
+    fetchReturns(orderId).then(setReturns).catch(() => undefined);
+  };
+  useEffect(refresh, [orderId]);
+
+  if (!canReturn && returns.length === 0) return null;
+
+  return (
+    <section className="bg-white rounded-2xl border border-slate-200 p-5">
+      <h2 className="font-bold text-brand-950">↩️ Devoluciones</h2>
+      {returns.length > 0 && (
+        <ul className="mt-2 space-y-2 text-sm">
+          {returns.map((r) => (
+            <li key={r.id} className="flex flex-wrap justify-between gap-2 rounded-xl border border-slate-200 p-3">
+              <span>
+                {items.find((i) => i.id === r.order_item_id)?.product?.title ?? 'Pedido completo'} ·{' '}
+                {RETURN_REASONS.find(([v]) => v === r.reason)?.[1] ?? r.reason}
+              </span>
+              <span className="text-xs font-bold uppercase tracking-wider text-brand-950 bg-slate-100 rounded-full px-2.5 py-0.5">
+                {RETURN_STATUS[r.status] ?? r.status}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+      {canReturn && buyerId && (
+        <form
+          className="mt-3 grid gap-2 sm:grid-cols-[1fr_180px_auto]"
+          onSubmit={(e) => {
+            e.preventDefault();
+            const cleanMsg = message.trim().slice(0, 500) || null;
+            createReturn({ orderId, orderItemId: itemId || null, buyerId, reason, message: cleanMsg })
+              .then(() => {
+                setMessage('');
+                setItemId('');
+                setMsg('Solicitud enviada. Te avisaremos la decisión.');
+                refresh();
+              })
+              .catch(() => setMsg('No se pudo enviar la solicitud.'));
+          }}
+        >
+          <select className="field-input" value={itemId} onChange={(e) => setItemId(e.target.value)} aria-label="Ítem a devolver">
+            <option value="">Pedido completo</option>
+            {items.map((i) => (
+              <option key={i.id} value={i.id}>{i.product?.title ?? 'Producto'} × {i.quantity}</option>
+            ))}
+          </select>
+          <select className="field-input" value={reason} onChange={(e) => setReason(e.target.value)} aria-label="Motivo">
+            {RETURN_REASONS.map(([v, l]) => (
+              <option key={v} value={v}>{l}</option>
+            ))}
+          </select>
+          <button className="rounded-lg border border-slate-300 px-4 font-semibold">Solicitar</button>
+          <input
+            className="field-input sm:col-span-3"
+            maxLength={500}
+            placeholder="Detalle opcional (qué llegó mal, fotos disponibles…)"
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            aria-label="Detalle"
+          />
+        </form>
+      )}
+      {msg && <p className="mt-2 text-sm text-slate-600">{msg}</p>}
+    </section>
   );
 }

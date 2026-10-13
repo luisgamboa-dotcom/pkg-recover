@@ -32,6 +32,7 @@ import AdminUsers from './pages/admin/AdminUsers';
 import AdminMessages from './pages/admin/AdminMessages';
 import CompanyPage from './pages/CompanyPage';
 import Certificate from './pages/Certificate';
+import Tracking from './pages/Tracking';
 
 const AdminReports = lazy(() => import('./pages/admin/AdminReports'));
 
@@ -53,6 +54,8 @@ export default function App() {
             <Route path="/pedidos/:id" element={<OrderDetail />} />
             <Route path="/pedidos/:id/certificado" element={<Certificate />} />
             <Route path="/empresas/:id" element={<CompanyPage />} />
+            <Route path="/seguimiento" element={<Tracking />} />
+            <Route path="/seguimiento/:codigo" element={<Tracking />} />
             <Route path="/favoritos" element={<Favorites />} />
             <Route path="/cuenta" element={<Profile />} />
             <Route path="/ayuda" element={<Help />} />

@@ -60,6 +60,11 @@ export default function Footer() {
               </Link>
             </li>
             <li>
+              <Link to="/seguimiento" className="text-white/85 hover:text-white hover:underline">
+                Rastrear pedido
+              </Link>
+            </li>
+            <li>
               <Link to="/ayuda" className="text-white/85 hover:text-white hover:underline">
                 FAQ
               </Link>

@@ -5,6 +5,7 @@ import ProtectedRoute from '../components/ProtectedRoute';
 import { EmptyState, PageHeader } from '../components/ui';
 import { useAuth } from '../auth/AuthContext';
 import { useCart } from '../lib/cart';
+import { requireSupabase, isSupabaseConfigured } from '../lib/supabase';
 import { fetchTiers, tierPrice, useProductsByIds, type PriceTier } from '../data/shop';
 import {
   createOrder,
@@ -72,6 +73,9 @@ function CheckoutForm() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [addrOpen, setAddrOpen] = useState(false);
+  const [fulfillment, setFulfillment] = useState<'delivery' | 'pickup'>('delivery');
+  const [warehouses, setWarehouses] = useState<{ id: string; code: string; name: string; city: string }[]>([]);
+  const [pickupWarehouseId, setPickupWarehouseId] = useState('');
 
   const lines = items
     .map((i) => ({ item: i, product: map[i.productId] }))
@@ -86,13 +90,28 @@ function CheckoutForm() {
     (a, l) => a + Number(l.product!.total_weight_kg ?? 0) * l.item.qty,
     0,
   );
-  // Flete dinámico por ciudad + peso (matriz shipping_rates).
+  // Flete dinámico por ciudad + peso (matriz shipping_rates). Retiro: gratis.
   const [shipping, setShipping] = useState(FLAT_SHIPPING_CLP);
 
   useEffect(() => {
+    if (!isSupabaseConfigured) return;
+    requireSupabase()
+      .from('warehouses')
+      .select('id, code, name, city')
+      .order('code')
+      .then(({ data }) => {
+        if (data) setWarehouses(data as any[]);
+      });
+  }, []);
+
+  useEffect(() => {
+    if (fulfillment === 'pickup') {
+      setShipping(0);
+      return;
+    }
     quoteShipping(city, totalKg).then(setShipping).catch(() => undefined);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [city, totalKg]);
+  }, [city, totalKg, fulfillment]);
 
   const t = totals(subtotal, shipping);
   const selectedMethod = paymentMethods.find((m) => m.id === paymentId);
@@ -121,6 +140,61 @@ function CheckoutForm() {
     setError(null);
     if (lines.length === 0) {
       setError('El carrito está vacío o los productos ya no están disponibles.');
+      return;
+    }
+    // Retiro en bodega: solo receptor + teléfono + bodega; el snapshot
+    // usa la dirección de la bodega (no hay despacho a domicilio).
+    if (fulfillment === 'pickup') {
+      const cleanName = sanitizeText(recipient, 150);
+      const cleanPhone = sanitizeText(phone, LIMITS.phone);
+      const wh = warehouses.find((w) => w.id === pickupWarehouseId);
+      const pickErr =
+        checkRequired(cleanName, 'Quien retira', 2, 150) ??
+        checkPhone(cleanPhone) ??
+        (wh ? null : 'Selecciona la bodega de retiro.');
+      if (pickErr) {
+        setError(pickErr);
+        return;
+      }
+      if (!paymentId) {
+        setError('Selecciona un método de pago.');
+        return;
+      }
+      setBusy(true);
+      try {
+        const orderId = await createOrder({
+          buyerId: user.id,
+          paymentMethodId: paymentId,
+          shippingCost: 0,
+          taxAmount: t.tax,
+          fulfillment: 'pickup',
+          pickupWarehouseId: wh!.id,
+          ship: {
+            recipient: cleanName,
+            phone: cleanPhone,
+            streetName: 'Retiro en bodega',
+            streetNumber: wh!.code,
+            apartment: '',
+            commune: wh!.city,
+            city: wh!.city,
+            region: wh!.city,
+            postalCode: '',
+            notes: `Retiro en ${wh!.name}`,
+            addressId: addressId || null,
+          },
+          items: lines.map((l) => ({
+            productId: l.product!.id,
+            qty: l.item.qty,
+            unitPrice: priceFor(l.product!.id, l.item.qty, l.product!.base_price),
+          })),
+        });
+        clear();
+        navigate(`/pedidos/${orderId}`, { replace: true });
+      } catch (err) {
+        setError(errorMessage(err));
+      } finally {
+        setBusy(false);
+      }
       return;
     }
     // Sanitiza primero: lo limpio es lo que se valida y lo que se guarda.
@@ -231,7 +305,81 @@ function CheckoutForm() {
         <form onSubmit={onSubmit} className="grid gap-6 lg:grid-cols-[1fr_320px]">
           <div className="space-y-6">
             <section className="bg-white rounded-2xl border border-slate-200 p-5">
-              <h2 className="font-bold text-brand-950">📦 Dirección de envío</h2>
+              <h2 className="font-bold text-brand-950">📦 Entrega</h2>
+              <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                <label className={`block rounded-xl border p-3 cursor-pointer ${fulfillment === 'delivery' ? 'border-brand-900 bg-brand-50' : 'border-slate-200'}`}>
+                  <span className="flex items-center gap-2 font-semibold text-sm">
+                    <input
+                      type="radio"
+                      name="fulfillment"
+                      className="accent-[#1a365d]"
+                      checked={fulfillment === 'delivery'}
+                      onChange={() => setFulfillment('delivery')}
+                    />
+                    Despacho a domicilio
+                  </span>
+                  <span className="block mt-1 text-xs text-slate-500">Flete según ciudad y peso.</span>
+                </label>
+                <label className={`block rounded-xl border p-3 cursor-pointer ${fulfillment === 'pickup' ? 'border-brand-900 bg-brand-50' : 'border-slate-200'}`}>
+                  <span className="flex items-center gap-2 font-semibold text-sm">
+                    <input
+                      type="radio"
+                      name="fulfillment"
+                      className="accent-[#1a365d]"
+                      checked={fulfillment === 'pickup'}
+                      onChange={() => setFulfillment('pickup')}
+                    />
+                    Retiro en bodega · gratis
+                  </span>
+                  <span className="block mt-1 text-xs text-slate-500">Te damos un código de retiro.</span>
+                </label>
+              </div>
+
+              {fulfillment === 'pickup' ? (
+                <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                  <div>
+                    <label className="field-label" htmlFor="pk-recipient">Quien retira</label>
+                    <input
+                      id="pk-recipient"
+                      className="field-input"
+                      maxLength={150}
+                      placeholder="Nombre y apellido"
+                      value={recipient}
+                      onChange={(e) => setRecipient(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label className="field-label" htmlFor="pk-phone">Teléfono</label>
+                    <input
+                      id="pk-phone"
+                      type="tel"
+                      className="field-input"
+                      maxLength={LIMITS.phone}
+                      placeholder="+56 9 1234 5678"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                    />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="field-label" htmlFor="pk-wh">Bodega</label>
+                    <select
+                      id="pk-wh"
+                      className="field-input"
+                      value={pickupWarehouseId}
+                      onChange={(e) => setPickupWarehouseId(e.target.value)}
+                    >
+                      <option value="">Selecciona bodega…</option>
+                      {warehouses.map((w) => (
+                        <option key={w.id} value={w.id}>
+                          {w.code} · {w.name} ({w.city})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              ) : (
+              <>
+              <h3 className="mt-4 font-semibold text-brand-950 text-sm">Dirección de envío</h3>
               {addresses.length > 0 && (
                 <select
                   className="field-input mt-3"
@@ -301,6 +449,8 @@ function CheckoutForm() {
                   setAddrOpen(false);
                 }}
               />
+              </>
+              )}
             </section>
 
             <section className="bg-white rounded-2xl border border-slate-200 p-5">
@@ -390,7 +540,7 @@ function CheckoutForm() {
                 <dd className="font-semibold whitespace-nowrap">{clp(t.subtotal)}</dd>
               </div>
               <div className="flex justify-between gap-2">
-                <dt className="text-slate-500">Envío <span className="text-xs">({city} · {Math.round(totalKg)} kg)</span></dt>
+                <dt className="text-slate-500">Envío <span className="text-xs">{fulfillment === 'pickup' ? '(retiro en bodega)' : `(${city} · ${Math.round(totalKg)} kg)`}</span></dt>
                 <dd className="font-semibold whitespace-nowrap">{clp(t.shipping)}</dd>
               </div>
               <div className="flex justify-between gap-2">

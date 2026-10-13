@@ -4,7 +4,7 @@ import AdminLayout from '../../components/AdminLayout';
 import { RequireAdmin } from '../../components/RequireRole';
 import { EmptyState, PageHeader } from '../../components/ui';
 import { useAuth } from '../../auth/AuthContext';
-import { useOrder } from '../../data/account';
+import { useOrder, fetchReturns, updateReturnStatus } from '../../data/account';
 import { clp, formatDate, orderStatusLabel } from '../../lib/format';
 import { addShipmentEvent, saveShipment, updateOrderStatus } from '../../data/admin';
 import { errorMessage,  sanitizeText } from '../../lib/validation';
@@ -146,6 +146,62 @@ function Detail() {
           </form>
         </section>
       </div>
+
+      <AdminReturns orderId={order.id} />
     </>
+  );
+}
+
+function AdminReturns({ orderId }: { orderId: string }) {
+  const [items, setItems] = useState<{ id: string; reason: string; message: string | null; status: string; created_at: string }[]>([]);
+  const [msg, setMsg] = useState<string | null>(null);
+
+  const refresh = () => {
+    fetchReturns(orderId).then(setItems).catch(() => undefined);
+  };
+  useEffect(refresh, [orderId]);
+
+  if (items.length === 0) return null;
+
+  const decide = (id: string, status: 'approved' | 'rejected' | 'completed') => {
+    updateReturnStatus(id, status)
+      .then(() => refresh())
+      .catch((err) => setMsg(errorMessage(err)));
+  };
+
+  return (
+    <section className="mt-4 bg-white rounded-2xl border border-slate-200 p-5">
+      <h2 className="font-bold text-brand-950">Devoluciones solicitadas</h2>
+      {msg && <p className="mt-2 text-sm text-slate-600">{msg}</p>}
+      <ul className="mt-2 space-y-2 text-sm">
+        {items.map((r) => (
+          <li key={r.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200 p-3">
+            <span>
+              {r.reason} · {formatDate(r.created_at)}
+              {r.message && <span className="block text-slate-500">{r.message}</span>}
+            </span>
+            {r.status === 'requested' ? (
+              <span className="flex gap-2">
+                <button onClick={() => decide(r.id, 'approved')} className="rounded-lg bg-emerald-700 text-white px-4 py-1.5 font-semibold hover:bg-emerald-800">
+                  Aprobar
+                </button>
+                <button onClick={() => decide(r.id, 'rejected')} className="rounded-lg border border-slate-300 px-4 py-1.5 font-semibold">
+                  Rechazar
+                </button>
+              </span>
+            ) : (
+              <span className="flex items-center gap-2">
+                <span className="text-xs font-bold uppercase tracking-wider bg-slate-100 rounded-full px-2.5 py-0.5">{r.status}</span>
+                {r.status === 'approved' && (
+                  <button onClick={() => decide(r.id, 'completed')} className="rounded-lg border border-slate-300 px-4 py-1.5 font-semibold">
+                    Marcar reembolsada
+                  </button>
+                )}
+              </span>
+            )}
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }

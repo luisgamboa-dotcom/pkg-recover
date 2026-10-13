@@ -31,6 +31,9 @@ export interface Order {
   ship_commune: string;
   ship_region: string;
   ship_postal_code: string | null;
+  fulfillment: string;
+  pickup_code: string | null;
+  pickup_warehouse: { code: string; name: string; city: string } | null;
   items: OrderItem[];
 }
 
@@ -70,7 +73,8 @@ export interface PaymentMethod {
 
 const ORDER_SELECT = `
   id, order_number, status, subtotal, shipping_cost, tax_amount, total,
-  currency, carrier, created_at,
+  currency, carrier, created_at, fulfillment, pickup_code,
+  pickup_warehouse:warehouses (code, name, city),
   ship_recipient_name, ship_city,
   ship_street_name, ship_street_number, ship_apartment, ship_commune,
   ship_region, ship_postal_code,
@@ -99,6 +103,9 @@ export function toOrder(r: any): Order {
     ship_commune: r.ship_commune,
     ship_region: r.ship_region,
     ship_postal_code: r.ship_postal_code ?? null,
+    fulfillment: r.fulfillment ?? 'delivery',
+    pickup_code: r.pickup_code ?? null,
+    pickup_warehouse: r.pickup_warehouse ?? null,
     items: (r.order_items ?? []).map((i: any) => ({
       id: i.id,
       quantity: i.quantity,
@@ -215,6 +222,8 @@ export interface NewOrderInput {
   paymentMethodId: string;
   shippingCost: number;
   taxAmount: number;
+  fulfillment?: 'delivery' | 'pickup';
+  pickupWarehouseId?: string | null;
   ship: {
     recipient: string;
     phone: string;
@@ -243,6 +252,8 @@ export async function createOrder(input: NewOrderInput): Promise<string> {
       tax_amount: input.taxAmount,
       currency: 'CLP',
       payment_method_id: input.paymentMethodId,
+      fulfillment: input.fulfillment ?? 'delivery',
+      pickup_warehouse_id: input.pickupWarehouseId ?? null,
       shipping_address_id: input.ship.addressId,
       ship_recipient_name: input.ship.recipient,
       ship_phone: input.ship.phone,
@@ -756,4 +767,58 @@ export function useMyImpact(userId: string | undefined) {
     })().catch(() => setLoading(false));
   }, [userId]);
   return { impact, loading };
+}
+
+export const RETURN_REASONS: [string, string][] = [
+  ['damaged', 'Llegó dañado'],
+  ['wrong_item', 'Producto equivocado'],
+  ['not_as_described', 'No coincide con la descripción'],
+  ['changed_mind', 'Me arrepentí'],
+  ['other', 'Otro motivo'],
+];
+
+export interface ReturnRequest {
+  id: string;
+  order_id: string;
+  order_item_id: string | null;
+  reason: string;
+  message: string | null;
+  status: string;
+  created_at: string;
+}
+
+export async function fetchReturns(orderId: string): Promise<ReturnRequest[]> {
+  const { data, error } = await requireSupabase()
+    .from('returns')
+    .select('id, order_id, order_item_id, reason, message, status, created_at')
+    .eq('order_id', orderId)
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  return (data ?? []) as ReturnRequest[];
+}
+
+export async function createReturn(input: {
+  orderId: string;
+  orderItemId: string | null;
+  buyerId: string;
+  reason: string;
+  message: string | null;
+}) {
+  const { error } = await requireSupabase().from('returns').insert({
+    order_id: input.orderId,
+    order_item_id: input.orderItemId,
+    buyer_id: input.buyerId,
+    reason: input.reason,
+    message: input.message,
+  });
+  if (error) throw error;
+}
+
+export async function updateReturnStatus(id: string, status: 'approved' | 'rejected' | 'completed') {
+  const { error } = await requireSupabase()
+    .from('returns')
+    .update({ status })
+    .eq('id', id)
+    .eq('status', status === 'completed' ? 'approved' : 'requested');
+  if (error) throw error;
 }

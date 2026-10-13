@@ -142,3 +142,16 @@ FASE B — COMPRA AVANZADA (2026-10-08, sin commitear)
     ofertas recibidas en /empresa; crear/cerrar subasta en admin.
 31. [SIGUIENTE] Fase C (tracking público, retiro en bodega, devoluciones),
     Fase D (auditoría, PWA/push), confetti + dark-mode admin.
+
+FASE C — POST-COMPRA (2026-10-13, sin commitear)
+------------------------------------------------
+32. [PENDIENTE APLICAR BD] Migración 19
+    (supabase/migrations/2026090819_post_purchase.sql):
+    fulfillment + pickup_code en orders, returns + avisos,
+    v_tracking_public, execute en convert_offer_to_order. Aplicar en
+    Supabase ANTES de probar.
+33. [HECHO código] /seguimiento público (código manual o URL), retiro en
+    bodega en checkout (gratis + código RP-R-######), devoluciones en
+    detalle (solicitud) y admin (aprobar/rechazar/reembolsar), código de
+    retiro visible en pedido, link en footer.
+34. [SIGUIENTE] Fase D (auditoría, PWA/push), confetti + dark-mode admin.
